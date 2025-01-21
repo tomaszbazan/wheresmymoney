@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: WheresMyMoney
+  datasource:
+    driver-class-name: org.postgresql.Driver
