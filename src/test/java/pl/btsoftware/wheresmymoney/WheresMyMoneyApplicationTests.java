@@ -1,9 +1,9 @@
 package pl.btsoftware.wheresmymoney;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import pl.btsoftware.wheresmymoney.configuration.IntegrationTest;
 
-@SpringBootTest
+@IntegrationTest
 class WheresMyMoneyApplicationTests {
 
 	@Test
