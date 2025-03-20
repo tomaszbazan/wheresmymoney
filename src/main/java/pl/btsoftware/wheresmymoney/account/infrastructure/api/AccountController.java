@@ -3,10 +3,7 @@ package pl.btsoftware.wheresmymoney.account.infrastructure.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.wheresmymoney.account.AccountModuleFacade;
 
 @RestController
@@ -23,5 +20,11 @@ public class AccountController {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> createAccount(@RequestBody CreateAccountRequest request) {
+        accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand(request.name()));
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }
