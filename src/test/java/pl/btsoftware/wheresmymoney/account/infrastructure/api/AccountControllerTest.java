@@ -76,4 +76,17 @@ public class AccountControllerTest {
                          .contentType(MediaType.APPLICATION_JSON))
                  .andExpect(status().isInternalServerError());
      }
+
+    @Test
+    void shouldCreateAccount() throws Exception {
+        CreateAccountRequest request = new CreateAccountRequest("New Account");
+        String json = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(post("/api/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isCreated());
+
+        verify(accountModuleFacade).createAccount(new AccountModuleFacade.CreateAccountCommand("New Account"));
+    }
 }
