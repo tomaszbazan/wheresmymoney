@@ -1,6 +1,7 @@
 package pl.btsoftware.wheresmymoney.configuration;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.lang.annotation.ElementType;
@@ -12,5 +13,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @ContextConfiguration(initializers = TestcontainersInitializer.class)
 @SpringBootTest
+@ActiveProfiles("integration-test")
 public @interface IntegrationTest {
 }

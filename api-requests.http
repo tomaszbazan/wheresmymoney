@@ -1,0 +1,51 @@
+### Variables
+@host = http://{{host}}/api
+@accountId = replace-with-account-id
+@expenseId = replace-with-expense-id
+
+### Get All Accounts
+GET {{host}}/accounts
+
+### Create Account
+POST {{host}}/accounts
+Content-Type: application/json
+
+{
+  "name": "My Checking Account"
+}
+
+### Get All Expenses
+GET {{host}}/expenses
+
+### Get Expense by ID
+GET {{host}}/expenses/{{expenseId}}
+
+### Get Expenses by Account ID
+GET {{host}}/expenses/account/{{accountId}}
+
+### Create Expense
+POST {{host}}/expenses
+Content-Type: application/json
+
+{
+  "accountId": "{{accountId}}",
+  "amount": 100.50,
+  "description": "Grocery shopping",
+  "date": "2023-05-15T14:30:00"
+}
+
+### Update Expense
+PUT {{host}}/expenses/{{expenseId}}
+Content-Type: application/json
+
+{
+  "amount": 120.75,
+  "description": "Updated grocery shopping",
+  "date": "2023-05-15T15:45:00"
+}
+
+### Delete Expense
+DELETE {{host}}/expenses/{{expenseId}}
+
+### Delete Account
+DELETE {{host}}/accounts/{{accountId}}

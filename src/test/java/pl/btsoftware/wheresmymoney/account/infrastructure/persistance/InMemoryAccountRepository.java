@@ -1,5 +1,6 @@
 package pl.btsoftware.wheresmymoney.account.infrastructure.persistance;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.wheresmymoney.account.domain.Account;
 import pl.btsoftware.wheresmymoney.account.domain.AccountId;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
+@Profile("test")
 public class InMemoryAccountRepository implements AccountRepository {
     private final HashMap<UUID, Account> database = new HashMap<>();
 
