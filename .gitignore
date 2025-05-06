@@ -33,3 +33,7 @@ pom.xml
 
 /src/.DS_Store
 .DS_Store
+
+### AI ###
+.aider*
+.qodo/
