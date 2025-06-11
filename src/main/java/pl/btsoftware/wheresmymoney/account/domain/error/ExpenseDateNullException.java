@@ -1,7 +1,7 @@
 package pl.btsoftware.wheresmymoney.account.domain.error;
 
 /**
- * Exception thrown when an expense date is null.
+ * Exception thrown when an expense createdAt is null.
  */
 public class ExpenseDateNullException extends BusinessException {
     private static final String ERROR_CODE = "EXPENSE_DATE_NULL";

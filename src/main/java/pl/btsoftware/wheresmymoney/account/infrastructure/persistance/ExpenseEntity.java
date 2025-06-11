@@ -3,61 +3,48 @@ package pl.btsoftware.wheresmymoney.account.infrastructure.persistance;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import pl.btsoftware.wheresmymoney.account.domain.Expense;
 import pl.btsoftware.wheresmymoney.account.domain.ExpenseId;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "expense")
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 public class ExpenseEntity {
     @Id
     private UUID id;
-    
-//    @Column(name = "account_id")
-//    private UUID accountId;
-//
-//    private BigDecimal amount;
-//
-//    private String description;
-//
-//    private LocalDateTime date;
-    
-    // JPA requires a default constructor
-    protected ExpenseEntity() {
-    }
-    
-    public ExpenseEntity(UUID id, UUID accountId, BigDecimal amount, String description, LocalDateTime date) {
-        this.id = id;
-//        this.accountId = accountId;
-//        this.amount = amount;
-//        this.description = description;
-//        this.date = date;
-    }
-    
+    private UUID accountId;
+    private BigDecimal amount;
+    private String currency;
+    private String description;
+    private OffsetDateTime createdAt;
+
     public static ExpenseEntity fromDomain(Expense expense) {
         return new ExpenseEntity(
-            expense.id().value(),
-            expense.accountId().value(),
-            expense.amount(),
-            expense.description(),
-            expense.date()
-        );
-    }
-    
-    public Expense toDomain() {
-        return new Expense(
-            ExpenseId.from(id),
-            null, null, null, null
-//            AccountId.from(accountId),
-//            amount,
-//            description,
-//            date
+                expense.id().value(),
+                expense.accountId().value(),
+                expense.amount().amount(),
+                expense.amount().currency(),
+                expense.description(),
+                expense.createdAt()
         );
     }
 
+    public Expense toDomain() {
+        return new Expense(
+                ExpenseId.from(id),
+                pl.btsoftware.wheresmymoney.account.domain.AccountId.from(accountId),
+                new pl.btsoftware.wheresmymoney.account.domain.Money(amount, currency),
+                description,
+                createdAt
+        );
+    }
 }

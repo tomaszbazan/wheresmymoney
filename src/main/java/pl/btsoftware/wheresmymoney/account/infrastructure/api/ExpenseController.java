@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.wheresmymoney.account.AccountModuleFacade;
 import pl.btsoftware.wheresmymoney.account.AccountModuleFacade.CreateExpenseCommand;
 import pl.btsoftware.wheresmymoney.account.AccountModuleFacade.UpdateExpenseCommand;
+import pl.btsoftware.wheresmymoney.account.domain.error.BusinessException;
 
 import java.util.UUID;
 
@@ -19,11 +20,6 @@ public class ExpenseController {
     private static final Logger logger = LoggerFactory.getLogger(ExpenseController.class);
     private final AccountModuleFacade accountModuleFacade;
 
-    @GetMapping
-    public ExpensesView getExpenses() {
-        logger.info("Received request to get all expenses");
-        return ExpensesView.from(accountModuleFacade.getExpenses());
-    }
 
     @GetMapping("/{id}")
     public ExpenseView getExpense(@PathVariable UUID id) {
@@ -31,22 +27,28 @@ public class ExpenseController {
         return ExpenseView.from(accountModuleFacade.getExpense(id));
     }
 
-    @GetMapping("/account/{accountId}")
-    public ExpensesView getExpensesByAccountId(@PathVariable UUID accountId) {
-        logger.info("Received request to get expenses for account with id: {}", accountId);
-        return ExpensesView.from(accountModuleFacade.getExpensesByAccountId(accountId));
+    @GetMapping
+    public ExpensesView searchExpense(@RequestParam(required = false) UUID accountId) {
+        if (accountId != null) {
+            logger.info("Received request to get expenses for account with id: {}", accountId);
+            return ExpensesView.from(accountModuleFacade.getExpensesByAccountId(accountId));
+        } else {
+            logger.info("Received request to get all expenses");
+            return ExpensesView.from(accountModuleFacade.getExpenses());
+        }
     }
 
     @PostMapping
     public ResponseEntity<ExpenseView> createExpense(@RequestBody CreateExpenseRequest request) {
-        logger.info("Received request to create expense for account with id: {}, amount: {}, description: {}", 
-            request.accountId(), request.amount(), request.description());
+        logger.info("Received request to create expense for account with id: {}, amount: {}, description: {}, currency: {}",
+                request.accountId(), request.amount(), request.description(), request.currency());
         var expense = accountModuleFacade.createExpense(
             new CreateExpenseCommand(
                 request.accountId(),
                 request.amount(),
                 request.description(),
-                request.date()
+                    request.date(),
+                    request.currency()
             )
         );
         return new ResponseEntity<>(ExpenseView.from(expense), HttpStatus.CREATED);
@@ -81,6 +83,12 @@ public class ExpenseController {
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
         logger.warn("Illegal argument exception occurred: {}", ex.getMessage(), ex);
         return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<String> handleBusinessException(BusinessException ex) {
+        logger.error("Business exception occurred: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     @ExceptionHandler(RuntimeException.class)

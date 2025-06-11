@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record AccountView(UUID id, String name, BigDecimal balance, String currency) {
     public static AccountView from(Account account) {
-        return new AccountView(account.id().value(), account.name(), BigDecimal.ZERO, "PLN");
+        var balance = account.balance();
+        return new AccountView(account.id().value(), account.name(), balance.amount(), balance.currency());
     }
 }
