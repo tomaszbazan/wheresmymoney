@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.wheresmymoney.account.infrastructure.persistance.AccountFixture;
 import pl.btsoftware.wheresmymoney.configuration.IntegrationTest;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -103,8 +104,63 @@ public class AccountControllerTest {
                 .andExpect(jsonPath("$.accounts", hasSize(0)));
     }
 
-    private String createAccount(String Savings_Account) throws Exception {
-        var createAccountRequest = new CreateAccountRequest(Savings_Account);
+    @Test
+    void shouldCreateAccountWithDifferentCurrencies() throws Exception {
+        // given
+        var createAccountRequestEUR = new CreateAccountRequest("EUR Account", "EUR");
+        var createAccountRequestUSD = new CreateAccountRequest("USD Account", "USD");
+        var createAccountRequestGBP = new CreateAccountRequest("GBP Account", "GBP");
+
+        // when & then - EUR account
+        mockMvc.perform(post("/api/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createAccountRequestEUR)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.name").value("EUR Account"))
+                .andExpect(jsonPath("$.balance").value(0))
+                .andExpect(jsonPath("$.currency").value("EUR"));
+
+        // when & then - USD account
+        mockMvc.perform(post("/api/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createAccountRequestUSD)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.name").value("USD Account"))
+                .andExpect(jsonPath("$.balance").value(0))
+                .andExpect(jsonPath("$.currency").value("USD"));
+
+        // when & then - GBP account
+        mockMvc.perform(post("/api/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createAccountRequestGBP)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.name").value("GBP Account"))
+                .andExpect(jsonPath("$.balance").value(0))
+                .andExpect(jsonPath("$.currency").value("GBP"));
+    }
+
+    @Test
+    void shouldReturnErrorWhenCreatingAccountWithUnsupportedCurrency() throws Exception {
+        // given
+        var createAccountRequest = new CreateAccountRequest("JPY Account", "JPY");
+
+        // when & then
+        mockMvc.perform(post("/api/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createAccountRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Invalid currency")));
+    }
+
+    private String createAccount(String accountName) throws Exception {
+        return createAccount(accountName, "PLN");
+    }
+
+    private String createAccount(String accountName, String currency) throws Exception {
+        var createAccountRequest = new CreateAccountRequest(accountName, currency);
         var createAccountResponse = mockMvc.perform(post("/api/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createAccountRequest)))

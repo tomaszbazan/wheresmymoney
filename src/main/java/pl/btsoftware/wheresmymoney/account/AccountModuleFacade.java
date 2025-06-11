@@ -2,13 +2,10 @@ package pl.btsoftware.wheresmymoney.account;
 
 import lombok.AllArgsConstructor;
 import pl.btsoftware.wheresmymoney.account.application.AccountService;
-import pl.btsoftware.wheresmymoney.account.domain.Account;
-import pl.btsoftware.wheresmymoney.account.domain.AccountId;
-import pl.btsoftware.wheresmymoney.account.domain.Expense;
-import pl.btsoftware.wheresmymoney.account.domain.ExpenseId;
+import pl.btsoftware.wheresmymoney.account.domain.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,19 +45,18 @@ public class AccountModuleFacade {
         return accountService.getExpensesByAccountId(accountId);
     }
 
-    public record CreateAccountCommand(String name) {
-        public CreateAccountCommand {
-            if (name == null || name.isBlank()) {
-                throw new IllegalArgumentException("Account name cannot be null or blank");
-            }
+    public record CreateAccountCommand(String name, String currency) {
+        public CreateAccountCommand(String name) {
+            this(name, Money.DEFAULT_CURRENCY);
         }
 
         public Account toDomain() {
-            return new Account(AccountId.generate(), name);
+            return new Account(AccountId.generate(), name, currency);
         }
     }
 
-    public record CreateExpenseCommand(UUID accountId, BigDecimal amount, String description, LocalDateTime date) {
+    public record CreateExpenseCommand(UUID accountId, BigDecimal amount, String description, OffsetDateTime date,
+                                       String currency) {
         public CreateExpenseCommand {
             if (accountId == null) {
                 throw new IllegalArgumentException("Account id cannot be null");
@@ -74,20 +70,27 @@ public class AccountModuleFacade {
             if (date == null) {
                 throw new IllegalArgumentException("Date cannot be null");
             }
+            if (currency == null || currency.isBlank()) {
+                currency = Money.DEFAULT_CURRENCY;
+            }
+        }
+
+        public CreateExpenseCommand(UUID accountId, BigDecimal amount, String description, OffsetDateTime date) {
+            this(accountId, amount, description, date, Money.DEFAULT_CURRENCY);
         }
 
         public Expense toDomain() {
             return new Expense(
-                ExpenseId.generate(),
-                AccountId.from(accountId),
-                amount,
-                description,
-                date
+                    ExpenseId.generate(),
+                    AccountId.from(accountId),
+                    new Money(amount, currency),
+                    description,
+                    date
             );
         }
     }
 
-    public record UpdateExpenseCommand(UUID expenseId, BigDecimal amount, String description, LocalDateTime date) {
+    public record UpdateExpenseCommand(UUID expenseId, BigDecimal amount, String description, OffsetDateTime date) {
         public UpdateExpenseCommand {
             if (expenseId == null) {
                 throw new IllegalArgumentException("Expense id cannot be null");

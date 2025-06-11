@@ -1,20 +1,16 @@
 package pl.btsoftware.wheresmymoney.account.domain;
 
-import pl.btsoftware.wheresmymoney.account.domain.error.AccountIdNullException;
-import pl.btsoftware.wheresmymoney.account.domain.error.ExpenseAmountNullException;
-import pl.btsoftware.wheresmymoney.account.domain.error.ExpenseDateNullException;
-import pl.btsoftware.wheresmymoney.account.domain.error.ExpenseDescriptionEmptyException;
-import pl.btsoftware.wheresmymoney.account.domain.error.ExpenseIdNullException;
+import pl.btsoftware.wheresmymoney.account.domain.error.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record Expense(
     ExpenseId id,
     AccountId accountId,
-    BigDecimal amount,
+    Money amount,
     String description,
-    LocalDateTime date
+    OffsetDateTime createdAt
 ) {
     public Expense {
         if (id == null) {
@@ -29,7 +25,7 @@ public record Expense(
         if (description == null || description.isBlank()) {
             throw new ExpenseDescriptionEmptyException();
         }
-        if (date == null) {
+        if (createdAt == null) {
             throw new ExpenseDateNullException();
         }
     }
@@ -38,20 +34,24 @@ public record Expense(
         if (newAmount == null) {
             throw new ExpenseAmountNullException();
         }
-        return new Expense(id, accountId, newAmount, description, date);
+        return new Expense(id, accountId, amount.withAmount(newAmount), description, createdAt);
     }
 
     public Expense updateDescription(String newDescription) {
         if (newDescription == null || newDescription.isBlank()) {
             throw new ExpenseDescriptionEmptyException();
         }
-        return new Expense(id, accountId, amount, newDescription, date);
+        return new Expense(id, accountId, amount, newDescription, createdAt);
     }
 
-    public Expense updateDate(LocalDateTime newDate) {
+    public Expense updateDate(OffsetDateTime newDate) {
         if (newDate == null) {
             throw new ExpenseDateNullException();
         }
         return new Expense(id, accountId, amount, description, newDate);
+    }
+
+    public Expense updateCurrency(String newCurrency) {
+        return new Expense(id, accountId, amount.withCurrency(newCurrency), description, createdAt);
     }
 }

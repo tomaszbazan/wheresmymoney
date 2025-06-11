@@ -26,8 +26,8 @@ public class AccountController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AccountView createAccount(@RequestBody CreateAccountRequest request) {
-        log.info("Received request to create account with name: {}", request.name());
-        return AccountView.from(accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand(request.name())));
+        log.info("Received request to create account with name: {} and currency: {}", request.name(), request.currency());
+        return AccountView.from(accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand(request.name(), request.currency())));
     }
 
     @PutMapping("/{id}")

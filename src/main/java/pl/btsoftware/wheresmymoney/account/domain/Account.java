@@ -1,20 +1,23 @@
 package pl.btsoftware.wheresmymoney.account.domain;
 
-import pl.btsoftware.wheresmymoney.account.domain.error.AccountNameEmptyException;
-import pl.btsoftware.wheresmymoney.account.domain.error.AccountNameInvalidCharactersException;
-import pl.btsoftware.wheresmymoney.account.domain.error.AccountNameTooLongException;
-import pl.btsoftware.wheresmymoney.account.domain.error.ExpenseIdNullException;
+import pl.btsoftware.wheresmymoney.account.domain.error.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
-public record Account(AccountId id, String name, List<ExpenseId> expenses) {
-    public Account(AccountId id, String name) {
-        this(id, name, new ArrayList<>());
+import static java.time.OffsetDateTime.now;
+import static pl.btsoftware.wheresmymoney.account.domain.Money.zero;
+
+public record Account(AccountId id, String name, Money balance, OffsetDateTime createdAt) {
+    public Account {
+        validateAccountName(name);
     }
 
-    public Account changeName(String newName) {
+    public Account(AccountId id, String name, String currency) {
+        this(id, name, zero(currency), now(ZoneOffset.UTC));
+    }
+
+    private static void validateAccountName(String newName) {
         if (newName == null || newName.isBlank()) {
             throw new AccountNameEmptyException();
         }
@@ -24,28 +27,34 @@ public record Account(AccountId id, String name, List<ExpenseId> expenses) {
         if (!newName.matches("^[a-zA-Z0-9 !@#$%^&*()_+\\-=\\[\\]{}|;:'\",.<>/?]+$")) {
             throw new AccountNameInvalidCharactersException();
         }
-        return new Account(id, newName, expenses);
     }
 
-    public Account addExpense(ExpenseId expenseId) {
-        if (expenseId == null) {
+    public Account changeName(String newName) {
+        validateAccountName(newName);
+        return new Account(id, newName, balance, createdAt);
+    }
+
+    public Account addExpense(Expense expense) {
+        if (expense == null) {
             throw new ExpenseIdNullException();
         }
-        List<ExpenseId> newExpenseIds = new ArrayList<>(expenses);
-        newExpenseIds.add(expenseId);
-        return new Account(id, name, newExpenseIds);
+
+        if (!expense.amount().currency().equals(balance.currency())) {
+            throw new CurrencyMismatchException(expense.amount().currency(), balance.currency());
+        }
+
+        return new Account(id, name, balance.subtract(expense.amount()), createdAt);
     }
 
-    public Account removeExpense(ExpenseId expenseId) {
-        if (expenseId == null) {
+    public Account removeExpense(Expense expense) {
+        if (expense == null) {
             throw new ExpenseIdNullException();
         }
-        List<ExpenseId> newExpenseIds = new ArrayList<>(expenses);
-        newExpenseIds.remove(expenseId);
-        return new Account(id, name, newExpenseIds);
-    }
 
-    public List<ExpenseId> getExpenseIds() {
-        return Collections.unmodifiableList(expenses);
+        if (!expense.amount().currency().equals(balance.currency())) {
+            throw new CurrencyMismatchException(expense.amount().currency(), balance.currency());
+        }
+
+        return new Account(id, name, balance.add(expense.amount()), createdAt);
     }
 }

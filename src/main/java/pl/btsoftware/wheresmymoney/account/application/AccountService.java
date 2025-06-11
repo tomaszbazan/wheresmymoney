@@ -33,12 +33,13 @@ public class AccountService {
 
     public Expense createExpense(AccountModuleFacade.CreateExpenseCommand command) {
         var expense = command.toDomain();
-        expenseRepository.store(expense);
 
-        // Add expense ID to the account
         var account = accountRepository.findById(expense.accountId())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-        var updatedAccount = account.addExpense(expense.id());
+
+        var updatedAccount = account.addExpense(expense);
+
+        expenseRepository.store(expense);
         accountRepository.store(updatedAccount);
 
         return expense;
@@ -71,10 +72,10 @@ public class AccountService {
         var expense = expenseRepository.findById(ExpenseId.from(expenseId))
                 .orElseThrow(() -> new IllegalArgumentException("Expense not found"));
 
-        // Remove expense ID from the account
+        // Remove expense from the account
         var account = accountRepository.findById(expense.accountId())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-        var updatedAccount = account.removeExpense(expense.id());
+        var updatedAccount = account.removeExpense(expense);
         accountRepository.store(updatedAccount);
 
         // Delete the expense

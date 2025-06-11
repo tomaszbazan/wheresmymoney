@@ -1,7 +1,7 @@
 ### Variables
 @host = http://{{host}}/api
-@accountId = replace-with-account-id
-@expenseId = replace-with-expense-id
+@accountId = 46ddbae8-b692-47ab-a2a6-fcf0abd981eb
+@expenseId = 82060f89-61a4-44c1-a75f-8fd698d61469
 
 ### Get All Accounts
 GET {{host}}/accounts
@@ -31,7 +31,7 @@ Content-Type: application/json
   "accountId": "{{accountId}}",
   "amount": 100.50,
   "description": "Grocery shopping",
-  "date": "2023-05-15T14:30:00"
+  "date": "2023-05-15T14:30:00Z"
 }
 
 ### Update Expense
@@ -41,7 +41,7 @@ Content-Type: application/json
 {
   "amount": 120.75,
   "description": "Updated grocery shopping",
-  "date": "2023-05-15T15:45:00"
+  "date": "2023-05-15T15:45:00Z"
 }
 
 ### Delete Expense

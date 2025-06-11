@@ -8,7 +8,6 @@ import pl.btsoftware.wheresmymoney.account.domain.Expense;
 import pl.btsoftware.wheresmymoney.account.domain.ExpenseId;
 import pl.btsoftware.wheresmymoney.account.domain.ExpenseRepository;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,10 +41,9 @@ public class JpaExpenseRepository implements ExpenseRepository {
 
     @Override
     public List<Expense> findByAccountId(AccountId accountId) {
-        return Collections.EMPTY_LIST;
-//        return repository.findByAccountId(accountId.value()).stream()
-//                .map(ExpenseEntity::toDomain)
-//                .collect(Collectors.toList());
+        return repository.findByAccountId(accountId.value()).stream()
+                .map(ExpenseEntity::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

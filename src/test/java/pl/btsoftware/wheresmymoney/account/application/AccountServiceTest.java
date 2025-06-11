@@ -5,9 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.wheresmymoney.account.AccountModuleFacade.CreateAccountCommand;
 import pl.btsoftware.wheresmymoney.account.AccountModuleFacade.CreateExpenseCommand;
-import pl.btsoftware.wheresmymoney.account.AccountModuleFacade.UpdateExpenseCommand;
 import pl.btsoftware.wheresmymoney.account.domain.AccountRepository;
-import pl.btsoftware.wheresmymoney.account.domain.Expense;
 import pl.btsoftware.wheresmymoney.account.domain.ExpenseRepository;
 import pl.btsoftware.wheresmymoney.account.domain.error.AccountNameEmptyException;
 import pl.btsoftware.wheresmymoney.account.domain.error.AccountNotFoundException;
@@ -16,7 +14,7 @@ import pl.btsoftware.wheresmymoney.account.infrastructure.persistance.InMemoryAc
 import pl.btsoftware.wheresmymoney.account.infrastructure.persistance.InMemoryExpenseRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -93,91 +91,6 @@ public class AccountServiceTest {
     }
 
     @Test
-    void shouldAddExpenseIdToAccountWhenExpenseIsCreated() {
-        // given
-        var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
-        var createExpenseCommand = new CreateExpenseCommand(
-                account.id().value(),
-                BigDecimal.valueOf(100),
-                "Test Expense",
-                LocalDateTime.now()
-        );
-
-        // when
-        var expense = accountService.createExpense(createExpenseCommand);
-
-        // then
-        var updatedAccount = accountService.getById(account.id().value());
-        assertThat(updatedAccount.getExpenseIds()).hasSize(1);
-        assertThat(updatedAccount.getExpenseIds().get(0)).isEqualTo(expense.id());
-    }
-
-    @Test
-    void shouldRemoveExpenseIdFromAccountWhenExpenseIsDeleted() {
-        // given
-        var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
-        var createExpenseCommand = new CreateExpenseCommand(
-                account.id().value(),
-                BigDecimal.valueOf(100),
-                "Test Expense",
-                LocalDateTime.now()
-        );
-        var expense = accountService.createExpense(createExpenseCommand);
-
-        // when
-        accountService.deleteExpense(expense.id().value());
-
-        // then
-        var updatedAccount = accountService.getById(account.id().value());
-        assertThat(updatedAccount.getExpenseIds()).isEmpty();
-    }
-
-    @Test
-    void shouldAddMultipleExpenseIdsToAccount() {
-        // given
-        var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
-        var now = LocalDateTime.now();
-
-        // when
-        var expense1 = accountService.createExpense(new CreateExpenseCommand(
-                account.id().value(), BigDecimal.valueOf(100), "Expense 1", now));
-        var expense2 = accountService.createExpense(new CreateExpenseCommand(
-                account.id().value(), BigDecimal.valueOf(200), "Expense 2", now.plusDays(1)));
-        var expense3 = accountService.createExpense(new CreateExpenseCommand(
-                account.id().value(), BigDecimal.valueOf(300), "Expense 3", now.plusDays(2)));
-
-        // then
-        var updatedAccount = accountService.getById(account.id().value());
-        assertThat(updatedAccount.getExpenseIds()).hasSize(3)
-                .containsExactlyInAnyOrder(expense1.id(), expense2.id(), expense3.id());
-    }
-
-    @Test
-    void shouldNotAffectAccountWhenUpdatingExpense() {
-        // given
-        var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
-        var expense = accountService.createExpense(new CreateExpenseCommand(
-                account.id().value(), 
-                BigDecimal.valueOf(100), 
-                "Original Description", 
-                LocalDateTime.now()));
-        var accountBeforeUpdate = accountService.getById(account.id().value());
-
-        // when
-        var updatedExpense = accountService.updateExpense(new UpdateExpenseCommand(
-                expense.id().value(),
-                BigDecimal.valueOf(200),
-                "Updated Description",
-                LocalDateTime.now().plusDays(1)));
-
-        // then
-        var accountAfterUpdate = accountService.getById(account.id().value());
-        assertThat(accountAfterUpdate.getExpenseIds()).isEqualTo(accountBeforeUpdate.getExpenseIds());
-        assertThat(updatedExpense.amount()).isEqualByComparingTo(BigDecimal.valueOf(200));
-        assertThat(updatedExpense.description()).isEqualTo("Updated Description");
-    }
-
-    @Test
     void shouldThrowExceptionWhenCreatingExpenseForNonExistentAccount() {
         // given
         var nonExistentAccountId = UUID.randomUUID();
@@ -185,7 +98,7 @@ public class AccountServiceTest {
                 nonExistentAccountId,
                 BigDecimal.valueOf(100),
                 "Test Expense",
-                LocalDateTime.now());
+                OffsetDateTime.now());
 
         // when & then
         assertThrows(IllegalArgumentException.class, () -> accountService.createExpense(command));
@@ -207,11 +120,11 @@ public class AccountServiceTest {
         var account2 = accountService.createAccount(new CreateAccountCommand("Account 2"));
 
         var expense1 = accountService.createExpense(new CreateExpenseCommand(
-                account1.id().value(), BigDecimal.valueOf(100), "Expense 1 for Account 1", LocalDateTime.now()));
+                account1.id().value(), BigDecimal.valueOf(100), "Expense 1 for Account 1", OffsetDateTime.now()));
         var expense2 = accountService.createExpense(new CreateExpenseCommand(
-                account1.id().value(), BigDecimal.valueOf(200), "Expense 2 for Account 1", LocalDateTime.now()));
+                account1.id().value(), BigDecimal.valueOf(200), "Expense 2 for Account 1", OffsetDateTime.now()));
         var expense3 = accountService.createExpense(new CreateExpenseCommand(
-                account2.id().value(), BigDecimal.valueOf(300), "Expense 1 for Account 2", LocalDateTime.now()));
+                account2.id().value(), BigDecimal.valueOf(300), "Expense 1 for Account 2", OffsetDateTime.now()));
 
         // when
         var expensesForAccount1 = accountService.getExpensesByAccountId(account1.id().value());
@@ -219,12 +132,9 @@ public class AccountServiceTest {
 
         // then
         assertThat(expensesForAccount1).hasSize(2)
-                .extracting(Expense::id)
-                .containsExactlyInAnyOrder(expense1.id(), expense2.id());
-
+                .containsExactlyInAnyOrder(expense1, expense2);
         assertThat(expensesForAccount2).hasSize(1)
-                .extracting(Expense::id)
-                .containsExactly(expense3.id());
+                .containsExactly(expense3);
     }
 
     @Test
@@ -244,7 +154,7 @@ public class AccountServiceTest {
         // given
         var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
         var expense = accountService.createExpense(new CreateExpenseCommand(
-                account.id().value(), BigDecimal.valueOf(100), "Test Expense", LocalDateTime.now()));
+                account.id().value(), BigDecimal.valueOf(100), "Test Expense", OffsetDateTime.now()));
 
         // when
         var retrievedExpense = accountService.getExpenseById(expense.id().value());
@@ -269,19 +179,18 @@ public class AccountServiceTest {
         var account2 = accountService.createAccount(new CreateAccountCommand("Account 2"));
 
         var expense1 = accountService.createExpense(new CreateExpenseCommand(
-                account1.id().value(), BigDecimal.valueOf(100), "Expense 1", LocalDateTime.now()));
+                account1.id().value(), BigDecimal.valueOf(100), "Expense 1", OffsetDateTime.now()));
         var expense2 = accountService.createExpense(new CreateExpenseCommand(
-                account1.id().value(), BigDecimal.valueOf(200), "Expense 2", LocalDateTime.now()));
+                account1.id().value(), BigDecimal.valueOf(200), "Expense 2", OffsetDateTime.now()));
         var expense3 = accountService.createExpense(new CreateExpenseCommand(
-                account2.id().value(), BigDecimal.valueOf(300), "Expense 3", LocalDateTime.now()));
+                account2.id().value(), BigDecimal.valueOf(300), "Expense 3", OffsetDateTime.now()));
 
         // when
         var allExpenses = accountService.getAllExpenses();
 
         // then
         assertThat(allExpenses).hasSize(3)
-                .extracting(Expense::id)
-                .containsExactlyInAnyOrder(expense1.id(), expense2.id(), expense3.id());
+                .containsExactlyInAnyOrder(expense1, expense2, expense3);
     }
 
     @Test
@@ -303,7 +212,7 @@ public class AccountServiceTest {
     void shouldThrowExceptionWhenUpdatingNonExistentAccount() {
         // given
         var nonExistentAccountId = UUID.randomUUID();
-        var newName = "New Name";
+        var newName = "Updated Name";
 
         // when & then
         assertThrows(AccountNotFoundException.class, () -> accountService.updateAccount(nonExistentAccountId, newName));
@@ -313,16 +222,14 @@ public class AccountServiceTest {
     void shouldThrowExceptionWhenUpdatingAccountWithInvalidName() {
         // given
         var account = accountService.createAccount(new CreateAccountCommand("Original Name"));
-        String invalidName = null;
+        var emptyName = "";
 
         // when & then
-        assertThrows(AccountNameEmptyException.class, () -> accountService.updateAccount(account.id().value(), invalidName));
+        assertThrows(AccountNameEmptyException.class, () -> accountService.updateAccount(account.id().value(), emptyName));
 
-        // given
-        String blankName = "";
-
-        // when & then
-        assertThrows(AccountNameEmptyException.class, () -> accountService.updateAccount(account.id().value(), blankName));
+        // and
+        var retrievedAccount = accountService.getById(account.id().value());
+        assertThat(retrievedAccount.name()).isEqualTo("Original Name");
     }
 
     @Test
@@ -330,19 +237,17 @@ public class AccountServiceTest {
         // given
         var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
         var expense1 = accountService.createExpense(new CreateExpenseCommand(
-                account.id().value(), BigDecimal.valueOf(100), "Expense 1", LocalDateTime.now()));
+                account.id().value(), BigDecimal.valueOf(100), "Expense 1", OffsetDateTime.now()));
         var expense2 = accountService.createExpense(new CreateExpenseCommand(
-                account.id().value(), BigDecimal.valueOf(200), "Expense 2", LocalDateTime.now()));
+                account.id().value(), BigDecimal.valueOf(200), "Expense 2", OffsetDateTime.now()));
 
         // when
         accountService.deleteAccount(account.id().value());
 
         // then
-        // Account should be deleted
-        assertThrows(AccountNotFoundException.class, () -> accountService.getById(account.id().value()));
-
-        // Expenses should be deleted
-        assertThat(accountService.getAllExpenses()).isEmpty();
+        assertThat(accountService.getAccounts()).isEmpty();
+        assertThrows(ExpenseNotFoundException.class, () -> accountService.getExpenseById(expense1.id().value()));
+        assertThrows(ExpenseNotFoundException.class, () -> accountService.getExpenseById(expense2.id().value()));
     }
 
     @Test
