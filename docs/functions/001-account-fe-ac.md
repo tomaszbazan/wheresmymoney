@@ -120,6 +120,69 @@
 **When** server returns validation errors
 **Then** errors should be displayed next to relevant form fields
 
+## AC13: Currency Summary Display
+
+**Given** I am on the accounts page with multiple accounts
+**When** accounts exist with different currencies
+**Then** I should see a currency summary card showing:
+
+- "Saldo łączne według walut:" header
+- Total balance grouped by currency
+- Each currency displayed separately (e.g., "PLN: 1500.00", "EUR: 500.00")
+
+**When** accounts have the same currency
+**Then** balances should be summed together for that currency
+
+**When** no accounts exist
+**Then** currency summary should not be displayed
+
+**When** accounts are loading
+**Then** currency summary should not be displayed during loading state
+
+## Missing Test Cases to Implement
+
+### AC2 Extended Validation Tests
+
+- Test for account name longer than 100 characters
+- Test for account name with invalid characters
+- Test for duplicate account name validation
+
+### AC5 Extended Account Details Tests
+
+- Test clicking on account to view details
+- Test account details display (created date, last updated)
+- Test account details navigation
+
+### AC6 Account Editing Tests
+
+- Test edit button functionality
+- Test edit form with pre-filled data
+- Test account name update with valid data
+- Test currency change with confirmation dialog
+- Test currency change confirmation and balance reset
+- Test edit form validation (same as creation validation)
+- Test edit form cancel functionality
+
+### AC7 Account Deletion with Confirmation Tests
+
+- Test delete button state based on account balance/transactions
+- Test delete confirmation dialog display
+- Test delete confirmation and successful deletion
+- Test delete cancellation
+- Test delete button tooltip for non-deletable accounts
+
+### AC11 Navigation Tests
+
+- Test browser back button behavior
+- Test navigation between account screens
+- Test unsaved data confirmation dialogs
+
+### AC12 Extended Data Validation Tests
+
+- Test real-time validation feedback
+- Test server-side validation error display
+- Test form field error placement
+
 ## Technical Requirements
 - All currency amounts should be displayed with appropriate formatting for the currency
 - Account names should be trimmed of leading/trailing whitespace

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/screens/accounts_page.dart';
 import 'package:frontend/models/account.dart';
+import 'package:frontend/screens/accounts_page.dart';
 import 'package:mockito/mockito.dart';
+
 import '../mocks/mock_account_service.dart';
 
 void main() {
@@ -302,10 +303,15 @@ void main() {
           of: find.text('Saldo łączne według walut:'),
           matching: find.byType(Card),
         );
-        
+
         expect(find.descendant(
           of: summaryCard,
-          matching: find.text('1500.00 PLN'),
+          matching: find.text('PLN'),
+        ), findsOneWidget);
+
+        expect(find.descendant(
+          of: summaryCard,
+          matching: find.text('1500.00'),
         ), findsOneWidget);
       });
 
