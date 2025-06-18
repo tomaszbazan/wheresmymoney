@@ -1,59 +1,56 @@
-# CLAUDE.md
+# Where's My Money - Claude Code Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+You are an AI assistant specialized in developing the personal finance management system. Your primary goal is to write clean, maintainable code that strictly adheres to the project's guidelines and best practices.
 
-## Commands
+## Project Overview
 
-### Build and Run
-```bash
-# Build the application
-gradle clean build
 
-# Run locally (development)
-./gradlew bootRun
+## Key Architectural Points
 
-# Build Docker image
-docker build -t wheresmymoney:version .
+- Frontend (Flutter) and backend (Java/Spring boot) are developed and deployed independently
+- REST API connects frontend and backend
+- PostgreSQL is used for data storage
+- Strong domain model following DDD principles
 
-# Run with Docker Compose (production)
-docker compose up --no-deps --build
+## Domain Model Core Concepts
 
-# Run tests
-./gradlew test
-```
+- Budget: Zero-based monthly budget with categories
+- Transaction: Financial movements with budget assignment
+- Account: Banking accounts with transaction import
+- Goal: Financial objectives with tracking
+- Portfolio: Investment tracking with allocation
+- Repository pattern: Both in-memory and PostgreSQL implementations
 
-## Architecture
+## Development Requirements
 
-This is a **Spring Boot 3.3.5** application using **Java 21** that follows **Domain-Driven Design (DDD)** principles with a modular monolith structure.
+- Test-First Development: Create tests first, verify they fail (red), then write code to make them pass (green)
+- No mocks unless absolutely necessary
+- No conditional logic in test code: avoid if statements, loops, or conditional instructions
+- Pure functions: minimize side effects
+- Small functions: keep focused (<10 lines)
+- Small files: maintain files under 200 lines when possible for better readability and maintainability
+- Function composition over conditional branching
+- Strong typing: use domain types rather than primitives
+- UUIDs generated on backend
+- Currency convention: positive for income, negative for expenses
 
-### Technology Stack
-- **Spring Boot** with Spring Data JPA and Hibernate
-- **PostgreSQL** database with **Flyway** migrations
-- **JavaMoney (Moneta)** for currency handling
-- **Testcontainers** for integration testing
-- **Lombok** for reducing boilerplate
+## Testing Strategy
 
-### Module Structure
-The application is organized around business modules. Currently there's one main module:
+- 70% unit tests (focus on domain logic)
+- 20% integration tests (service interactions)
+- 10% acceptance tests (user flows)
+- Coverage target: 90%+ overall (95%+ for critical modules)
 
-**Account Module** (`pl.btsoftware.wheresmymoney.account`):
-- `AccountModuleFacade` - Public API for the module
-- `application/` - Application services (orchestration)  
-- `domain/` - Core business logic and domain objects
-- `infrastructure/` - External concerns (REST API, persistence, configuration)
+## Custom Commands
 
-### Domain Model
-- **Account**: Aggregate root with balance tracking and multi-currency support
-- **Expense**: Transaction records linked to accounts
-- **Money**: Value object supporting PLN, EUR, USD, GBP with proper arithmetic
-- Rich domain validation with custom business exceptions in `domain/error/`
+### /preparecontext
+Read through docs/ as system prompt for follow-up requests
 
-### Database
-- PostgreSQL 17 with Docker Compose setup
-- Flyway migrations in `src/main/resources/db/migration/`
-- JPA entities in `infrastructure/persistance/`
+### /followtheplan FILENAME.md
+Execute plan from specified file, run tests, and make commits
 
-### Testing
-- Integration tests use `@IntegrationTest` annotation with Testcontainers
-- In-memory repository implementations for unit testing
-- Test fixtures in `infrastructure/persistance/` package
+# IMPORTANT
+
+- Remember to prioritize clean, maintainable code that strictly follows the project's guidelines and best practices throughout your development process
+- Remember to not write backward compatible code
+- Remember to always have failing tests before attempting any implementation
