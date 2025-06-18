@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import '../services/account_service.dart';
 
 class AccountsPage extends StatefulWidget {
-  const AccountsPage({super.key});
+  final AccountServiceInterface? accountService;
+  
+  const AccountsPage({super.key, this.accountService});
 
   @override
   State<AccountsPage> createState() => _AccountsPageState();
 }
 
 class _AccountsPageState extends State<AccountsPage> {
-  final AccountService _accountService = AccountService();
+  late final AccountServiceInterface _accountService;
   
   List<Map<String, dynamic>> accounts = [];
   
@@ -178,7 +180,6 @@ class _AccountsPageState extends State<AccountsPage> {
     ) ?? false;
   }
   
-  // Implementacja usuwania konta bez użycia BuildContext
   Future<void> _deleteAccountById(
     Map<String, dynamic> account,
     ScaffoldMessengerState scaffoldMessenger
@@ -187,20 +188,16 @@ class _AccountsPageState extends State<AccountsPage> {
     final accountName = account['name'];
     
     try {
-      // Wysłanie żądania usunięcia konta
       await _accountService.deleteAccount(accountId);
       
-      // Usuń konto z listy po pomyślnym usunięciu na serwerze
       setState(() {
-        accounts.removeWhere((a) => a['id'] == accountId);
+        accounts.removeWhere((account) => account['id'] == accountId);
       });
       
-      // Wyświetl informację o powodzeniu
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Konto "$accountName" zostało usunięte')),
       );
     } catch (e) {
-      // Wyświetl informację o błędzie
       scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text('Błąd podczas komunikacji z serwerem: $e'),
@@ -213,6 +210,7 @@ class _AccountsPageState extends State<AccountsPage> {
   @override
   void initState() {
     super.initState();
+    _accountService = widget.accountService ?? AccountService();
     _fetchAccounts();
   }
   
@@ -266,68 +264,60 @@ class _AccountsPageState extends State<AccountsPage> {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              const Text(
-                'Twoje konta',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              // Przycisk odświeżania
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _isLoading ? null : _fetchAccounts,
+                tooltip: 'Odśwież listę kont',
               ),
-              Row(
-                children: [
-                  // Przycisk odświeżania
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: _isLoading ? null : _fetchAccounts,
-                    tooltip: 'Odśwież listę kont',
-                  ),
-                  const SizedBox(width: 8),
-                  // Przycisk dodawania
-                  ElevatedButton(
-                    onPressed: () => _showAddAccountDialog(context),
-                    child: const Text('Dodaj konto'),
-                  ),
-                ],
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () => _showAddAccountDialog(context),
+                child: const Text('Dodaj konto'),
               ),
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Saldo łączne według walut:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  ..._calculateCurrencySums().entries.map((entry) {
-                    final isNegative = entry.value < 0;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(entry.key),
-                          Text(
-                            '${entry.value.toStringAsFixed(2)} ${entry.key}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isNegative ? Colors.red : Colors.black,
+        if (accounts.isNotEmpty && !_isLoading)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Saldo łączne według walut:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    ..._calculateCurrencySums().entries.map((entry) {
+                      final isNegative = entry.value < 0;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(entry.key),
+                            Text(
+                              '${entry.value.toStringAsFixed(2)} ${entry.key}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isNegative ? Colors.red : Colors.black,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ],
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
         const SizedBox(height: 16),
         
         if (_error != null)
@@ -369,7 +359,6 @@ class _AccountsPageState extends State<AccountsPage> {
                   ),
                   direction: DismissDirection.endToStart,
                   confirmDismiss: (direction) async {
-                    // Używamy async/await zamiast .then
                     return await _showDeleteConfirmationDialog(context, account['name']);
                   },
                   onDismissed: (direction) {
@@ -407,7 +396,6 @@ class _AccountsPageState extends State<AccountsPage> {
                             _showDeleteConfirmationDialog(context, account['name'])
                                 .then((confirmed) {
                               if (confirmed && mounted) {
-                                // Wywołujemy metodę z przechwyconymi wcześniej danymi
                                 _deleteAccountById(accountToDelete, scaffoldMessenger);
                               }
                             });

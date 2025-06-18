@@ -2,9 +2,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/account.dart';
 
-class AccountService {
+abstract class AccountServiceInterface {
+  Future<List<Account>> getAccounts();
+  Future<Account> createAccount(String name, {String? type, String? currency});
+  Future<void> deleteAccount(String accountId);
+}
+
+class AccountService implements AccountServiceInterface {
   static const String baseUrl = 'http://localhost:8080/api';
 
+  @override
   Future<List<Account>> getAccounts() async {
     final response = await http.get(
       Uri.parse('$baseUrl/accounts'),
@@ -25,6 +32,7 @@ class AccountService {
     }
   }
 
+  @override
   Future<Account> createAccount(String name, {String? type, String? currency}) async {
     final Map<String, dynamic> accountData = {
       'name': name,
@@ -51,6 +59,7 @@ class AccountService {
     }
   }
 
+  @override
   Future<void> deleteAccount(String accountId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/accounts/$accountId'),
