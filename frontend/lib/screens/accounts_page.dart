@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/account_service.dart';
 
 class AccountsPage extends StatefulWidget {
@@ -303,7 +304,7 @@ class _AccountsPageState extends State<AccountsPage> {
                           children: [
                             Text(entry.key),
                             Text(
-                              '${entry.value.toStringAsFixed(2)} ${entry.key}',
+                              entry.value.toStringAsFixed(2),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: isNegative ? Colors.red : Colors.black,
