@@ -51,10 +51,6 @@ public class AccountModuleFacade {
     }
 
     public record CreateAccountCommand(String name, String currency) {
-        public CreateAccountCommand(String name) {
-            this(name, Money.DEFAULT_CURRENCY);
-        }
-
         public Account toDomain() {
             return new Account(AccountId.generate(), name, currency);
         }
