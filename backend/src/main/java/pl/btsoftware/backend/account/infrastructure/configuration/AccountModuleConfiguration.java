@@ -7,7 +7,7 @@ import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.domain.AccountRepository;
 import pl.btsoftware.backend.account.domain.ExpenseRepository;
 import pl.btsoftware.backend.account.infrastructure.api.AccountController;
-import pl.btsoftware.backend.account.infrastructure.api.ExpenseController;
+import pl.btsoftware.backend.account.infrastructure.api.TransactionController;
 import pl.btsoftware.backend.account.infrastructure.persistance.AccountJpaRepository;
 import pl.btsoftware.backend.account.infrastructure.persistance.ExpenseJpaRepository;
 import pl.btsoftware.backend.account.infrastructure.persistance.JpaAccountRepository;
@@ -42,7 +42,7 @@ public class AccountModuleConfiguration {
     }
 
     @Bean
-    public ExpenseController expenseController(AccountModuleFacade accountModuleFacade) {
-        return new ExpenseController(accountModuleFacade);
+    public TransactionController expenseController(AccountModuleFacade accountModuleFacade) {
+        return new TransactionController(accountModuleFacade);
     }
 }

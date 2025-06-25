@@ -6,6 +6,7 @@ import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.domain.*;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
+import pl.btsoftware.backend.account.domain.error.CannotDeleteAccountWithTransactionsException;
 import pl.btsoftware.backend.account.domain.error.ExpenseNotFoundException;
 
 import java.util.List;
@@ -117,16 +118,13 @@ public class AccountService {
     }
 
     public void deleteAccount(UUID id) {
-        // Find the account to ensure it exists
         var account = accountRepository.findById(AccountId.from(id))
                 .orElseThrow(() -> new AccountNotFoundException(id));
 
-        // Find all expenses for the account
         var expenses = expenseRepository.findByAccountId(account.id());
 
-        // Delete all expenses for the account
-        for (Expense expense : expenses) {
-            expenseRepository.deleteById(expense.id().value());
+        if (!expenses.isEmpty()) {
+            throw new CannotDeleteAccountWithTransactionsException();
         }
 
         // Delete the account
