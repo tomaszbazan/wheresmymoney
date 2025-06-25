@@ -62,7 +62,7 @@ public class TransactionControllerTest {
         );
         String json = objectMapper.writeValueAsString(request);
 
-        // when & then
+        // when and then
         mockMvc.perform(post("/api/expenses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
@@ -81,7 +81,7 @@ public class TransactionControllerTest {
         String accountId = createAccount("Test Account");
         String expenseId = createExpense(accountId, new BigDecimal("150.00"), "Test Expense");
 
-        // when & then
+        // when and then
         mockMvc.perform(get("/api/expenses/" + expenseId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -100,7 +100,7 @@ public class TransactionControllerTest {
         createExpense(accountId, new BigDecimal("150.00"), "Expense 1");
         createExpense(accountId, new BigDecimal("250.00"), "Expense 2");
 
-        // when & then
+        // when and then
         mockMvc.perform(get("/api/expenses?accountId=" + accountId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -131,7 +131,7 @@ public class TransactionControllerTest {
         );
         String json = objectMapper.writeValueAsString(request);
 
-        // when & then
+        // when and then
         mockMvc.perform(put("/api/expenses/" + expenseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))

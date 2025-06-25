@@ -3,6 +3,7 @@ package pl.btsoftware.backend.account.application;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.btsoftware.backend.account.AccountModuleFacade;
+import pl.btsoftware.backend.account.AccountModuleFacade.CreateAccountCommand;
 import pl.btsoftware.backend.account.domain.*;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
@@ -18,8 +19,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final ExpenseRepository expenseRepository;
 
-    public Account createAccount(AccountModuleFacade.CreateAccountCommand command) {
-        // Check for duplicate name
+    public Account createAccount(CreateAccountCommand command) {
         if (accountRepository.findByName(command.name()).isPresent()) {
             throw new AccountAlreadyExistsException(command.name());
         }
@@ -36,6 +36,21 @@ public class AccountService {
     public Account getById(UUID id) {
         return accountRepository.findById(AccountId.from(id))
                 .orElseThrow(() -> new AccountNotFoundException(id));
+    }
+
+    public Account updateAccount(UUID id, String newName) {
+        var account = accountRepository.findById(AccountId.from(id))
+                .orElseThrow(() -> new AccountNotFoundException(id));
+
+        // Check for duplicate name (but allow same name for the same account)
+        var existingAccount = accountRepository.findByName(newName);
+        if (existingAccount.isPresent() && !existingAccount.get().id().equals(account.id())) {
+            throw new AccountAlreadyExistsException(newName);
+        }
+
+        var updatedAccount = account.changeName(newName);
+        accountRepository.store(updatedAccount);
+        return updatedAccount;
     }
 
     public Expense createExpense(AccountModuleFacade.CreateExpenseCommand command) {
@@ -100,21 +115,6 @@ public class AccountService {
 
     public List<Expense> getExpensesByAccountId(UUID accountId) {
         return expenseRepository.findByAccountId(AccountId.from(accountId));
-    }
-
-    public Account updateAccount(UUID id, String newName) {
-        var account = accountRepository.findById(AccountId.from(id))
-                .orElseThrow(() -> new AccountNotFoundException(id));
-        
-        // Check for duplicate name (but allow same name for the same account)
-        var existingAccount = accountRepository.findByName(newName);
-        if (existingAccount.isPresent() && !existingAccount.get().id().equals(account.id())) {
-            throw new AccountAlreadyExistsException(newName);
-        }
-        
-        var updatedAccount = account.changeName(newName);
-        accountRepository.store(updatedAccount);
-        return updatedAccount;
     }
 
     public void deleteAccount(UUID id) {

@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.account.application;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AccountServiceTest {
@@ -32,6 +34,118 @@ public class AccountServiceTest {
         this.accountService = new AccountService(accountRepository, expenseRepository);
     }
 
+    @Test
+    void shouldReturnExpensesByAccountId() {
+        // given
+        var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                .set(field(CreateAccountCommand::name), "Account 1")
+                .set(field(CreateAccountCommand::currency), "PLN")
+                .create());
+        var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                .set(field(CreateAccountCommand::name), "Account 2")
+                .set(field(CreateAccountCommand::currency), "PLN")
+                .create());
+
+        var expense1 = accountService.createExpense(new CreateExpenseCommand(
+                account1.id().value(), BigDecimal.valueOf(100), "Expense 1 for Account 1", OffsetDateTime.now()));
+        var expense2 = accountService.createExpense(new CreateExpenseCommand(
+                account1.id().value(), BigDecimal.valueOf(200), "Expense 2 for Account 1", OffsetDateTime.now()));
+        var expense3 = accountService.createExpense(new CreateExpenseCommand(
+                account2.id().value(), BigDecimal.valueOf(300), "Expense 1 for Account 2", OffsetDateTime.now()));
+
+        // when
+        var expensesForAccount1 = accountService.getExpensesByAccountId(account1.id().value());
+        var expensesForAccount2 = accountService.getExpensesByAccountId(account2.id().value());
+
+        // then
+        assertThat(expensesForAccount1).hasSize(2)
+                .containsExactlyInAnyOrder(expense1, expense2);
+        assertThat(expensesForAccount2).hasSize(1)
+                .containsExactly(expense3);
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoExpensesForAccount() {
+        // given
+        var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                .set(field(CreateAccountCommand::name), "Test Account")
+                .set(field(CreateAccountCommand::currency), "PLN")
+                .create());
+
+        // when
+        var expenses = accountService.getExpensesByAccountId(account.id().value());
+
+        // then
+        assertThat(expenses).isEmpty();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCreatingExpenseForNonExistentAccount() {
+        // given
+        var nonExistentAccountId = UUID.randomUUID();
+        var command = new CreateExpenseCommand(
+                nonExistentAccountId,
+                BigDecimal.valueOf(100),
+                "Test Expense",
+                OffsetDateTime.now());
+
+        // when & then
+        assertThrows(IllegalArgumentException.class, () -> accountService.createExpense(command));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistentExpense() {
+        // given
+        var nonExistentExpenseId = UUID.randomUUID();
+
+        // when & then
+        assertThrows(IllegalArgumentException.class, () -> accountService.deleteExpense(nonExistentExpenseId));
+    }
+
+    @Test
+    void shouldGetExpenseById() {
+        // given
+        var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                .set(field(CreateAccountCommand::name), "Test Account")
+                .set(field(CreateAccountCommand::currency), "PLN")
+                .create());
+        var expense = accountService.createExpense(new CreateExpenseCommand(
+                account.id().value(), BigDecimal.valueOf(100), "Test Expense", OffsetDateTime.now()));
+
+        // when
+        var retrievedExpense = accountService.getExpenseById(expense.id().value());
+
+        // then
+        assertThat(retrievedExpense).isEqualTo(expense);
+    }
+
+    @Test
+    void shouldGetAllExpenses() {
+        // given
+        var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                .set(field(CreateAccountCommand::name), "Account 1")
+                .set(field(CreateAccountCommand::currency), "PLN")
+                .create());
+        var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                .set(field(CreateAccountCommand::name), "Account 2")
+                .set(field(CreateAccountCommand::currency), "PLN")
+                .create());
+
+        var expense1 = accountService.createExpense(new CreateExpenseCommand(
+                account1.id().value(), BigDecimal.valueOf(100), "Expense 1", OffsetDateTime.now()));
+        var expense2 = accountService.createExpense(new CreateExpenseCommand(
+                account1.id().value(), BigDecimal.valueOf(200), "Expense 2", OffsetDateTime.now()));
+        var expense3 = accountService.createExpense(new CreateExpenseCommand(
+                account2.id().value(), BigDecimal.valueOf(300), "Expense 3", OffsetDateTime.now()));
+
+        // when
+        var allExpenses = accountService.getAllExpenses();
+
+        // then
+        assertThat(allExpenses).hasSize(3)
+                .containsExactlyInAnyOrder(expense1, expense2, expense3);
+    }
+
     @Nested
     class CreateAccount {
 
@@ -40,7 +154,10 @@ public class AccountServiceTest {
         void shouldCreateAccountWithDifferentSupportedCurrencies(String currency) {
             // given
             var accountName = currency + " Account";
-            var command = new CreateAccountCommand(accountName, currency);
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), currency)
+                    .create();
 
             // when
             var account = accountService.createAccount(command);
@@ -55,7 +172,10 @@ public class AccountServiceTest {
         void shouldCreateAccountWithMinimalData() {
             // given
             var accountName = "Minimal Account";
-            var command = new CreateAccountCommand(accountName);
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create();
 
             // when
             var account = accountService.createAccount(command);
@@ -70,7 +190,10 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithEmptyName() {
             // given
-            var command = new CreateAccountCommand("", "PLN");
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create();
 
             // when & then
             assertThrows(AccountNameEmptyException.class, () -> accountService.createAccount(command));
@@ -80,7 +203,10 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithNullName() {
             // given
-            var command = new CreateAccountCommand(null, "PLN");
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), (String) null)
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create();
 
             // when & then
             assertThrows(AccountNameEmptyException.class, () -> accountService.createAccount(command));
@@ -90,7 +216,10 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithBlankName() {
             // given
-            var command = new CreateAccountCommand("   ", "PLN");
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "   ")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create();
 
             // when & then
             assertThrows(AccountNameEmptyException.class, () -> accountService.createAccount(command));
@@ -101,7 +230,10 @@ public class AccountServiceTest {
         void shouldRejectAccountCreationWithTooLongName() {
             // given
             var longName = "a".repeat(101);
-            var command = new CreateAccountCommand(longName, "PLN");
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), longName)
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create();
 
             // when & then
             assertThrows(AccountNameTooLongException.class, () -> accountService.createAccount(command));
@@ -112,7 +244,10 @@ public class AccountServiceTest {
         @ValueSource(strings = {"Invalid\nName", "Invalid\tName"})
         void shouldRejectAccountCreationWithInvalidCharacters(String invalidName) {
             // given
-            var command = new CreateAccountCommand(invalidName, "PLN");
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), invalidName)
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create();
 
             // when & then
             assertThrows(AccountNameInvalidCharactersException.class, () -> accountService.createAccount(command));
@@ -123,7 +258,10 @@ public class AccountServiceTest {
         void shouldCreateAccountWithValidSpecialCharacters() {
             // given
             var validName = "Valid Name-123 O'Connor's";
-            var command = new CreateAccountCommand(validName, "PLN");
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), validName)
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create();
 
             // when
             var account = accountService.createAccount(command);
@@ -136,7 +274,10 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithUnsupportedCurrency() {
             // given
-            var command = new CreateAccountCommand("JPY Account", "JPY");
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "JPY Account")
+                    .set(field(CreateAccountCommand::currency), "JPY")
+                    .create();
 
             // when & then
             assertThrows(InvalidCurrencyException.class, () -> accountService.createAccount(command));
@@ -147,8 +288,14 @@ public class AccountServiceTest {
         void shouldRejectDuplicateAccountNames() {
             // given
             var accountName = "Duplicate Account";
-            var command1 = new CreateAccountCommand(accountName, "PLN");
-            var command2 = new CreateAccountCommand(accountName, "EUR");
+            var command1 = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create();
+            var command2 = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), "EUR")
+                    .create();
 
             // when
             accountService.createAccount(command1);
@@ -159,15 +306,33 @@ public class AccountServiceTest {
         }
     }
 
+    @Test
+    void shouldThrowExceptionWhenGettingNonExistentExpense() {
+        // given
+        var nonExistentExpenseId = UUID.randomUUID();
+
+        // when & then
+        assertThrows(ExpenseNotFoundException.class, () -> accountService.getExpenseById(nonExistentExpenseId));
+    }
+
     @Nested
     class AccountRetrieval {
 
         @Test
         void shouldReturnAllActiveAccounts() {
             // given
-            var account1 = accountService.createAccount(new CreateAccountCommand("Checking Account", "PLN"));
-            var account2 = accountService.createAccount(new CreateAccountCommand("Savings Account", "EUR"));
-            var account3 = accountService.createAccount(new CreateAccountCommand("Investment Account", "USD"));
+            var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Checking Account")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create());
+            var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Savings Account")
+                    .set(field(CreateAccountCommand::currency), "EUR")
+                    .create());
+            var account3 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Investment Account")
+                    .set(field(CreateAccountCommand::currency), "USD")
+                    .create());
 
             // when
             var result = accountService.getAccounts();
@@ -201,7 +366,10 @@ public class AccountServiceTest {
             // given
             var accountName = "Test Account";
             var currency = "EUR";
-            var account = accountService.createAccount(new CreateAccountCommand(accountName, currency));
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), currency)
+                    .create());
 
             // when
             var result = accountService.getById(account.id().value());
@@ -230,7 +398,10 @@ public class AccountServiceTest {
         @Test
         void shouldReturnAccountsWithCompleteFieldStructure() {
             // given
-            var account = accountService.createAccount(new CreateAccountCommand("Complete Account", "GBP"));
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Complete Account")
+                    .set(field(CreateAccountCommand::currency), "GBP")
+                    .create());
 
             // when
             var retrievedAccount = accountService.getById(account.id().value());
@@ -245,116 +416,16 @@ public class AccountServiceTest {
         }
     }
 
-    @Test
-    void shouldThrowExceptionWhenCreatingExpenseForNonExistentAccount() {
-        // given
-        var nonExistentAccountId = UUID.randomUUID();
-        var command = new CreateExpenseCommand(
-                nonExistentAccountId,
-                BigDecimal.valueOf(100),
-                "Test Expense",
-                OffsetDateTime.now());
-
-        // when & then
-        assertThrows(IllegalArgumentException.class, () -> accountService.createExpense(command));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenDeletingNonExistentExpense() {
-        // given
-        var nonExistentExpenseId = UUID.randomUUID();
-
-        // when & then
-        assertThrows(IllegalArgumentException.class, () -> accountService.deleteExpense(nonExistentExpenseId));
-    }
-
-    @Test
-    void shouldReturnExpensesByAccountId() {
-        // given
-        var account1 = accountService.createAccount(new CreateAccountCommand("Account 1"));
-        var account2 = accountService.createAccount(new CreateAccountCommand("Account 2"));
-
-        var expense1 = accountService.createExpense(new CreateExpenseCommand(
-                account1.id().value(), BigDecimal.valueOf(100), "Expense 1 for Account 1", OffsetDateTime.now()));
-        var expense2 = accountService.createExpense(new CreateExpenseCommand(
-                account1.id().value(), BigDecimal.valueOf(200), "Expense 2 for Account 1", OffsetDateTime.now()));
-        var expense3 = accountService.createExpense(new CreateExpenseCommand(
-                account2.id().value(), BigDecimal.valueOf(300), "Expense 1 for Account 2", OffsetDateTime.now()));
-
-        // when
-        var expensesForAccount1 = accountService.getExpensesByAccountId(account1.id().value());
-        var expensesForAccount2 = accountService.getExpensesByAccountId(account2.id().value());
-
-        // then
-        assertThat(expensesForAccount1).hasSize(2)
-                .containsExactlyInAnyOrder(expense1, expense2);
-        assertThat(expensesForAccount2).hasSize(1)
-                .containsExactly(expense3);
-    }
-
-    @Test
-    void shouldReturnEmptyListWhenNoExpensesForAccount() {
-        // given
-        var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
-
-        // when
-        var expenses = accountService.getExpensesByAccountId(account.id().value());
-
-        // then
-        assertThat(expenses).isEmpty();
-    }
-
-    @Test
-    void shouldGetExpenseById() {
-        // given
-        var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
-        var expense = accountService.createExpense(new CreateExpenseCommand(
-                account.id().value(), BigDecimal.valueOf(100), "Test Expense", OffsetDateTime.now()));
-
-        // when
-        var retrievedExpense = accountService.getExpenseById(expense.id().value());
-
-        // then
-        assertThat(retrievedExpense).isEqualTo(expense);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenGettingNonExistentExpense() {
-        // given
-        var nonExistentExpenseId = UUID.randomUUID();
-
-        // when & then
-        assertThrows(ExpenseNotFoundException.class, () -> accountService.getExpenseById(nonExistentExpenseId));
-    }
-
-    @Test
-    void shouldGetAllExpenses() {
-        // given
-        var account1 = accountService.createAccount(new CreateAccountCommand("Account 1"));
-        var account2 = accountService.createAccount(new CreateAccountCommand("Account 2"));
-
-        var expense1 = accountService.createExpense(new CreateExpenseCommand(
-                account1.id().value(), BigDecimal.valueOf(100), "Expense 1", OffsetDateTime.now()));
-        var expense2 = accountService.createExpense(new CreateExpenseCommand(
-                account1.id().value(), BigDecimal.valueOf(200), "Expense 2", OffsetDateTime.now()));
-        var expense3 = accountService.createExpense(new CreateExpenseCommand(
-                account2.id().value(), BigDecimal.valueOf(300), "Expense 3", OffsetDateTime.now()));
-
-        // when
-        var allExpenses = accountService.getAllExpenses();
-
-        // then
-        assertThat(allExpenses).hasSize(3)
-                .containsExactlyInAnyOrder(expense1, expense2, expense3);
-    }
-
     @Nested
     class AccountUpdate {
 
         @Test
         void shouldUpdateAccountName() {
             // given
-            var account = accountService.createAccount(new CreateAccountCommand("Original Name"));
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Original Name")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create());
             var newName = "Updated Name";
 
             // when
@@ -379,7 +450,10 @@ public class AccountServiceTest {
         @Test
         void shouldThrowExceptionWhenUpdatingAccountWithInvalidName() {
             // given
-            var account = accountService.createAccount(new CreateAccountCommand("Original Name"));
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Original Name")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create());
             var emptyName = "";
 
             // when & then
@@ -393,8 +467,14 @@ public class AccountServiceTest {
         @Test
         void shouldThrowExceptionWhenUpdatingWithDuplicateName() {
             // given
-            var account1 = accountService.createAccount(new CreateAccountCommand("Account One", "PLN"));
-            var account2 = accountService.createAccount(new CreateAccountCommand("Account Two", "PLN"));
+            var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Account One")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create());
+            var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Account Two")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create());
 
             // when & then
             assertThrows(AccountAlreadyExistsException.class,
@@ -414,7 +494,10 @@ public class AccountServiceTest {
         @Test
         void shouldDeleteAccountWithZeroBalance() {
             // given
-            var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Test Account")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create());
 
             // when
             accountService.deleteAccount(account.id().value());
@@ -426,7 +509,10 @@ public class AccountServiceTest {
         @Test
         void shouldRejectDeletionOfAccountWithTransactionHistory() {
             // given
-            var account = accountService.createAccount(new CreateAccountCommand("Test Account"));
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Test Account")
+                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .create());
             accountService.createExpense(new CreateExpenseCommand(
                     account.id().value(), BigDecimal.valueOf(100), "Test Expense", OffsetDateTime.now()));
 
