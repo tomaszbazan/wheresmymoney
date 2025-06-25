@@ -9,15 +9,14 @@ import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.AccountModuleFacade.CreateExpenseCommand;
 import pl.btsoftware.backend.account.AccountModuleFacade.UpdateExpenseCommand;
-import pl.btsoftware.backend.account.domain.error.BusinessException;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/expenses")
 @AllArgsConstructor
-public class ExpenseController {
-    private static final Logger logger = LoggerFactory.getLogger(ExpenseController.class);
+public class TransactionController {
+    private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
     private final AccountModuleFacade accountModuleFacade;
 
 
@@ -79,21 +78,4 @@ public class ExpenseController {
         return ResponseEntity.noContent().build();
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
-        logger.warn("Illegal argument exception occurred: {}", ex.getMessage(), ex);
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
-
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<String> handleBusinessException(BusinessException ex) {
-        logger.error("Business exception occurred: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        logger.error("Runtime exception occurred: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-    }
 }

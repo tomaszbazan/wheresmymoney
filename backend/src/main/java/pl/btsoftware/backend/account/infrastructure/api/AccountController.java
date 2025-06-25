@@ -3,10 +3,8 @@ package pl.btsoftware.backend.account.infrastructure.api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.account.AccountModuleFacade;
-import pl.btsoftware.backend.account.domain.error.*;
 
 import java.util.UUID;
 
@@ -49,33 +47,4 @@ public class AccountController {
         accountModuleFacade.deleteAccount(id);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        log.error("Runtime exception occurred: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<String> handleBusinessException(BusinessException ex) {
-        log.error("Business exception occurred: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(AccountNotFoundException.class)
-    public ResponseEntity<String> handleAccountNotFoundException(AccountNotFoundException ex) {
-        log.error("Account not found: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-//    @ExceptionHandler({AccountNameEmptyException.class, AccountNameTooLongException.class, AccountNameInvalidCharactersException.class, InvalidCurrencyException.class})
-//    public ResponseEntity<String> handleValidationExceptions(BusinessException ex) {
-//        log.error("Validation error: {}", ex.getMessage(), ex);
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-//    }
-
-    @ExceptionHandler(AccountAlreadyExistsException.class)
-    public ResponseEntity<String> handleAccountNameAlreadyExistsException(AccountAlreadyExistsException ex) {
-        log.error("Account name already exists: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
-    }
 }
