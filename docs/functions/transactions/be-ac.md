@@ -4,19 +4,17 @@
 
 ### AC-1.1: Create Income Transaction
 
-**Given** an non deleted account with ID "550e8400-e29b-41d4-a716-446655440000"
+**Given** an account with currency "PLN"
 **When** I create a transaction with:
-
 - amount: 1000.00
 - description: "Salary payment"
 - date: 2024-01-15
-- category: "Income"
+- type: "Income"
   **Then** the system should:
 - Create transaction with generated UUID
 - Set amount as positive (1000.00)
 - Set type as INCOME
 - Update account balance by +1000.00
-- Return 201 Created with transaction details
 
 ### AC-1.2: Create Expense Transaction
 

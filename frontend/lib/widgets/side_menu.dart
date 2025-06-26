@@ -34,11 +34,6 @@ class SideMenu extends StatelessWidget {
             ),
             _buildMenuItem(
               index: 1,
-              icon: Icons.attach_money,
-              title: 'Wydatki',
-            ),
-            _buildMenuItem(
-              index: 2,
               icon: Icons.account_balance,
               title: 'Konta',
             ),

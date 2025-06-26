@@ -5,13 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.domain.AccountRepository;
-import pl.btsoftware.backend.account.domain.ExpenseRepository;
 import pl.btsoftware.backend.account.infrastructure.api.AccountController;
-import pl.btsoftware.backend.account.infrastructure.api.TransactionController;
 import pl.btsoftware.backend.account.infrastructure.persistance.AccountJpaRepository;
-import pl.btsoftware.backend.account.infrastructure.persistance.ExpenseJpaRepository;
 import pl.btsoftware.backend.account.infrastructure.persistance.JpaAccountRepository;
-import pl.btsoftware.backend.account.infrastructure.persistance.JpaExpenseRepository;
 
 @Configuration
 public class AccountModuleConfiguration {
@@ -22,13 +18,8 @@ public class AccountModuleConfiguration {
     }
 
     @Bean
-    public ExpenseRepository expenseRepository(ExpenseJpaRepository expenseJpaRepository) {
-        return new JpaExpenseRepository(expenseJpaRepository);
-    }
-
-    @Bean
-    public AccountService accountService(AccountRepository accountRepository, ExpenseRepository expenseRepository) {
-        return new AccountService(accountRepository, expenseRepository);
+    public AccountService accountService(AccountRepository accountRepository) {
+        return new AccountService(accountRepository);
     }
 
     @Bean
@@ -41,8 +32,4 @@ public class AccountModuleConfiguration {
         return new AccountController(accountModuleFacade);
     }
 
-    @Bean
-    public TransactionController expenseController(AccountModuleFacade accountModuleFacade) {
-        return new TransactionController(accountModuleFacade);
-    }
 }

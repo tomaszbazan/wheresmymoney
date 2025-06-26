@@ -28,7 +28,6 @@ functionality to record, track, and categorize money flowing in and out of accou
 - **Business Rules**:
     - Transaction amounts follow currency convention: positive for income, negative for expenses
     - Account balance is automatically updated upon transaction creation
-    - Transaction date defaults to current date if not provided
     - UUIDs are generated on backend
 
 ### Transaction Modification

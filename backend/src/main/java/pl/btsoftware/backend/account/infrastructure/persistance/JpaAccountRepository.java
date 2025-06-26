@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.account.infrastructure.persistance;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.account.domain.Account;
@@ -12,14 +13,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Repository
+@RequiredArgsConstructor
 @Profile("!test")
 public class JpaAccountRepository implements AccountRepository {
 
     private final AccountJpaRepository repository;
-
-    public JpaAccountRepository(AccountJpaRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public void store(Account account) {
@@ -46,8 +44,8 @@ public class JpaAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findByName(String name) {
-        return repository.findByName(name)
+    public Optional<Account> findByNameAndCurrency(String name, String currency) {
+        return repository.findByNameAndCurrency(name, currency)
                 .map(AccountEntity::toDomain);
     }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../widgets/side_menu.dart';
-import 'expenses_page.dart';
-import 'statistics_page.dart';
 import 'accounts_page.dart';
+import 'statistics_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,7 +18,6 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
   
   final List<Widget> _pages = <Widget>[
     const StatisticsPage(),
-    const ExpensesPage(),
     const AccountsPage(),
   ];
   
