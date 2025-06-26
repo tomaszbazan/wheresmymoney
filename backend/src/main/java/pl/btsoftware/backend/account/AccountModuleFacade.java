@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.account;
 
 import lombok.AllArgsConstructor;
+import org.springframework.lang.Nullable;
 import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.domain.*;
 import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
@@ -9,6 +10,8 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import static pl.btsoftware.backend.account.domain.AccountId.generate;
 
 @AllArgsConstructor
 public class AccountModuleFacade {
@@ -50,9 +53,9 @@ public class AccountModuleFacade {
         return accountService.getExpensesByAccountId(accountId);
     }
 
-    public record CreateAccountCommand(String name, String currency) {
+    public record CreateAccountCommand(String name, @Nullable String currency) {
         public Account toDomain() {
-            return new Account(AccountId.generate(), name, currency);
+            return new Account(generate(), name, currency);
         }
     }
 

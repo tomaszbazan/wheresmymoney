@@ -1,15 +1,8 @@
 package pl.btsoftware.backend.account.infrastructure.api;
 
-import pl.btsoftware.backend.account.domain.Money;
+import jakarta.validation.constraints.NotBlank;
+import org.hibernate.validator.constraints.Length;
+import org.springframework.lang.Nullable;
 
-public record CreateAccountRequest(String name, String currency) {
-    public CreateAccountRequest {
-        if (currency == null || currency.isBlank()) {
-            currency = Money.DEFAULT_CURRENCY;
-        }
-    }
-
-    public CreateAccountRequest(String name) {
-        this(name, Money.DEFAULT_CURRENCY);
-    }
+public record CreateAccountRequest(@NotBlank @Length(max = 100) String name, @Nullable String currency) {
 }

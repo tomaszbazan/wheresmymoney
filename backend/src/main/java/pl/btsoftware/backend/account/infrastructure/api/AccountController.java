@@ -3,6 +3,7 @@ package pl.btsoftware.backend.account.infrastructure.api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 
@@ -29,13 +30,13 @@ public class AccountController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AccountView createAccount(@RequestBody CreateAccountRequest request) {
+    public AccountView createAccount(@Validated @RequestBody CreateAccountRequest request) {
         log.info("Received request to create account with name: {} and currency: {}", request.name(), request.currency());
         return AccountView.from(accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand(request.name(), request.currency())));
     }
 
     @PutMapping("/{id}")
-    public AccountView updateAccount(@PathVariable UUID id, @RequestBody UpdateAccountRequest request) {
+    public AccountView updateAccount(@PathVariable UUID id, @Validated @RequestBody UpdateAccountRequest request) {
         log.info("Received request to update account with id: {} and new name: {}", id, request.name());
         return AccountView.from(accountModuleFacade.updateAccount(new AccountModuleFacade.UpdateAccountCommand(id, request.name())));
     }

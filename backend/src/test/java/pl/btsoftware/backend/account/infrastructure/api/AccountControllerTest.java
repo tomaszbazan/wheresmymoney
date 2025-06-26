@@ -2,25 +2,30 @@ package pl.btsoftware.backend.account.infrastructure.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.account.AccountModuleFacade;
+import pl.btsoftware.backend.account.AccountModuleFacade.CreateAccountCommand;
+import pl.btsoftware.backend.account.AccountModuleFacade.UpdateAccountCommand;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountId;
 import pl.btsoftware.backend.account.domain.Money;
-import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -68,10 +73,18 @@ public class AccountControllerTest {
                 .andExpect(jsonPath("$.accounts[1].currency").value("PLN"));
     }
 
+    private static Stream<Arguments> incorrectName() {
+        return Stream.of(
+                Arguments.of(""),
+                Arguments.of("  "),
+                Arguments.of("a".repeat(101))
+        );
+    }
+
     @Test
     void shouldReturnEmptyListWhenNoAccountsExist() throws Exception {
         // given
-        when(accountModuleFacade.getAccounts()).thenReturn(Collections.emptyList());
+        when(accountModuleFacade.getAccounts()).thenReturn(emptyList());
 
         // when & then
         mockMvc.perform(get("/api/accounts")
@@ -82,12 +95,23 @@ public class AccountControllerTest {
     }
 
     @Test
+    void shouldDeleteAccount() throws Exception {
+        // given
+        var accountId = randomUUID();
+
+        // when & then
+        mockMvc.perform(delete("/api/accounts/" + accountId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
     void shouldUpdateAccount() throws Exception {
         // given
         var accountId = randomUUID();
         var updatedAccount = createAccount(accountId, "Updated Account", "PLN");
 
-        when(accountModuleFacade.updateAccount(any(AccountModuleFacade.UpdateAccountCommand.class)))
+        when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class)))
                 .thenReturn(updatedAccount);
 
         UpdateAccountRequest request = new UpdateAccountRequest("Updated Account");
@@ -106,23 +130,12 @@ public class AccountControllerTest {
     }
 
     @Test
-    void shouldDeleteAccount() throws Exception {
-        // given
-        var accountId = randomUUID();
-
-        // when & then
-        mockMvc.perform(delete("/api/accounts/" + accountId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
     void shouldCreateAccount() throws Exception {
         // given
         var accountId = randomUUID();
         var createdAccount = createAccount(accountId, "Test Account", "EUR");
 
-        when(accountModuleFacade.createAccount(any(AccountModuleFacade.CreateAccountCommand.class)))
+        when(accountModuleFacade.createAccount(any(CreateAccountCommand.class)))
                 .thenReturn(createdAccount);
 
         var createAccountRequest = new CreateAccountRequest("Test Account", "EUR");
@@ -141,20 +154,29 @@ public class AccountControllerTest {
                 .andExpect(jsonPath("$.updatedAt").exists());
     }
 
-    @Test
-    void shouldReturnBadRequestWhenCreatingAccountWithInvalidData() throws Exception {
+    @ParameterizedTest
+    @MethodSource("incorrectName")
+    void shouldReturnBadRequestWhenCreatingAccountWithEmptyName(String name) throws Exception {
         // given
-        when(accountModuleFacade.createAccount(any(AccountModuleFacade.CreateAccountCommand.class)))
-                .thenThrow(new AccountNameEmptyException());
-        
-        var createAccountRequest = new CreateAccountRequest("", "PLN");
+        var createAccountRequest = new CreateAccountRequest(name, "PLN");
 
         // when & then
         mockMvc.perform(post("/api/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createAccountRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Account name cannot be empty")));
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenCreatingAccountWithNullName() throws Exception {
+        // given
+        var createAccountRequest = new CreateAccountRequest(null, "PLN");
+
+        // when & then
+        mockMvc.perform(post("/api/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createAccountRequest)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -198,7 +220,7 @@ public class AccountControllerTest {
         // given
         var nonExistentId = randomUUID();
 
-        when(accountModuleFacade.updateAccount(any(AccountModuleFacade.UpdateAccountCommand.class)))
+        when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class)))
                 .thenThrow(new AccountNotFoundException(nonExistentId));
         
         var updateRequest = new UpdateAccountRequest("Updated Name");
@@ -209,6 +231,31 @@ public class AccountControllerTest {
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString("Account not found with id: " + nonExistentId)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("incorrectName")
+    void shouldReturnBadRequestWhenUpdateAccountWithEmptyName(String name) throws Exception {
+        // given
+        var updateAccountRequest = new UpdateAccountRequest(name);
+
+        // when & then
+        mockMvc.perform(put("/api/accounts/" + randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateAccountRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenUpdatingAccountWithNullName() throws Exception {
+        // given
+        var updateAccountRequest = new UpdateAccountRequest(null);
+
+        // when & then
+        mockMvc.perform(put("/api/accounts/" + randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateAccountRequest)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
