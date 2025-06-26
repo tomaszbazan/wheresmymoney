@@ -1,4 +1,7 @@
 package pl.btsoftware.backend.account.infrastructure.api;
 
-public record UpdateAccountRequest(String name) {
+import jakarta.validation.constraints.NotBlank;
+import org.hibernate.validator.constraints.Length;
+
+public record UpdateAccountRequest(@NotBlank @Length(max = 100) String name) {
 }

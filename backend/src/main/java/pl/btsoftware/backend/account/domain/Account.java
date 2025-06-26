@@ -1,11 +1,13 @@
 package pl.btsoftware.backend.account.domain;
 
+import jakarta.annotation.Nullable;
 import pl.btsoftware.backend.account.domain.error.*;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 import static java.time.OffsetDateTime.now;
+import static pl.btsoftware.backend.account.domain.Money.DEFAULT_CURRENCY;
 import static pl.btsoftware.backend.account.domain.Money.zero;
 
 public record Account(AccountId id, String name, Money balance, OffsetDateTime createdAt, OffsetDateTime updatedAt) {
@@ -13,8 +15,8 @@ public record Account(AccountId id, String name, Money balance, OffsetDateTime c
         validateAccountName(name);
     }
 
-    public Account(AccountId id, String name, String currency) {
-        this(id, name, zero(currency), now(ZoneOffset.UTC), now(ZoneOffset.UTC));
+    public Account(AccountId id, String name, @Nullable String currency) {
+        this(id, name, zero(currency == null ? DEFAULT_CURRENCY : currency), now(ZoneOffset.UTC), now(ZoneOffset.UTC));
     }
 
     public Account(AccountId id, String name, Money balance, OffsetDateTime createdAt) {
