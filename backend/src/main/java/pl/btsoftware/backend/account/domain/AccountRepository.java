@@ -9,5 +9,6 @@ public interface AccountRepository {
     Optional<Account> findById(AccountId id);
     List<Account> findAll();
     void deleteById(UUID id);
-    Optional<Account> findByName(String name);
+
+    Optional<Account> findByNameAndCurrency(String name, String currency);
 }

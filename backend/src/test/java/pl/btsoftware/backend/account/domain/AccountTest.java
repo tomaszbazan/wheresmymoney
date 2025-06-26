@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import pl.btsoftware.backend.account.domain.error.*;
+import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
+import pl.btsoftware.backend.account.domain.error.AccountNameInvalidCharactersException;
+import pl.btsoftware.backend.account.domain.error.AccountNameTooLongException;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -141,109 +143,6 @@ class AccountTest {
         }
     }
 
-    @Test
-    void shouldAddExpense() {
-        // given
-        var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
-        var expense = new Expense(
-                ExpenseId.generate(),
-                accountId,
-                new Money(new BigDecimal("50.00"), "PLN"),
-                "Test Expense",
-                OffsetDateTime.now()
-        );
-
-        // when
-        var updatedAccount = account.addExpense(expense);
-
-        // then
-        assertThat(updatedAccount.id()).isEqualTo(accountId);
-        assertThat(updatedAccount.name()).isEqualTo("Test Account");
-        assertThat(updatedAccount.balance().amount()).isEqualByComparingTo(new BigDecimal("-50.00"));
-        assertThat(updatedAccount.balance().currency()).isEqualTo("PLN");
-        // Original account should be unchanged (immutability check)
-        assertThat(account).isNotSameAs(updatedAccount);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenAddingNullExpense() {
-        // given
-        var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
-
-        // when & then
-        assertThrows(ExpenseIdNullException.class, () -> account.addExpense(null));
-    }
-
-    @Test
-    void shouldRemoveExpense() {
-        // given
-        var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
-        var expense = new Expense(
-                ExpenseId.generate(),
-                accountId,
-                new Money(new BigDecimal("50.00"), "PLN"),
-                "Test Expense",
-                OffsetDateTime.now()
-        );
-
-        // when
-        var updatedAccount = account.removeExpense(expense);
-
-        // then
-        assertThat(updatedAccount.id()).isEqualTo(accountId);
-        assertThat(updatedAccount.name()).isEqualTo("Test Account");
-        assertThat(updatedAccount.balance().amount()).isEqualByComparingTo(new BigDecimal("50.00"));
-        assertThat(updatedAccount.balance().currency()).isEqualTo("PLN");
-        // Original account should be unchanged (immutability check)
-        assertThat(account).isNotSameAs(updatedAccount);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenRemovingNullExpense() {
-        // given
-        var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
-
-        // when & then
-        assertThrows(ExpenseIdNullException.class, () -> account.removeExpense(null));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenAddingExpenseWithDifferentCurrency() {
-        // given
-        var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
-        var expense = new Expense(
-                ExpenseId.generate(),
-                accountId,
-                new Money(new BigDecimal("50.00"), "EUR"),
-                "Test Expense",
-                OffsetDateTime.now()
-        );
-
-        // when & then
-        assertThrows(CurrencyMismatchException.class, () -> account.addExpense(expense));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenRemovingExpenseWithDifferentCurrency() {
-        // given
-        var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
-        var expense = new Expense(
-                ExpenseId.generate(),
-                accountId,
-                new Money(new BigDecimal("50.00"), "USD"),
-                "Test Expense",
-                OffsetDateTime.now()
-        );
-
-        // when & then
-        assertThrows(CurrencyMismatchException.class, () -> account.removeExpense(expense));
-    }
 
     @ParameterizedTest
     @MethodSource("accountNameValidationTestCases")

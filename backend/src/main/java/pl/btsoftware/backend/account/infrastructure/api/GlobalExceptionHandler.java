@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.domain.error.BusinessException;
-import pl.btsoftware.backend.account.domain.error.ExpenseNotFoundException;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -27,7 +26,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(BAD_REQUEST).body(ex.getMessage());
     }
 
-    @ExceptionHandler({AccountNotFoundException.class, ExpenseNotFoundException.class})
+    @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<String> handleAccountNotFoundException(AccountNotFoundException ex) {
         log.error("{}", ex.getMessage(), ex);
         return ResponseEntity.status(NOT_FOUND).body(ex.getMessage());

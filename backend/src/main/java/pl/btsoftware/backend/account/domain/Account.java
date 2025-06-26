@@ -1,7 +1,9 @@
 package pl.btsoftware.backend.account.domain;
 
 import jakarta.annotation.Nullable;
-import pl.btsoftware.backend.account.domain.error.*;
+import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
+import pl.btsoftware.backend.account.domain.error.AccountNameInvalidCharactersException;
+import pl.btsoftware.backend.account.domain.error.AccountNameTooLongException;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -40,27 +42,4 @@ public record Account(AccountId id, String name, Money balance, OffsetDateTime c
         return new Account(id, newName, balance, createdAt, now(ZoneOffset.UTC));
     }
 
-    public Account addExpense(Expense expense) {
-        if (expense == null) {
-            throw new ExpenseIdNullException();
-        }
-
-        if (!expense.amount().currency().equals(balance.currency())) {
-            throw new CurrencyMismatchException(expense.amount().currency(), balance.currency());
-        }
-
-        return new Account(id, name, balance.subtract(expense.amount()), createdAt, now(ZoneOffset.UTC));
-    }
-
-    public Account removeExpense(Expense expense) {
-        if (expense == null) {
-            throw new ExpenseIdNullException();
-        }
-
-        if (!expense.amount().currency().equals(balance.currency())) {
-            throw new CurrencyMismatchException(expense.amount().currency(), balance.currency());
-        }
-
-        return new Account(id, name, balance.add(expense.amount()), createdAt, now(ZoneOffset.UTC));
-    }
 }
