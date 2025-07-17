@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import static java.math.BigDecimal.TEN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class AccountTest {
@@ -52,7 +52,8 @@ class AccountTest {
         var account = new Account(accountId, "Test Account", "PLN");
 
         // when & then
-        assertThrows(AccountNameEmptyException.class, () -> account.changeName(null));
+        assertThatThrownBy(() -> account.changeName(null))
+                .isInstanceOf(AccountNameEmptyException.class);
     }
 
     @Test
@@ -62,8 +63,10 @@ class AccountTest {
         var account = new Account(accountId, "Test Account", "PLN");
 
         // when & then
-        assertThrows(AccountNameEmptyException.class, () -> account.changeName(""));
-        assertThrows(AccountNameEmptyException.class, () -> account.changeName("   "));
+        assertThatThrownBy(() -> account.changeName(""))
+                .isInstanceOf(AccountNameEmptyException.class);
+        assertThatThrownBy(() -> account.changeName("   "))
+                .isInstanceOf(AccountNameEmptyException.class);
     }
 
     @Test
@@ -74,7 +77,8 @@ class AccountTest {
         var tooLongName = "a".repeat(101);
 
         // when & then
-        assertThrows(AccountNameTooLongException.class, () -> account.changeName(tooLongName));
+        assertThatThrownBy(() -> account.changeName(tooLongName))
+                .isInstanceOf(AccountNameTooLongException.class);
     }
 
     @Test
@@ -98,9 +102,12 @@ class AccountTest {
         var account = new Account(accountId, "Test Account", "PLN");
 
         // when & then
-        assertThrows(AccountNameInvalidCharactersException.class, () -> account.changeName("Invalid\nName"));
-        assertThrows(AccountNameInvalidCharactersException.class, () -> account.changeName("Invalid\tName"));
-        assertThrows(AccountNameInvalidCharactersException.class, () -> account.changeName("Invalid\\Name"));
+        assertThatThrownBy(() -> account.changeName("Invalid\nName"))
+                .isInstanceOf(AccountNameInvalidCharactersException.class);
+        assertThatThrownBy(() -> account.changeName("Invalid\tName"))
+                .isInstanceOf(AccountNameInvalidCharactersException.class);
+        assertThatThrownBy(() -> account.changeName("Invalid\\Name"))
+                .isInstanceOf(AccountNameInvalidCharactersException.class);
     }
 
     @Test
@@ -153,6 +160,7 @@ class AccountTest {
         var createdAt = OffsetDateTime.now();
 
         // when & then
-        assertThrows(expectedException, () -> new Account(accountId, name, balance, createdAt));
+        assertThatThrownBy(() -> new Account(accountId, name, balance, createdAt))
+                .isInstanceOf(expectedException);
     }
 }

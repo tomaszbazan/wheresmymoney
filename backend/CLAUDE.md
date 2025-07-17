@@ -30,7 +30,8 @@ This is a **Spring Boot 3.3.5** application using **Java 21** that follows **Dom
 - **Lombok** for reducing boilerplate
 
 ### Module Structure
-The application is organized around business modules. Currently there's one main module:
+
+The application is organized around business modules.
 
 **Account Module** (`pl.btsoftware.wheresmymoney.account`):
 - `AccountModuleFacade` - Public API for the module
@@ -38,9 +39,16 @@ The application is organized around business modules. Currently there's one main
 - `domain/` - Core business logic and domain objects
 - `infrastructure/` - External concerns (REST API, persistence, configuration)
 
+**Transaction Module** (`pl.btsoftware.wheresmymoney.transaction`):
+
+- `TransactionModuleFacade` - Public API for the module
+- `application/` - Application services (orchestration)
+- `domain/` - Core business logic and domain objects
+- `infrastructure/` - External concerns (REST API, persistence, configuration)
+
 ### Domain Model
 - **Account**: Aggregate root with balance tracking and multi-currency support
-- **Expense**: Transaction records linked to accounts
+- **Transaction**: Transaction records linked to accounts
 - **Money**: Value object supporting PLN, EUR, USD, GBP with proper arithmetic
 - Rich domain validation with custom business exceptions in `domain/error/`
 

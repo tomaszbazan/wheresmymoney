@@ -6,35 +6,35 @@ import pl.btsoftware.backend.account.domain.error.InvalidCurrencyException;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MoneyTest {
 
     @Test
     void shouldThrowExceptionWhenAmountIsNull() {
         // when & then
-        assertThrows(NullPointerException.class, () -> new Money(null, "PLN"));
+        assertThatThrownBy(() -> new Money(null, "PLN"))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenCurrencyIsNull() {
         // when & then
-        assertThrows(NullPointerException.class, () -> new Money(BigDecimal.TEN, null));
+        assertThatThrownBy(() -> new Money(BigDecimal.TEN, null))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenCurrencyIsNotSupported() {
         // when & then
-        InvalidCurrencyException exception = assertThrows(InvalidCurrencyException.class,
-            () -> new Money(BigDecimal.TEN, "JPY"));
+        assertThatThrownBy(() -> new Money(BigDecimal.TEN, "JPY"))
+                .isInstanceOf(InvalidCurrencyException.class)
+                .hasMessageContaining("Invalid currency")
+                .hasMessageContaining("PLN")
+                .hasMessageContaining("EUR")
+                .hasMessageContaining("USD")
+                .hasMessageContaining("GBP");
 
-        // then
-        assertThat(exception.getMessage()).contains("Invalid currency");
-        assertThat(exception.getMessage()).contains("PLN");
-        assertThat(exception.getMessage()).contains("EUR");
-        assertThat(exception.getMessage()).contains("USD");
-        assertThat(exception.getMessage()).contains("GBP");
     }
 
     @Test
@@ -62,7 +62,7 @@ class MoneyTest {
 
         // then
         assertThat(money.amount()).isEqualByComparingTo(new BigDecimal("10.12"));
-        assertEquals(2, money.amount().scale());
+        assertThat(money.amount().scale()).isEqualTo(2);
     }
 
     @Test
@@ -116,7 +116,8 @@ class MoneyTest {
         Money money2 = Money.of(BigDecimal.ONE, "USD");
 
         // when & then
-        assertThrows(IllegalArgumentException.class, () -> money1.add(money2));
+        assertThatThrownBy(() -> money1.add(money2))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -140,7 +141,8 @@ class MoneyTest {
         Money money2 = Money.of(BigDecimal.ONE, "USD");
 
         // when & then
-        assertThrows(IllegalArgumentException.class, () -> money1.subtract(money2));
+        assertThatThrownBy(() -> money1.subtract(money2))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -178,12 +180,11 @@ class MoneyTest {
         Money money = Money.of(BigDecimal.TEN);
 
         // when & then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-            () -> money.withCurrency("JPY"));
+        assertThatThrownBy(() -> money.withCurrency("JPY"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Unsupported currency")
+                .hasMessageContaining("JPY");
 
-        // then
-        assertThat(exception.getMessage()).contains("Unsupported currency");
-        assertThat(exception.getMessage()).contains("JPY");
     }
 
     @Test
