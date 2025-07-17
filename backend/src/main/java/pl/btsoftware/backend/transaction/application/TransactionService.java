@@ -13,13 +13,11 @@ public class TransactionService {
 
     @Transactional // TODO: Verify if transactional works correctly in integration tests
     public Transaction createTransaction(CreateTransactionCommand command) {
-        // Validate account exists before creating transaction
-        accountModuleFacade.getAccount(command.accountId().value());
-
-        // Validate description length
+        var account = accountModuleFacade.getAccount(command.accountId().value());
         validateDescriptionLength(command.description());
+        validateCurrencyMatch(command.currency(), account.balance().currency());
 
-        Transaction transaction = command.toDomain();
+        var transaction = command.toDomain();
         transactionRepository.store(transaction);
         accountModuleFacade.addTransaction(command.accountId().value(), command.amount(), command.type().name());
 
@@ -29,6 +27,12 @@ public class TransactionService {
     private void validateDescriptionLength(String description) {
         if (description == null || description.trim().isEmpty() || description.length() > 200) {
             throw new IllegalArgumentException("Description must be between 1 and 200 characters");
+        }
+    }
+
+    private void validateCurrencyMatch(String transactionCurrency, String accountCurrency) {
+        if (!transactionCurrency.equals(accountCurrency)) {
+            throw new IllegalArgumentException("Transaction currency must match account currency");
         }
     }
 }

@@ -23,12 +23,13 @@ public record Transaction(
             String description,
             OffsetDateTime date,
             TransactionType type,
-            String category
+            String category,
+            String currency
     ) {
         return new Transaction(
                 TransactionId.generate(),
                 accountId,
-                Money.of(amount, "PLN"),
+                Money.of(amount, currency),
                 type,
                 description,
                 category,
