@@ -16,10 +16,19 @@ public class TransactionService {
         // Validate account exists before creating transaction
         accountModuleFacade.getAccount(command.accountId().value());
 
+        // Validate description length
+        validateDescriptionLength(command.description());
+
         Transaction transaction = command.toDomain();
         transactionRepository.store(transaction);
         accountModuleFacade.addTransaction(command.accountId().value(), command.amount(), command.type().name());
 
         return transaction;
+    }
+
+    private void validateDescriptionLength(String description) {
+        if (description == null || description.trim().isEmpty() || description.length() > 200) {
+            throw new IllegalArgumentException("Description must be between 1 and 200 characters");
+        }
     }
 }

@@ -116,4 +116,44 @@ class TransactionServiceTest {
         // Verify no transaction was created
         assertThat(transactionRepository.findAll()).isEmpty();
     }
+
+    @Test
+    void shouldRejectTransactionWithEmptyDescription() {
+        // Given
+        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", "PLN"));
+        var amount = new BigDecimal("100.00");
+        var description = "";
+        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var type = TransactionType.INCOME;
+        var category = "Test";
+
+        // When & Then
+        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category);
+        assertThatThrownBy(() -> transactionService.createTransaction(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Description must be between 1 and 200 characters");
+
+        // Verify no transaction was created
+        assertThat(transactionRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void shouldRejectTransactionWithDescriptionTooLong() {
+        // Given
+        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", "PLN"));
+        var amount = new BigDecimal("100.00");
+        var description = "A".repeat(201); // 201 characters
+        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var type = TransactionType.INCOME;
+        var category = "Test";
+
+        // When & Then
+        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category);
+        assertThatThrownBy(() -> transactionService.createTransaction(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Description must be between 1 and 200 characters");
+
+        // Verify no transaction was created
+        assertThat(transactionRepository.findAll()).isEmpty();
+    }
 }
