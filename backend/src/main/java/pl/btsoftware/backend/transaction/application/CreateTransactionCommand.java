@@ -13,9 +13,10 @@ public record CreateTransactionCommand(
         String description,
         OffsetDateTime date,
         TransactionType type,
-        String category
+        String category,
+        String currency
 ) {
     public Transaction toDomain() {
-        return Transaction.create(accountId, amount, description, date, type, category);
+        return Transaction.create(accountId, amount, description, date, type, category, currency);
     }
 }

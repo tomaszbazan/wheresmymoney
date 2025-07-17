@@ -77,6 +77,8 @@
 - Return error message: "Transaction currency must match account currency"
 - Not create any transaction
 
+**Test Coverage:** `TransactionServiceTest.shouldRejectTransactionWithCurrencyMismatch()`
+
 ## 3. Transaction Retrieval
 
 ### AC-3.1: Get Transaction by ID
