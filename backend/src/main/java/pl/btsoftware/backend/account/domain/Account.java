@@ -42,4 +42,9 @@ public record Account(AccountId id, String name, Money balance, OffsetDateTime c
         return new Account(id, newName, balance, createdAt, now(ZoneOffset.UTC));
     }
 
+    public Account updateBalance(Money transactionAmount) {
+        Money newBalance = balance.add(transactionAmount);
+        return new Account(id, name, newBalance, createdAt, now(ZoneOffset.UTC));
+    }
+
 }

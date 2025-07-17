@@ -14,8 +14,8 @@ import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountR
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AccountServiceTest {
     private AccountRepository accountRepository;
@@ -73,7 +73,8 @@ public class AccountServiceTest {
             var command = createAccountCommand("", "PLN");
 
             // when & then
-            assertThrows(AccountNameEmptyException.class, () -> accountService.createAccount(command));
+            assertThatThrownBy(() -> accountService.createAccount(command))
+                    .isInstanceOf(AccountNameEmptyException.class);
             assertThat(accountRepository.findAll()).isEmpty();
         }
 
@@ -83,7 +84,8 @@ public class AccountServiceTest {
             var command = createAccountCommand(null, "PLN");
 
             // when & then
-            assertThrows(AccountNameEmptyException.class, () -> accountService.createAccount(command));
+            assertThatThrownBy(() -> accountService.createAccount(command))
+                    .isInstanceOf(AccountNameEmptyException.class);
             assertThat(accountRepository.findAll()).isEmpty();
         }
 
@@ -93,7 +95,8 @@ public class AccountServiceTest {
             var command = createAccountCommand("   ", "PLN");
 
             // when & then
-            assertThrows(AccountNameEmptyException.class, () -> accountService.createAccount(command));
+            assertThatThrownBy(() -> accountService.createAccount(command))
+                    .isInstanceOf(AccountNameEmptyException.class);
             assertThat(accountRepository.findAll()).isEmpty();
         }
 
@@ -104,7 +107,8 @@ public class AccountServiceTest {
             var command = createAccountCommand(longName, "PLN");
 
             // when & then
-            assertThrows(AccountNameTooLongException.class, () -> accountService.createAccount(command));
+            assertThatThrownBy(() -> accountService.createAccount(command))
+                    .isInstanceOf(AccountNameTooLongException.class);
             assertThat(accountRepository.findAll()).isEmpty();
         }
 
@@ -115,7 +119,8 @@ public class AccountServiceTest {
             var command = createAccountCommand(invalidName, "PLN");
 
             // when & then
-            assertThrows(AccountNameInvalidCharactersException.class, () -> accountService.createAccount(command));
+            assertThatThrownBy(() -> accountService.createAccount(command))
+                    .isInstanceOf(AccountNameInvalidCharactersException.class);
             assertThat(accountRepository.findAll()).isEmpty();
         }
 
@@ -139,7 +144,8 @@ public class AccountServiceTest {
             var command = createAccountCommand("JPY Account", "JPY");
 
             // when & then
-            assertThrows(InvalidCurrencyException.class, () -> accountService.createAccount(command));
+            assertThatThrownBy(() -> accountService.createAccount(command))
+                    .isInstanceOf(InvalidCurrencyException.class);
             assertThat(accountRepository.findAll()).isEmpty();
         }
 
@@ -155,8 +161,9 @@ public class AccountServiceTest {
             accountService.createAccount(command1);
 
             // then
-            var exception = assertThrows(AccountAlreadyExistsException.class, () -> accountService.createAccount(command2));
-            assertThat(exception.getMessage()).contains("Account with provided name and currency already exists");
+            assertThatThrownBy(() -> accountService.createAccount(command2))
+                    .isInstanceOf(AccountAlreadyExistsException.class)
+                    .hasMessageContaining("Account with provided name and currency already exists");
             assertThat(accountRepository.findAll()).hasSize(1);
         }
 
@@ -255,9 +262,9 @@ public class AccountServiceTest {
             var nonExistentAccountId = UUID.randomUUID();
 
             // when & then
-            var exception = assertThrows(AccountNotFoundException.class,
-                    () -> accountService.getById(nonExistentAccountId));
-            assertThat(exception.getMessage()).contains("Account not found");
+            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId))
+                    .isInstanceOf(AccountNotFoundException.class)
+                    .hasMessageContaining("Account not found");
         }
 
         @Test
@@ -309,7 +316,8 @@ public class AccountServiceTest {
             var newName = "Updated Name";
 
             // when & then
-            assertThrows(AccountNotFoundException.class, () -> accountService.updateAccount(nonExistentAccountId, newName));
+            assertThatThrownBy(() -> accountService.updateAccount(nonExistentAccountId, newName))
+                    .isInstanceOf(AccountNotFoundException.class);
         }
 
         @Test
@@ -322,7 +330,8 @@ public class AccountServiceTest {
             var emptyName = "";
 
             // when & then
-            assertThrows(AccountNameEmptyException.class, () -> accountService.updateAccount(account.id().value(), emptyName));
+            assertThatThrownBy(() -> accountService.updateAccount(account.id().value(), emptyName))
+                    .isInstanceOf(AccountNameEmptyException.class);
 
             // and
             var retrievedAccount = accountService.getById(account.id().value());
@@ -342,8 +351,8 @@ public class AccountServiceTest {
                     .create());
 
             // when & then
-            assertThrows(AccountAlreadyExistsException.class,
-                    () -> accountService.updateAccount(account2.id().value(), "Account One"));
+            assertThatThrownBy(() -> accountService.updateAccount(account2.id().value(), "Account One"))
+                    .isInstanceOf(AccountAlreadyExistsException.class);
 
             // verify original names are preserved
             var retrievedAccount1 = accountService.getById(account1.id().value());
@@ -368,14 +377,14 @@ public class AccountServiceTest {
             assertThat(accountService.getAccounts()).isEmpty();
         }
 
-
         @Test
         void shouldThrowExceptionWhenDeletingNonExistentAccount() {
             // given
             var nonExistentAccountId = UUID.randomUUID();
 
             // when & then
-            assertThrows(AccountNotFoundException.class, () -> accountService.deleteAccount(nonExistentAccountId));
+            assertThatThrownBy(() -> accountService.deleteAccount(nonExistentAccountId))
+                    .isInstanceOf(AccountNotFoundException.class);
         }
     }
 }

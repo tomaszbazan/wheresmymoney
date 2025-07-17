@@ -6,9 +6,11 @@ import pl.btsoftware.backend.account.AccountModuleFacade.CreateAccountCommand;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountId;
 import pl.btsoftware.backend.account.domain.AccountRepository;
+import pl.btsoftware.backend.account.domain.Money;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,5 +60,19 @@ public class AccountService {
                 .orElseThrow(() -> new AccountNotFoundException(id));
 
         accountRepository.deleteById(id);
+    }
+
+    public Account addTransaction(UUID accountId, BigDecimal amount, String transactionType) {
+        var account = accountRepository.findById(AccountId.from(accountId))
+                .orElseThrow(() -> new AccountNotFoundException(accountId));
+
+        // Calculate balance change based on transaction type
+        Money balanceChange = "INCOME".equals(transactionType)
+                ? Money.of(amount, account.balance().currency())
+                : Money.of(amount.negate(), account.balance().currency());
+
+        var updatedAccount = account.updateBalance(balanceChange);
+        accountRepository.store(updatedAccount);
+        return updatedAccount;
     }
 }

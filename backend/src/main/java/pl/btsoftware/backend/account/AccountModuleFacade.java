@@ -6,6 +6,7 @@ import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +35,6 @@ public class AccountModuleFacade {
         }
     }
 
-
     public record UpdateAccountCommand(UUID accountId, String name) {
         public UpdateAccountCommand {
             if (accountId == null) {
@@ -52,5 +52,9 @@ public class AccountModuleFacade {
 
     public void deleteAccount(UUID accountId) {
         accountService.deleteAccount(accountId);
+    }
+
+    public Account addTransaction(UUID accountId, BigDecimal amount, String transactionType) {
+        return accountService.addTransaction(accountId, amount, transactionType);
     }
 }

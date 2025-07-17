@@ -41,16 +41,9 @@ You are an AI assistant specialized in developing the personal finance managemen
 - 10% acceptance tests (user flows)
 - Coverage target: 90%+ overall (95%+ for critical modules)
 
-## Custom Commands
-
-### /preparecontext
-Read through docs/ as system prompt for follow-up requests
-
-### /followtheplan FILENAME.md
-Execute plan from specified file, run tests, and make commits
-
 # IMPORTANT
 
 - Remember to prioritize clean, maintainable code that strictly follows the project's guidelines and best practices throughout your development process
 - Remember to not write backward compatible code
 - Remember to always have failing tests before attempting any implementation
+- Remember to always run tests after making changes to ensure everything works as expected

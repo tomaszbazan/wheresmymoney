@@ -6,67 +6,43 @@
 
 **Given** an account with currency "PLN"
 **When** I create a transaction with:
-- amount: 1000.00
+
+- amount: 1000.12
 - description: "Salary payment"
 - date: 2024-01-15
 - type: "Income"
+- category: "Salary"
   **Then** the system should:
 - Create transaction with generated UUID
-- Set amount as positive (1000.00)
+- Set amount 1000.12
 - Set type as INCOME
-- Update account balance by +1000.00
+- Update account balance by +1000.12
+
+**Test Coverage:** `TransactionServiceTest.shouldCreateIncomeTransaction()`
 
 ### AC-1.2: Create Expense Transaction
 
-**Given** an existing active account with ID "550e8400-e29b-41d4-a716-446655440000"
+**Given** an account with currency "PLN"
 **When** I create a transaction with:
 
-- amount: -250.50
+- amount: 250.50
 - description: "Grocery shopping"
 - date: 2024-01-16
+- type: "Expense"
 - category: "Food"
   **Then** the system should:
 - Create transaction with generated UUID
-- Set amount as negative (-250.50)
+- Set amount 250.50
 - Set type as EXPENSE
 - Update account balance by -250.50
-- Return 201 Created with transaction details
 
-### AC-1.3: Create Transaction with Default Date
-
-**Given** an existing active account
-**When** I create a transaction without specifying date
-**Then** the system should:
-
-- Set transaction date to current date
-- Process transaction normally
-- Return 201 Created
-
-### AC-1.4: Create Transaction with Optional Category
-
-**Given** an existing active account
-**When** I create a transaction without category
-**Then** the system should:
-
-- Create transaction with null category
-- Process transaction normally
-- Return 201 Created
+**Test Coverage:** `TransactionServiceTest.shouldCreateExpenseTransaction()`
 
 ## 2. Transaction Creation Validation
 
-### AC-2.1: Reject Zero Amount Transaction
+### AC-2.1: Reject Transaction for Non-existent Account
 
-**Given** an existing active account
-**When** I create a transaction with amount 0.00
-**Then** the system should:
-
-- Return 422 Unprocessable Entity
-- Return error message: "Transaction amount cannot be zero"
-- Not create any transaction
-
-### AC-2.2: Reject Transaction for Non-existent Account
-
-**Given** a non-existent account ID "550e8400-e29b-41d4-a716-446655440999"
+**Given** a non-existent account
 **When** I create a transaction for this account
 **Then** the system should:
 
@@ -74,17 +50,9 @@
 - Return error message: "Account not found"
 - Not create any transaction
 
-### AC-2.3: Reject Transaction with Future Date
+**Test Coverage:** `TransactionServiceTest.shouldRejectTransactionForNonexistentAccount()`
 
-**Given** an existing active account
-**When** I create a transaction with date in the future
-**Then** the system should:
-
-- Return 422 Unprocessable Entity
-- Return error message: "Transaction date cannot be in the future"
-- Not create any transaction
-
-### AC-2.4: Reject Transaction with Invalid Description Length
+### AC-2.2: Reject Transaction with Invalid Description Length
 
 **Given** an existing active account
 **When** I create a transaction with description longer than 200 characters
@@ -94,7 +62,7 @@
 - Return error message: "Description must be between 1 and 200 characters"
 - Not create any transaction
 
-### AC-2.5: Reject Transaction with Currency Mismatch
+### AC-2.3: Reject Transaction with Currency Mismatch
 
 **Given** an existing account with currency "PLN"
 **When** I create a transaction with currency "USD"
