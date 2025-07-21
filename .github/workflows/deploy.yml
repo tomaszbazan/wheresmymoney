@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
-  IMAGE_NAME: ghcr.io/tomaszbazan89/wheresmymoney
+  IMAGE_NAME: ghcr.io/tomaszbazan/wheresmymoney
   FRONTEND_DIR: frontend
 
 jobs:
