@@ -38,7 +38,9 @@ jobs:
           flutter build web --release
 
       - name: Build backend with Gradle
-        run: gradle clean build
+        run: |
+          cd backend
+          ./gradlew clean build
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -77,4 +79,4 @@ jobs:
             docker stop wheresmymoney
             docker rm wheresmymoney
 
-             docker run -d --restart unless-stopped --name wheresmymoney ${{ env.IMAGE_NAME }}:lates
+            docker run -d --restart unless-stopped -p 8081:8080 --name wheresmymoney ${{ env.IMAGE_NAME }}:latest
