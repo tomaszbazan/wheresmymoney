@@ -51,7 +51,7 @@
 **Then** the account should not be created  
 **And** the error message should indicate "Invalid currency code"  
 
-**Test Coverage:** `AccountServiceTest.CreateAccount.shouldRejectAccountCreationWithUnsupportedCurrency()`
+**Test Coverage:** `AccountControllerTest.shouldRejectAccountCreationWithUnsupportedCurrency()`
 
 ### Scenario: Reject duplicate account names & currencies
 

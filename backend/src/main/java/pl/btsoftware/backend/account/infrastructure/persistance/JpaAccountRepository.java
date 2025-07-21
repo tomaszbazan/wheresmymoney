@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountId;
 import pl.btsoftware.backend.account.domain.AccountRepository;
+import pl.btsoftware.backend.account.domain.Currency;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,8 +45,8 @@ public class JpaAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findByNameAndCurrency(String name, String currency) {
-        return repository.findByNameAndCurrency(name, currency)
+    public Optional<Account> findByNameAndCurrency(String name, Currency currency) {
+        return repository.findByNameAndCurrency(name, currency.name())
                 .map(AccountEntity::toDomain);
     }
 }

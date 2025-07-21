@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountId;
 import pl.btsoftware.backend.account.domain.AccountRepository;
+import pl.btsoftware.backend.account.domain.Currency;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +38,7 @@ public class InMemoryAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findByNameAndCurrency(String name, String currency) {
+    public Optional<Account> findByNameAndCurrency(String name, Currency currency) {
         return database.values().stream()
                 .filter(account -> account.name().equals(name) && account.balance().currency().equals(currency))
                 .findFirst();

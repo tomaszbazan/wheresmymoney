@@ -4,7 +4,6 @@ You are an AI assistant specialized in developing the personal finance managemen
 
 ## Project Overview
 
-
 ## Key Architectural Points
 
 - Frontend (Flutter) and backend (Java/Spring boot) are developed and deployed independently
@@ -40,6 +39,12 @@ You are an AI assistant specialized in developing the personal finance managemen
 - 20% integration tests (service interactions)
 - 10% acceptance tests (user flows)
 - Coverage target: 90%+ overall (95%+ for critical modules)
+
+# Getting help
+
+- ALWAYS ask for clarification rather than making assumptions.
+- If you're having trouble with something, it's ok to stop and ask for help. Especially if it's something your human
+  might be better at.
 
 # IMPORTANT
 

@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.domain;
 
 import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.account.domain.Money;
 
 import java.math.BigDecimal;
@@ -24,7 +25,7 @@ public record Transaction(
             OffsetDateTime date,
             TransactionType type,
             String category,
-            String currency
+            Currency currency
     ) {
         return new Transaction(
                 TransactionId.generate(),

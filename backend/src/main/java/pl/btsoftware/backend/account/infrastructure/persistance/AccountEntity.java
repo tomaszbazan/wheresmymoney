@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.account.domain.Money;
 
 import java.math.BigDecimal;
@@ -22,7 +23,8 @@ public class AccountEntity {
     private UUID id;
     private String name;
     private BigDecimal balance;
-    private String currency;
+    @Enumerated(EnumType.STRING)
+    private Currency currency;
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
     @Column(name = "updated_at")

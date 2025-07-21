@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.lang.Nullable;
 import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.domain.Account;
+import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 
 import java.math.BigDecimal;
@@ -29,7 +30,7 @@ public class AccountModuleFacade {
     }
 
 
-    public record CreateAccountCommand(String name, @Nullable String currency) {
+    public record CreateAccountCommand(String name, @Nullable Currency currency) {
         public Account toDomain() {
             return new Account(generate(), name, currency);
         }

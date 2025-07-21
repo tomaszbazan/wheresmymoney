@@ -6,6 +6,7 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/tomaszbazan89/wheresmymoney
+  FRONTEND_DIR: frontend
 
 jobs:
   build-and-deploy:
@@ -34,7 +35,7 @@ jobs:
         run: |
           cd frontend
           flutter pub get
-          flutter build web
+          flutter build web --release
 
       - name: Build backend with Gradle
         run: gradle clean build
@@ -69,17 +70,11 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Przejdź do katalogu z plikiem docker-compose.yml
-            cd ~ 
-
-            # Zaloguj się do rejestru GHCR na serwerze (wymaga PAT, jeśli obraz jest prywatny)
             echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Pociągnij najnowszy obraz
-            docker-compose pull
+            docker pull ${{ env.IMAGE_NAME }}:latest
+            
+            docker stop wheresmymoney
+            docker rm wheresmymoney
 
-            # Uruchom ponownie kontener. 'up -d' zatrzyma i odtworzy kontener, jeśli obraz się zmienił.
-            docker-compose up -d
-
-            # Opcjonalnie: Usuń stare, nieużywane obrazy Docker, aby oszczędzić miejsce
-            docker image prune -f
+             docker run -d --restart unless-stopped --name wheresmymoney ${{ env.IMAGE_NAME }}:lates

@@ -18,6 +18,8 @@ import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static pl.btsoftware.backend.account.domain.Currency.PLN;
+import static pl.btsoftware.backend.account.domain.Currency.USD;
 
 class TransactionServiceTest {
     private TransactionRepository transactionRepository;
@@ -36,7 +38,7 @@ class TransactionServiceTest {
     @Test
     void shouldCreateIncomeTransaction() {
         // Given
-        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", "PLN"));
+        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("1000.12");
         var description = "Salary payment";
         var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
@@ -44,7 +46,7 @@ class TransactionServiceTest {
         var category = "Salary";
 
         // When
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, "PLN");
+        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
         Transaction transaction = transactionService.createTransaction(command);
 
         // Then
@@ -68,7 +70,7 @@ class TransactionServiceTest {
     @Test
     void shouldCreateExpenseTransaction() {
         // Given
-        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", "PLN"));
+        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("250.50");
         var description = "Grocery shopping";
         var date = OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC);
@@ -76,7 +78,7 @@ class TransactionServiceTest {
         var category = "Food";
 
         // When
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, "PLN");
+        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
         Transaction transaction = transactionService.createTransaction(command);
 
         // Then
@@ -108,7 +110,7 @@ class TransactionServiceTest {
         var category = "Test";
 
         // When & Then
-        var command = new CreateTransactionCommand(nonExistentAccountId, amount, description, date, type, category, "PLN");
+        var command = new CreateTransactionCommand(nonExistentAccountId, amount, description, date, type, category, PLN);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(AccountNotFoundException.class)
                 .hasMessageContaining("Account not found");
@@ -120,7 +122,7 @@ class TransactionServiceTest {
     @Test
     void shouldRejectTransactionWithEmptyDescription() {
         // Given
-        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", "PLN"));
+        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("100.00");
         var description = "";
         var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
@@ -128,7 +130,7 @@ class TransactionServiceTest {
         var category = "Test";
 
         // When & Then
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, "PLN");
+        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Description must be between 1 and 200 characters");
@@ -140,7 +142,7 @@ class TransactionServiceTest {
     @Test
     void shouldRejectTransactionWithDescriptionTooLong() {
         // Given
-        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", "PLN"));
+        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("100.00");
         var description = "A".repeat(201); // 201 characters
         var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
@@ -148,7 +150,7 @@ class TransactionServiceTest {
         var category = "Test";
 
         // When & Then
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, "PLN");
+        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Description must be between 1 and 200 characters");
@@ -160,16 +162,15 @@ class TransactionServiceTest {
     @Test
     void shouldRejectTransactionWithCurrencyMismatch() {
         // Given
-        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", "PLN"));
+        var account = accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("100.00");
         var description = "Test transaction";
         var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
         var type = TransactionType.INCOME;
         var category = "Test";
-        var currency = "USD"; // Different from account currency (PLN)
 
         // When & Then
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, currency);
+        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, USD);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Transaction currency must match account currency");
