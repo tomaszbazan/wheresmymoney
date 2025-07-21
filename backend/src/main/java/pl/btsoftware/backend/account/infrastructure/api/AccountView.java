@@ -9,6 +9,6 @@ import java.util.UUID;
 public record AccountView(UUID id, String name, BigDecimal balance, String currency, OffsetDateTime createdAt, OffsetDateTime updatedAt) {
     public static AccountView from(Account account) {
         var balance = account.balance();
-        return new AccountView(account.id().value(), account.name(), balance.amount(), balance.currency(), account.createdAt(), account.updatedAt());
+        return new AccountView(account.id().value(), account.name(), balance.amount(), balance.currency().name(), account.createdAt(), account.updatedAt());
     }
 }

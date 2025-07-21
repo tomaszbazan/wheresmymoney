@@ -5,9 +5,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import pl.btsoftware.backend.account.AccountModuleFacade.CreateAccountCommand;
 import pl.btsoftware.backend.account.domain.AccountRepository;
+import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.account.domain.error.*;
 import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountRepository;
 
@@ -16,6 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
+import static pl.btsoftware.backend.account.domain.Currency.*;
 
 public class AccountServiceTest {
     private AccountRepository accountRepository;
@@ -30,14 +33,14 @@ public class AccountServiceTest {
     @Nested
     class CreateAccount {
 
-        private static CreateAccountCommand createAccountCommand(String name, String currency) {
+        private static CreateAccountCommand createAccountCommand(String name, Currency currency) {
             return new CreateAccountCommand(name, currency);
 
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"PLN", "EUR", "USD", "GBP"})
-        void shouldCreateAccountWithDifferentSupportedCurrencies(String currency) {
+        @EnumSource(Currency.class)
+        void shouldCreateAccountWithDifferentSupportedCurrencies(Currency currency) {
             // given
             var accountName = currency + " Account";
             var command = createAccountCommand(accountName, currency);
@@ -63,14 +66,14 @@ public class AccountServiceTest {
             // then
             assertThat(account.name()).isEqualTo(accountName);
             assertThat(account.balance().amount()).isZero();
-            assertThat(account.balance().currency()).isEqualTo("PLN"); // default currency
+            assertThat(account.balance().currency()).isEqualTo(PLN); // default currency
             assertThat(account.id()).isNotNull();
         }
 
         @Test
         void shouldRejectAccountCreationWithEmptyName() {
             // given
-            var command = createAccountCommand("", "PLN");
+            var command = createAccountCommand("", PLN);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
@@ -81,7 +84,7 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithNullName() {
             // given
-            var command = createAccountCommand(null, "PLN");
+            var command = createAccountCommand(null, PLN);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
@@ -92,7 +95,7 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithBlankName() {
             // given
-            var command = createAccountCommand("   ", "PLN");
+            var command = createAccountCommand("   ", PLN);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
@@ -104,7 +107,7 @@ public class AccountServiceTest {
         void shouldRejectAccountCreationWithTooLongName() {
             // given
             var longName = "a".repeat(101);
-            var command = createAccountCommand(longName, "PLN");
+            var command = createAccountCommand(longName, PLN);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
@@ -116,7 +119,7 @@ public class AccountServiceTest {
         @ValueSource(strings = {"Invalid\nName", "Invalid\tName"})
         void shouldRejectAccountCreationWithInvalidCharacters(String invalidName) {
             // given
-            var command = createAccountCommand(invalidName, "PLN");
+            var command = createAccountCommand(invalidName, PLN);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
@@ -128,7 +131,7 @@ public class AccountServiceTest {
         void shouldCreateAccountWithValidSpecialCharacters() {
             // given
             var validName = "Valid Name-123 O'Connor's";
-            var command = createAccountCommand(validName, "PLN");
+            var command = createAccountCommand(validName, PLN);
 
             // when
             var account = accountService.createAccount(command);
@@ -139,21 +142,10 @@ public class AccountServiceTest {
         }
 
         @Test
-        void shouldRejectAccountCreationWithUnsupportedCurrency() {
-            // given
-            var command = createAccountCommand("JPY Account", "JPY");
-
-            // when & then
-            assertThatThrownBy(() -> accountService.createAccount(command))
-                    .isInstanceOf(InvalidCurrencyException.class);
-            assertThat(accountRepository.findAll()).isEmpty();
-        }
-
-        @Test
         void shouldRejectDuplicateAccountNamesAndCurrencies() {
             // given
             var accountName = "Duplicate Account";
-            var currency = "PLN";
+            var currency = PLN;
             var command1 = createAccountCommand(accountName, currency);
             var command2 = createAccountCommand(accountName, currency);
 
@@ -171,8 +163,8 @@ public class AccountServiceTest {
         void shouldAllowSameNameWithDifferentCurrencies() {
             // given
             var accountName = "Multi-Currency Account";
-            var command1 = createAccountCommand(accountName, "PLN");
-            var command2 = createAccountCommand(accountName, "EUR");
+            var command1 = createAccountCommand(accountName, PLN);
+            var command2 = createAccountCommand(accountName, EUR);
 
             // when
             var account1 = accountService.createAccount(command1);
@@ -180,9 +172,9 @@ public class AccountServiceTest {
 
             // then
             assertThat(account1.name()).isEqualTo(accountName);
-            assertThat(account1.balance().currency()).isEqualTo("PLN");
+            assertThat(account1.balance().currency()).isEqualTo(PLN);
             assertThat(account2.name()).isEqualTo(accountName);
-            assertThat(account2.balance().currency()).isEqualTo("EUR");
+            assertThat(account2.balance().currency()).isEqualTo(EUR);
             assertThat(accountRepository.findAll()).hasSize(2);
         }
     }
@@ -195,15 +187,15 @@ public class AccountServiceTest {
             // given
             var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), "Checking Account")
-                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .set(field(CreateAccountCommand::currency), PLN)
                     .create());
             var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), "Savings Account")
-                    .set(field(CreateAccountCommand::currency), "EUR")
+                    .set(field(CreateAccountCommand::currency), EUR)
                     .create());
             var account3 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), "Investment Account")
-                    .set(field(CreateAccountCommand::currency), "USD")
+                    .set(field(CreateAccountCommand::currency), USD)
                     .create());
 
             // when
@@ -217,7 +209,7 @@ public class AccountServiceTest {
             result.forEach(account -> {
                 assertThat(account.id()).isNotNull();
                 assertThat(account.name()).isNotEmpty();
-                assertThat(account.balance().currency()).isNotEmpty();
+                assertThat(account.balance().currency()).isNotNull();
                 assertThat(account.balance().amount()).isNotNull();
                 assertThat(account.createdAt()).isNotNull();
                 assertThat(account.updatedAt()).isNotNull();
@@ -237,7 +229,7 @@ public class AccountServiceTest {
         void shouldReturnSpecificAccountById() {
             // given
             var accountName = "Test Account";
-            var currency = "EUR";
+            var currency = EUR;
             var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), accountName)
                     .set(field(CreateAccountCommand::currency), currency)
@@ -272,7 +264,7 @@ public class AccountServiceTest {
             // given
             var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), "Complete Account")
-                    .set(field(CreateAccountCommand::currency), "GBP")
+                    .set(field(CreateAccountCommand::currency), GBP)
                     .create());
 
             // when
@@ -281,7 +273,7 @@ public class AccountServiceTest {
             // then
             assertThat(retrievedAccount.id()).isNotNull();
             assertThat(retrievedAccount.name()).isEqualTo("Complete Account");
-            assertThat(retrievedAccount.balance().currency()).isEqualTo("GBP");
+            assertThat(retrievedAccount.balance().currency()).isEqualTo(GBP);
             assertThat(retrievedAccount.balance().amount()).isZero();
             assertThat(retrievedAccount.createdAt()).isNotNull();
             assertThat(retrievedAccount.updatedAt()).isNotNull();
@@ -296,7 +288,7 @@ public class AccountServiceTest {
             // given
             var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), "Original Name")
-                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .set(field(CreateAccountCommand::currency), PLN)
                     .create());
             var newName = "Updated Name";
 
@@ -325,7 +317,7 @@ public class AccountServiceTest {
             // given
             var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), "Original Name")
-                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .set(field(CreateAccountCommand::currency), PLN)
                     .create());
             var emptyName = "";
 
@@ -343,11 +335,11 @@ public class AccountServiceTest {
             // given
             var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), "Account One")
-                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .set(field(CreateAccountCommand::currency), PLN)
                     .create());
             var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), "Account Two")
-                    .set(field(CreateAccountCommand::currency), "PLN")
+                    .set(field(CreateAccountCommand::currency), PLN)
                     .create());
 
             // when & then
@@ -368,7 +360,7 @@ public class AccountServiceTest {
         @Test
         void shouldDeleteAccountWithZeroBalance() {
             // given
-            var account = accountService.createAccount(new CreateAccountCommand("Test Account", "PLN"));
+            var account = accountService.createAccount(new CreateAccountCommand("Test Account", PLN));
 
             // when
             accountService.deleteAccount(account.id().value());

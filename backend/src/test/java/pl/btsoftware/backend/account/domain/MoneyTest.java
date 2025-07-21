@@ -1,19 +1,19 @@
 package pl.btsoftware.backend.account.domain;
 
 import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.account.domain.error.InvalidCurrencyException;
 
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static pl.btsoftware.backend.account.domain.Currency.*;
 
 class MoneyTest {
 
     @Test
     void shouldThrowExceptionWhenAmountIsNull() {
         // when & then
-        assertThatThrownBy(() -> new Money(null, "PLN"))
+        assertThatThrownBy(() -> new Money(null, PLN))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -24,32 +24,20 @@ class MoneyTest {
                 .isInstanceOf(NullPointerException.class);
     }
 
-    @Test
-    void shouldThrowExceptionWhenCurrencyIsNotSupported() {
-        // when & then
-        assertThatThrownBy(() -> new Money(BigDecimal.TEN, "JPY"))
-                .isInstanceOf(InvalidCurrencyException.class)
-                .hasMessageContaining("Invalid currency")
-                .hasMessageContaining("PLN")
-                .hasMessageContaining("EUR")
-                .hasMessageContaining("USD")
-                .hasMessageContaining("GBP");
-
-    }
 
     @Test
     void shouldAcceptAllSupportedCurrencies() {
         // when & then - no exceptions should be thrown
-        Money pln = new Money(BigDecimal.TEN, "PLN");
-        Money eur = new Money(BigDecimal.TEN, "EUR");
-        Money usd = new Money(BigDecimal.TEN, "USD");
-        Money gbp = new Money(BigDecimal.TEN, "GBP");
+        Money pln = new Money(BigDecimal.TEN, PLN);
+        Money eur = new Money(BigDecimal.TEN, EUR);
+        Money usd = new Money(BigDecimal.TEN, USD);
+        Money gbp = new Money(BigDecimal.TEN, GBP);
 
         // then
-        assertThat(pln.currency()).isEqualTo("PLN");
-        assertThat(eur.currency()).isEqualTo("EUR");
-        assertThat(usd.currency()).isEqualTo("USD");
-        assertThat(gbp.currency()).isEqualTo("GBP");
+        assertThat(pln.currency()).isEqualTo(PLN);
+        assertThat(eur.currency()).isEqualTo(EUR);
+        assertThat(usd.currency()).isEqualTo(USD);
+        assertThat(gbp.currency()).isEqualTo(GBP);
     }
 
     @Test
@@ -58,7 +46,7 @@ class MoneyTest {
         BigDecimal amount = new BigDecimal("10.123");
 
         // when
-        Money money = new Money(amount, "PLN");
+        Money money = new Money(amount, PLN);
 
         // then
         assertThat(money.amount()).isEqualByComparingTo(new BigDecimal("10.12"));
@@ -72,17 +60,17 @@ class MoneyTest {
 
         // then
         assertThat(money.amount()).isEqualByComparingTo(BigDecimal.TEN);
-        assertThat(money.currency()).isEqualTo("PLN");
+        assertThat(money.currency()).isEqualTo(PLN);
     }
 
     @Test
     void shouldCreateMoneyWithSpecifiedCurrency() {
         // when
-        Money money = Money.of(BigDecimal.TEN, "USD");
+        Money money = Money.of(BigDecimal.TEN, USD);
 
         // then
         assertThat(money.amount()).isEqualByComparingTo(BigDecimal.TEN);
-        assertThat(money.currency()).isEqualTo("USD");
+        assertThat(money.currency()).isEqualTo(USD);
     }
 
     @Test
@@ -92,7 +80,7 @@ class MoneyTest {
 
         // then
         assertThat(money.amount()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(money.currency()).isEqualTo("PLN");
+        assertThat(money.currency()).isEqualTo(PLN);
     }
 
     @Test
@@ -106,14 +94,14 @@ class MoneyTest {
 
         // then
         assertThat(result.amount()).isEqualByComparingTo(new BigDecimal("15.75"));
-        assertThat(result.currency()).isEqualTo("PLN");
+        assertThat(result.currency()).isEqualTo(PLN);
     }
 
     @Test
     void shouldThrowExceptionWhenAddingDifferentCurrencies() {
         // given
-        Money money1 = Money.of(BigDecimal.TEN, "PLN");
-        Money money2 = Money.of(BigDecimal.ONE, "USD");
+        Money money1 = Money.of(BigDecimal.TEN, PLN);
+        Money money2 = Money.of(BigDecimal.ONE, USD);
 
         // when & then
         assertThatThrownBy(() -> money1.add(money2))
@@ -131,14 +119,14 @@ class MoneyTest {
 
         // then
         assertThat(result.amount()).isEqualByComparingTo(new BigDecimal("5.25"));
-        assertThat(result.currency()).isEqualTo("PLN");
+        assertThat(result.currency()).isEqualTo(PLN);
     }
 
     @Test
     void shouldThrowExceptionWhenSubtractingDifferentCurrencies() {
         // given
-        Money money1 = Money.of(BigDecimal.TEN, "PLN");
-        Money money2 = Money.of(BigDecimal.ONE, "USD");
+        Money money1 = Money.of(BigDecimal.TEN, PLN);
+        Money money2 = Money.of(BigDecimal.ONE, USD);
 
         // when & then
         assertThatThrownBy(() -> money1.subtract(money2))
@@ -156,7 +144,7 @@ class MoneyTest {
 
         // then
         assertThat(result.amount()).isEqualByComparingTo(new BigDecimal("26.25"));
-        assertThat(result.currency()).isEqualTo("PLN");
+        assertThat(result.currency()).isEqualTo(PLN);
     }
 
     @Test
@@ -165,27 +153,15 @@ class MoneyTest {
         Money money = Money.of(BigDecimal.TEN);
 
         // when
-        Money result = money.withCurrency("USD");
+        Money result = money.withCurrency(USD);
 
         // then
         assertThat(result.amount()).isEqualByComparingTo(BigDecimal.TEN);
-        assertThat(result.currency()).isEqualTo("USD");
+        assertThat(result.currency()).isEqualTo(USD);
         // Original balance should be unchanged (immutability check)
-        assertThat(money.currency()).isEqualTo("PLN");
+        assertThat(money.currency()).isEqualTo(PLN);
     }
 
-    @Test
-    void shouldThrowExceptionWhenChangingToUnsupportedCurrency() {
-        // given
-        Money money = Money.of(BigDecimal.TEN);
-
-        // when & then
-        assertThatThrownBy(() -> money.withCurrency("JPY"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Unsupported currency")
-                .hasMessageContaining("JPY");
-
-    }
 
     @Test
     void shouldChangeAmount() {
@@ -198,7 +174,7 @@ class MoneyTest {
 
         // then
         assertThat(result.amount()).isEqualByComparingTo(newAmount);
-        assertThat(result.currency()).isEqualTo("PLN");
+        assertThat(result.currency()).isEqualTo(PLN);
         // Original balance should be unchanged (immutability check)
         assertThat(money.amount()).isEqualByComparingTo(BigDecimal.TEN);
     }
@@ -206,7 +182,7 @@ class MoneyTest {
     @Test
     void shouldFormatToString() {
         // given
-        Money money = Money.of(new BigDecimal("10.50"), "USD");
+        Money money = Money.of(new BigDecimal("10.50"), USD);
 
         // when
         String result = money.toString();

@@ -3,6 +3,7 @@ package pl.btsoftware.backend.transaction.application;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.account.AccountModuleFacade;
+import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 
@@ -30,7 +31,7 @@ public class TransactionService {
         }
     }
 
-    private void validateCurrencyMatch(String transactionCurrency, String accountCurrency) {
+    private void validateCurrencyMatch(Currency transactionCurrency, Currency accountCurrency) {
         if (!transactionCurrency.equals(accountCurrency)) {
             throw new IllegalArgumentException("Transaction currency must match account currency");
         }

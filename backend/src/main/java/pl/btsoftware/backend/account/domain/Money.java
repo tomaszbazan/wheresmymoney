@@ -1,44 +1,36 @@
 package pl.btsoftware.backend.account.domain;
 
 import org.jetbrains.annotations.NotNull;
-import pl.btsoftware.backend.account.domain.error.InvalidCurrencyException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
-public record Money(BigDecimal amount, String currency) {
+import static pl.btsoftware.backend.account.domain.Currency.DEFAULT;
 
-    public static final String DEFAULT_CURRENCY = "PLN";
-    public static final List<String> SUPPORTED_CURRENCIES = Arrays.asList("PLN", "EUR", "USD", "GBP");
+public record Money(BigDecimal amount, Currency currency) {
 
     public Money {
         Objects.requireNonNull(amount, "Amount cannot be null");
         Objects.requireNonNull(currency, "Currency cannot be null");
-
-        if (!SUPPORTED_CURRENCIES.contains(currency)) {
-            throw new InvalidCurrencyException();
-        }
 
         // Ensure amount has exactly 2 decimal places
         amount = amount.setScale(2, RoundingMode.HALF_UP);
     }
 
     public static Money of(BigDecimal amount) {
-        return new Money(amount, DEFAULT_CURRENCY);
+        return new Money(amount, DEFAULT);
     }
 
     public static Money zero() {
-        return new Money(BigDecimal.ZERO, DEFAULT_CURRENCY);
+        return new Money(BigDecimal.ZERO, DEFAULT);
     }
 
-    public static Money zero(String currency) {
+    public static Money zero(Currency currency) {
         return new Money(BigDecimal.ZERO, currency);
     }
 
-    public static Money of(BigDecimal amount, String currency) {
+    public static Money of(BigDecimal amount, Currency currency) {
         return new Money(amount, currency);
     }
 
@@ -60,10 +52,7 @@ public record Money(BigDecimal amount, String currency) {
         return new Money(this.amount.multiply(factor), this.currency);
     }
 
-    public Money withCurrency(String newCurrency) {
-        if (!SUPPORTED_CURRENCIES.contains(newCurrency)) {
-            throw new IllegalArgumentException("Unsupported currency: " + newCurrency + ". Supported currencies are: " + SUPPORTED_CURRENCIES);
-        }
+    public Money withCurrency(Currency newCurrency) {
         return new Money(this.amount, newCurrency);
     }
 

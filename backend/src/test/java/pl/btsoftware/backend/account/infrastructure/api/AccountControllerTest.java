@@ -15,6 +15,7 @@ import pl.btsoftware.backend.account.AccountModuleFacade.CreateAccountCommand;
 import pl.btsoftware.backend.account.AccountModuleFacade.UpdateAccountCommand;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.account.domain.Money;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 
@@ -34,6 +35,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static pl.btsoftware.backend.account.domain.Currency.EUR;
+import static pl.btsoftware.backend.account.domain.Currency.PLN;
 
 @WebMvcTest(AccountController.class)
 public class AccountControllerTest {
@@ -52,8 +55,8 @@ public class AccountControllerTest {
         // given
         var accountId1 = randomUUID();
         var accountId2 = randomUUID();
-        var account1 = createAccount(accountId1, "Checking Account", "PLN");
-        var account2 = createAccount(accountId2, "Savings Account", "PLN");
+        var account1 = createAccount(accountId1, "Checking Account", PLN);
+        var account2 = createAccount(accountId2, "Savings Account", PLN);
 
         when(accountModuleFacade.getAccounts()).thenReturn(List.of(account1, account2));
 
@@ -109,7 +112,7 @@ public class AccountControllerTest {
     void shouldUpdateAccount() throws Exception {
         // given
         var accountId = randomUUID();
-        var updatedAccount = createAccount(accountId, "Updated Account", "PLN");
+        var updatedAccount = createAccount(accountId, "Updated Account", PLN);
 
         when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class)))
                 .thenReturn(updatedAccount);
@@ -133,17 +136,22 @@ public class AccountControllerTest {
     void shouldCreateAccount() throws Exception {
         // given
         var accountId = randomUUID();
-        var createdAccount = createAccount(accountId, "Test Account", "EUR");
+        var createdAccount = createAccount(accountId, "Test Account", EUR);
 
         when(accountModuleFacade.createAccount(any(CreateAccountCommand.class)))
                 .thenReturn(createdAccount);
 
-        var createAccountRequest = new CreateAccountRequest("Test Account", "EUR");
+        var createAccountRequest = """
+                {
+                    "name": "Test Account",
+                    "currency": "EUR"
+                }
+                """;
 
         // when & then
         mockMvc.perform(post("/api/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createAccountRequest)))
+                        .content(createAccountRequest))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(accountId.toString()))
@@ -158,7 +166,7 @@ public class AccountControllerTest {
     @MethodSource("incorrectName")
     void shouldReturnBadRequestWhenCreatingAccountWithEmptyName(String name) throws Exception {
         // given
-        var createAccountRequest = new CreateAccountRequest(name, "PLN");
+        var createAccountRequest = new CreateAccountRequest(name, PLN);
 
         // when & then
         mockMvc.perform(post("/api/accounts")
@@ -170,7 +178,7 @@ public class AccountControllerTest {
     @Test
     void shouldReturnBadRequestWhenCreatingAccountWithNullName() throws Exception {
         // given
-        var createAccountRequest = new CreateAccountRequest(null, "PLN");
+        var createAccountRequest = new CreateAccountRequest(null, PLN);
 
         // when & then
         mockMvc.perform(post("/api/accounts")
@@ -180,10 +188,27 @@ public class AccountControllerTest {
     }
 
     @Test
+    void shouldRejectAccountCreationWithUnsupportedCurrency() throws Exception {
+        // given
+        var createAccountRequest = """
+                {
+                    "name": "Test Account",
+                    "currency": "JPY"
+                }
+                """;
+
+        // when & then
+        mockMvc.perform(post("/api/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createAccountRequest))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void shouldGetAccountById() throws Exception {
         // given
         var accountId = randomUUID();
-        var account = createAccount(accountId, "Test Account", "PLN");
+        var account = createAccount(accountId, "Test Account", PLN);
 
         when(accountModuleFacade.getAccount(accountId)).thenReturn(account);
 
@@ -273,7 +298,7 @@ public class AccountControllerTest {
                 .andExpect(content().string(containsString("Account not found with id: " + nonExistentId)));
     }
 
-    private Account createAccount(UUID id, String name, String currency) {
+    private Account createAccount(UUID id, String name, Currency currency) {
         return new Account(
                 new AccountId(id),
                 name,

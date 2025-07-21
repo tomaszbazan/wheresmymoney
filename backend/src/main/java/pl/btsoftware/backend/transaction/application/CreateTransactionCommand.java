@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.application;
 
 import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionType;
 
@@ -14,7 +15,7 @@ public record CreateTransactionCommand(
         OffsetDateTime date,
         TransactionType type,
         String category,
-        String currency
+        Currency currency
 ) {
     public Transaction toDomain() {
         return Transaction.create(accountId, amount, description, date, type, category, currency);

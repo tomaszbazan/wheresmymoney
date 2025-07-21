@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import '../models/account.dart';
 
 abstract class AccountServiceInterface {
@@ -9,7 +11,7 @@ abstract class AccountServiceInterface {
 }
 
 class AccountService implements AccountServiceInterface {
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = 'https://api.where.bazan.cloud/api';
 
   @override
   Future<List<Account>> getAccounts() async {

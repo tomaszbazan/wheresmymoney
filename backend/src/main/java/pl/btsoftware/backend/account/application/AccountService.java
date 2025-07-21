@@ -14,13 +14,15 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import static pl.btsoftware.backend.account.domain.Currency.PLN;
+
 @Service
 @AllArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
 
     public Account createAccount(CreateAccountCommand command) {
-        var currency = command.currency() == null ? "PLN" : command.currency();
+        var currency = command.currency() == null ? PLN : command.currency();
         if (accountRepository.findByNameAndCurrency(command.name(), currency).isPresent()) {
             throw new AccountAlreadyExistsException();
         }

@@ -10,5 +10,5 @@ public interface AccountRepository {
     List<Account> findAll();
     void deleteById(UUID id);
 
-    Optional<Account> findByNameAndCurrency(String name, String currency);
+    Optional<Account> findByNameAndCurrency(String name, Currency currency);
 }

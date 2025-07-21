@@ -16,6 +16,7 @@ import static java.math.BigDecimal.TEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static pl.btsoftware.backend.account.domain.Currency.PLN;
 
 class AccountTest {
 
@@ -33,7 +34,7 @@ class AccountTest {
     void shouldChangeName() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Original Name", "PLN");
+        var account = new Account(accountId, "Original Name", PLN);
 
         // when
         var updatedAccount = account.changeName("New Name");
@@ -49,7 +50,7 @@ class AccountTest {
     void shouldThrowExceptionWhenChangingNameToNull() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
+        var account = new Account(accountId, "Test Account", PLN);
 
         // when & then
         assertThatThrownBy(() -> account.changeName(null))
@@ -60,7 +61,7 @@ class AccountTest {
     void shouldThrowExceptionWhenChangingNameToBlank() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
+        var account = new Account(accountId, "Test Account", PLN);
 
         // when & then
         assertThatThrownBy(() -> account.changeName(""))
@@ -73,7 +74,7 @@ class AccountTest {
     void shouldThrowExceptionWhenNameIsTooLong() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
+        var account = new Account(accountId, "Test Account", PLN);
         var tooLongName = "a".repeat(101);
 
         // when & then
@@ -85,7 +86,7 @@ class AccountTest {
     void shouldAcceptNameWithMaximumLength() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
+        var account = new Account(accountId, "Test Account", PLN);
         var maxLengthName = "a".repeat(100);
 
         // when
@@ -99,7 +100,7 @@ class AccountTest {
     void shouldThrowExceptionWhenNameContainsInvalidCharacters() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
+        var account = new Account(accountId, "Test Account", PLN);
 
         // when & then
         assertThatThrownBy(() -> account.changeName("Invalid\nName"))
@@ -114,7 +115,7 @@ class AccountTest {
     void shouldAcceptNameWithValidSpecialCharacters() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", "PLN");
+        var account = new Account(accountId, "Test Account", PLN);
         var nameWithSpecialChars = "Valid Name 123 !@#$%^&*()_+-=[]{}|;:'\",.<>/?";
 
         // when
@@ -130,21 +131,21 @@ class AccountTest {
         var accountId = AccountId.generate();
 
         // when
-        var account = new Account(accountId, "Test Account", "PLN");
+        var account = new Account(accountId, "Test Account", PLN);
 
         // then
         assertThat(account.balance().amount()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(account.balance().currency()).isEqualTo("PLN");
+        assertThat(account.balance().currency()).isEqualTo(PLN);
     }
 
     @Test
     void shouldCreateAccountWithValidCurrency() {
         // given
         var accountId = AccountId.generate();
-        var validCurrencies = Money.SUPPORTED_CURRENCIES;
+        var validCurrencies = Currency.values();
 
         // when & then
-        for (String currency : validCurrencies) {
+        for (Currency currency : validCurrencies) {
             var account = new Account(accountId, "Test Account", currency);
             assertThat(account.balance().currency()).isEqualTo(currency);
         }
@@ -156,7 +157,7 @@ class AccountTest {
     void shouldValidateNameInPrimaryConstructor(String name, Class<? extends Exception> expectedException) {
         // given
         var accountId = AccountId.generate();
-        var balance = Money.of(TEN, "PLN");
+        var balance = Money.of(TEN, PLN);
         var createdAt = OffsetDateTime.now();
 
         // when & then
