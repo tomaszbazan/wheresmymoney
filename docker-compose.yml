@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: WheresMyMoney
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/wheresmymoney
@@ -13,6 +15,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: WheresMyMoney-frontend
+    ports:
+      - "8100:80"
+    depends_on:
+      - app
 
   postgres:
     image: postgres:17
