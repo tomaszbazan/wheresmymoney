@@ -6,7 +6,9 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/tomaszbazan/wheresmymoney
+  IMAGE_TAG: latest
   FRONTEND_DIR: frontend
+  CONTAINER_NAME: wheresmymoney
 
 jobs:
   build-and-deploy:
@@ -76,7 +78,9 @@ jobs:
 
             docker pull ${{ env.IMAGE_NAME }}:latest
             
-            docker stop wheresmymoney
-            docker rm wheresmymoney
+            docker ps -q --filter "name=${{ env.CONTAINER_NAME }}" | grep -q . && docker stop ${{ env.CONTAINER_NAME }}
 
-            docker run -d --restart unless-stopped -p 8081:8080 --name wheresmymoney ${{ env.IMAGE_NAME }}:latest
+            docker run -d --restart unless-stopped -p 8081:8080 --name ${{ env.CONTAINER_NAME }} ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+              -e SPRING_DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
+              -e SPRING_DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
+              -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }}
