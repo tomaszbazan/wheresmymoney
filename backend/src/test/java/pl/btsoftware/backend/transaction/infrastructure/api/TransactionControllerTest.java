@@ -8,13 +8,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.account.domain.AccountId;
-import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.account.domain.Money;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
+import pl.btsoftware.backend.transaction.domain.Tombstone;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionId;
 import pl.btsoftware.backend.transaction.domain.TransactionType;
-import pl.btsoftware.backend.transaction.domain.Tombstone;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -175,6 +174,39 @@ public class TransactionControllerTest {
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Transaction not found")));
+    }
+
+    @Test
+    void shouldCreateTransaction() throws Exception {
+        // given
+        var accountId = randomUUID();
+        var transactionId = randomUUID();
+        var transaction = createTransaction(transactionId, accountId, new BigDecimal("100.50"), "Test transaction", TransactionType.INCOME);
+
+        when(transactionModuleFacade.createTransaction(any())).thenReturn(transaction);
+
+        var createRequest = new CreateTransactionRequest(
+                accountId,
+                new BigDecimal("100.50"),
+                "Test transaction",
+                OffsetDateTime.now(ZoneOffset.UTC),
+                "INCOME",
+                "Salary",
+                "PLN"
+        );
+
+        // when & then
+        mockMvc.perform(post("/api/transactions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(transactionId.toString()))
+                .andExpect(jsonPath("$.accountId").value(accountId.toString()))
+                .andExpect(jsonPath("$.amount").value(100.50))
+                .andExpect(jsonPath("$.type").value("INCOME"))
+                .andExpect(jsonPath("$.description").value("Test transaction"))
+                .andExpect(jsonPath("$.category").value("Salary"));
     }
 
     @Test

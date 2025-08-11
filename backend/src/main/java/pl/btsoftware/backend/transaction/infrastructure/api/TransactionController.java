@@ -14,6 +14,13 @@ import java.util.UUID;
 public class TransactionController {
     private final TransactionModuleFacade transactionModuleFacade;
 
+    @PostMapping("/transactions")
+    public TransactionView createTransaction(@RequestBody CreateTransactionRequest request) {
+        log.info("Received request to create transaction for account: {}", request.accountId());
+        var transaction = transactionModuleFacade.createTransaction(request.toCommand());
+        return TransactionView.from(transaction);
+    }
+
     @GetMapping("/transactions/{id}")
     public TransactionView getTransaction(@PathVariable UUID id) {
         log.info("Received request to get transaction with id: {}", id);

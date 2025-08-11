@@ -9,7 +9,10 @@ import pl.btsoftware.backend.users.application.GroupService;
 import pl.btsoftware.backend.users.application.InviteToGroupCommand;
 import pl.btsoftware.backend.users.application.UpdateGroupCommand;
 import pl.btsoftware.backend.users.application.UserService;
-import pl.btsoftware.backend.users.domain.*;
+import pl.btsoftware.backend.users.domain.Group;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.GroupInvitation;
+import pl.btsoftware.backend.users.domain.UserId;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -23,10 +26,10 @@ public class GroupController {
     @ResponseStatus(HttpStatus.CREATED)
     public GroupInvitationView inviteToGroup(@RequestBody @Validated InviteToGroupRequest request,
                                             @RequestParam String inviterId) {
-        log.info("Creating invitation for email: {} by inviter: {}", request.getEmail(), inviterId);
+        log.info("Creating invitation for email: {} by inviter: {}", request.email(), inviterId);
         
         UserId inviterUserId = UserId.of(inviterId);
-        InviteToGroupCommand command = new InviteToGroupCommand(request.getEmail());
+        InviteToGroupCommand command = new InviteToGroupCommand(request.email());
         
         GroupInvitation invitation = groupService.inviteToGroup(inviterUserId, command);
         

@@ -23,8 +23,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 
-    @ExceptionHandler({BusinessException.class, IllegalArgumentException.class})
+    @ExceptionHandler(BusinessException.class)
     public ResponseEntity<String> handleBusinessException(BusinessException ex) {
+        log.error("{}", ex.getMessage(), ex);
+        return ResponseEntity.status(BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.error("{}", ex.getMessage(), ex);
         return ResponseEntity.status(BAD_REQUEST).body(ex.getMessage());
     }
