@@ -9,8 +9,8 @@ cd backend
 cd ..
 
 echo "🐳 Starting all services with docker-compose..."
-docker-compose up --build
+docker-compose up --no-deps --build -d
 
 echo "✅ Application started!"
 echo "Backend: http://localhost:8080"
-echo "Frontend: http://localhost:3000"
+echo "Frontend: http://localhost:8100"

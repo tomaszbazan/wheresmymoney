@@ -63,8 +63,8 @@ public class TransactionService {
         var updatedTransaction = originalTransaction;
 
         if (command.amount() != null) {
-            var oldAmount = originalTransaction.type() == TransactionType.INCOME ? 
-                    originalTransaction.amount().amount() : originalTransaction.amount().amount().negate();
+            var oldAmount = originalTransaction.type() == TransactionType.INCOME ?
+                    originalTransaction.amount().value() : originalTransaction.amount().value().negate();
             var newAmount = originalTransaction.type() == TransactionType.INCOME ? 
                     command.amount() : command.amount().negate();
             var balanceAdjustment = newAmount.subtract(oldAmount);
@@ -96,10 +96,10 @@ public class TransactionService {
 
         var deletedTransaction = transaction.delete();
         transactionRepository.store(deletedTransaction);
-        
-        var reverseAmount = transaction.type() == TransactionType.EXPENSE ? 
-                transaction.amount().amount() : transaction.amount().amount().negate();
-        accountModuleFacade.addTransaction(transaction.accountId().value(), reverseAmount, 
-                transaction.type() == TransactionType.EXPENSE ? TransactionType.INCOME.name() : TransactionType.EXPENSE.name());
+
+        var reverseAmount = transaction.amount().value();
+        var reverseType = transaction.type() == TransactionType.EXPENSE ?
+                TransactionType.INCOME.name() : TransactionType.EXPENSE.name();
+        accountModuleFacade.addTransaction(transaction.accountId().value(), reverseAmount, reverseType);
     }
 }

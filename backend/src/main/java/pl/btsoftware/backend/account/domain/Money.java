@@ -8,14 +8,14 @@ import java.util.Objects;
 
 import static pl.btsoftware.backend.account.domain.Currency.DEFAULT;
 
-public record Money(BigDecimal amount, Currency currency) {
+public record Money(BigDecimal value, Currency currency) {
 
     public Money {
-        Objects.requireNonNull(amount, "Amount cannot be null");
+        Objects.requireNonNull(value, "Amount cannot be null");
         Objects.requireNonNull(currency, "Currency cannot be null");
 
-        // Ensure amount has exactly 2 decimal places
-        amount = amount.setScale(2, RoundingMode.HALF_UP);
+        // Ensure value has exactly 2 decimal places
+        value = value.setScale(2, RoundingMode.HALF_UP);
     }
 
     public static Money of(BigDecimal amount) {
@@ -38,22 +38,22 @@ public record Money(BigDecimal amount, Currency currency) {
         if (!this.currency.equals(other.currency)) {
             throw new IllegalArgumentException("Cannot add balance with different currencies");
         }
-        return new Money(this.amount.add(other.amount), this.currency);
+        return new Money(this.value.add(other.value), this.currency);
     }
 
     public Money subtract(Money other) {
         if (!this.currency.equals(other.currency)) {
             throw new IllegalArgumentException("Cannot subtract balance with different currencies");
         }
-        return new Money(this.amount.subtract(other.amount), this.currency);
+        return new Money(this.value.subtract(other.value), this.currency);
     }
 
     public Money multiply(BigDecimal factor) {
-        return new Money(this.amount.multiply(factor), this.currency);
+        return new Money(this.value.multiply(factor), this.currency);
     }
 
     public Money withCurrency(Currency newCurrency) {
-        return new Money(this.amount, newCurrency);
+        return new Money(this.value, newCurrency);
     }
 
     public Money withAmount(BigDecimal newAmount) {
@@ -63,6 +63,6 @@ public record Money(BigDecimal amount, Currency currency) {
     @NotNull
     @Override
     public String toString() {
-        return amount.toString() + " " + currency;
+        return value.toString() + " " + currency;
     }
 }

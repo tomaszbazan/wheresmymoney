@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../config/api_config.dart';
 import '../models/account.dart';
 
 abstract class AccountServiceInterface {
@@ -11,12 +12,11 @@ abstract class AccountServiceInterface {
 }
 
 class AccountService implements AccountServiceInterface {
-  static const String baseUrl = 'https://api.where.bazan.cloud/api';
 
   @override
   Future<List<Account>> getAccounts() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/accounts'),
+      Uri.parse('${ApiConfig.backendUrl}/accounts'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -49,7 +49,7 @@ class AccountService implements AccountServiceInterface {
     }
     
     final response = await http.post(
-      Uri.parse('$baseUrl/accounts'),
+      Uri.parse('${ApiConfig.backendUrl}/accounts'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(accountData),
     );
@@ -64,7 +64,7 @@ class AccountService implements AccountServiceInterface {
   @override
   Future<void> deleteAccount(String accountId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/accounts/$accountId'),
+      Uri.parse('${ApiConfig.backendUrl}/accounts/$accountId'),
       headers: {'Content-Type': 'application/json'},
     );
 

@@ -51,7 +51,7 @@ public class AccountServiceTest {
             // then
             assertThat(account.name()).isEqualTo(accountName);
             assertThat(account.balance().currency()).isEqualTo(currency);
-            assertThat(account.balance().amount()).isZero();
+            assertThat(account.balance().value()).isZero();
         }
 
         @Test
@@ -65,7 +65,7 @@ public class AccountServiceTest {
 
             // then
             assertThat(account.name()).isEqualTo(accountName);
-            assertThat(account.balance().amount()).isZero();
+            assertThat(account.balance().value()).isZero();
             assertThat(account.balance().currency()).isEqualTo(PLN); // default currency
             assertThat(account.id()).isNotNull();
         }
@@ -210,7 +210,7 @@ public class AccountServiceTest {
                 assertThat(account.id()).isNotNull();
                 assertThat(account.name()).isNotEmpty();
                 assertThat(account.balance().currency()).isNotNull();
-                assertThat(account.balance().amount()).isNotNull();
+                assertThat(account.balance().value()).isNotNull();
                 assertThat(account.createdAt()).isNotNull();
                 assertThat(account.updatedAt()).isNotNull();
             });
@@ -243,7 +243,7 @@ public class AccountServiceTest {
             assertThat(result.id()).isEqualTo(account.id());
             assertThat(result.name()).isEqualTo(accountName);
             assertThat(result.balance().currency()).isEqualTo(currency);
-            assertThat(result.balance().amount()).isZero();
+            assertThat(result.balance().value()).isZero();
             assertThat(result.createdAt()).isNotNull();
             assertThat(result.updatedAt()).isNotNull();
         }
@@ -274,7 +274,7 @@ public class AccountServiceTest {
             assertThat(retrievedAccount.id()).isNotNull();
             assertThat(retrievedAccount.name()).isEqualTo("Complete Account");
             assertThat(retrievedAccount.balance().currency()).isEqualTo(GBP);
-            assertThat(retrievedAccount.balance().amount()).isZero();
+            assertThat(retrievedAccount.balance().value()).isZero();
             assertThat(retrievedAccount.createdAt()).isNotNull();
             assertThat(retrievedAccount.updatedAt()).isNotNull();
         }

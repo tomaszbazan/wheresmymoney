@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 import pl.btsoftware.backend.account.domain.AccountId;
 import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.account.domain.Money;
+import pl.btsoftware.backend.transaction.domain.Tombstone;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionId;
 import pl.btsoftware.backend.transaction.domain.TransactionType;
-import pl.btsoftware.backend.transaction.domain.Tombstone;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -46,7 +46,7 @@ public class TransactionEntity {
         return new TransactionEntity(
                 transaction.id().value(),
                 transaction.accountId().value(),
-                transaction.amount().amount(),
+                transaction.amount().value(),
                 transaction.amount().currency(),
                 transaction.type(),
                 transaction.description(),

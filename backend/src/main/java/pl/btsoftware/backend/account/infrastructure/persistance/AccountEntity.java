@@ -34,7 +34,7 @@ public class AccountEntity {
         return new AccountEntity(
             account.id().value(),
             account.name(),
-            account.balance().amount(),
+                account.balance().value(),
             account.balance().currency(),
             account.createdAt(),
             account.updatedAt()
