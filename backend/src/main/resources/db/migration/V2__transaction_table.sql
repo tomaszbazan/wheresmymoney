@@ -10,6 +10,7 @@ CREATE TABLE transaction
     transaction_date TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (account_id) REFERENCES account (id),
+    is_deleted BOOLEAN                  DEFAULT false,
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     CONSTRAINT check_type CHECK (type IN ('INCOME', 'EXPENSE'))
 );

@@ -10,7 +10,7 @@ import org.testcontainers.utility.DockerImageName;
 class TestcontainersInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
     private static final String POSTGRES_VERSION = "17";
 
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:" + POSTGRES_VERSION));
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:" + POSTGRES_VERSION));
 
     static {
         Startables.deepStart(postgres).join();

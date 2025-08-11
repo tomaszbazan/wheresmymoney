@@ -29,7 +29,6 @@ public class AccountModuleFacade {
         return accountService.getById(accountId);
     }
 
-
     public record CreateAccountCommand(String name, @Nullable Currency currency) {
         public Account toDomain() {
             return new Account(generate(), name, currency);
@@ -55,7 +54,7 @@ public class AccountModuleFacade {
         accountService.deleteAccount(accountId);
     }
 
-    public Account addTransaction(UUID accountId, BigDecimal amount, String transactionType) {
-        return accountService.addTransaction(accountId, amount, transactionType);
+    public void addTransaction(UUID accountId, BigDecimal amount, String transactionType) {
+        accountService.addTransaction(accountId, amount, transactionType);
     }
 }

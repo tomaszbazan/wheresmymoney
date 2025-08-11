@@ -2,6 +2,7 @@ package pl.btsoftware.backend.transaction;
 
 import lombok.AllArgsConstructor;
 import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
@@ -14,6 +15,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TransactionModuleFacade {
     private final TransactionService transactionService;
+
+    public Transaction createTransaction(CreateTransactionCommand command) {
+        return transactionService.createTransaction(command);
+    }
 
     public Transaction getTransactionById(UUID id) {
         return transactionService.getTransactionById(TransactionId.of(id));

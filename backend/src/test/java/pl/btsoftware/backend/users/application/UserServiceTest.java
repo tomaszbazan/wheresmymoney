@@ -142,7 +142,6 @@ class UserServiceTest {
 
     @Test
     void shouldFindGroupMembers() {
-        GroupId groupId = GroupId.generate();
         UserId creator = UserId.generate();
         Group group = Group.create("Test Group", "Description", creator);
         groupRepository.save(group);
