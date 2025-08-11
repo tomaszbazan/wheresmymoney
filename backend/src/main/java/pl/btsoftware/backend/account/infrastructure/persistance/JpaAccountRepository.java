@@ -22,7 +22,7 @@ public class JpaAccountRepository implements AccountRepository {
 
     @Override
     public void store(Account account) {
-        AccountEntity entity = AccountEntity.fromDomain(account);
+        var entity = AccountEntity.fromDomain(account);
         repository.save(entity);
     }
 
@@ -46,7 +46,7 @@ public class JpaAccountRepository implements AccountRepository {
 
     @Override
     public Optional<Account> findByNameAndCurrency(String name, Currency currency) {
-        return repository.findByNameAndCurrency(name, currency.name())
+        return repository.findByNameAndCurrency(name, currency)
                 .map(AccountEntity::toDomain);
     }
 }

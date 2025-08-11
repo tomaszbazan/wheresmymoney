@@ -49,8 +49,8 @@ class MoneyTest {
         Money money = new Money(amount, PLN);
 
         // then
-        assertThat(money.amount()).isEqualByComparingTo(new BigDecimal("10.12"));
-        assertThat(money.amount().scale()).isEqualTo(2);
+        assertThat(money.value()).isEqualByComparingTo(new BigDecimal("10.12"));
+        assertThat(money.value().scale()).isEqualTo(2);
     }
 
     @Test
@@ -59,7 +59,7 @@ class MoneyTest {
         Money money = Money.of(BigDecimal.TEN);
 
         // then
-        assertThat(money.amount()).isEqualByComparingTo(BigDecimal.TEN);
+        assertThat(money.value()).isEqualByComparingTo(BigDecimal.TEN);
         assertThat(money.currency()).isEqualTo(PLN);
     }
 
@@ -69,7 +69,7 @@ class MoneyTest {
         Money money = Money.of(BigDecimal.TEN, USD);
 
         // then
-        assertThat(money.amount()).isEqualByComparingTo(BigDecimal.TEN);
+        assertThat(money.value()).isEqualByComparingTo(BigDecimal.TEN);
         assertThat(money.currency()).isEqualTo(USD);
     }
 
@@ -79,7 +79,7 @@ class MoneyTest {
         Money money = Money.zero();
 
         // then
-        assertThat(money.amount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(money.value()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(money.currency()).isEqualTo(PLN);
     }
 
@@ -93,7 +93,7 @@ class MoneyTest {
         Money result = money1.add(money2);
 
         // then
-        assertThat(result.amount()).isEqualByComparingTo(new BigDecimal("15.75"));
+        assertThat(result.value()).isEqualByComparingTo(new BigDecimal("15.75"));
         assertThat(result.currency()).isEqualTo(PLN);
     }
 
@@ -118,7 +118,7 @@ class MoneyTest {
         Money result = money1.subtract(money2);
 
         // then
-        assertThat(result.amount()).isEqualByComparingTo(new BigDecimal("5.25"));
+        assertThat(result.value()).isEqualByComparingTo(new BigDecimal("5.25"));
         assertThat(result.currency()).isEqualTo(PLN);
     }
 
@@ -143,7 +143,7 @@ class MoneyTest {
         Money result = money.multiply(factor);
 
         // then
-        assertThat(result.amount()).isEqualByComparingTo(new BigDecimal("26.25"));
+        assertThat(result.value()).isEqualByComparingTo(new BigDecimal("26.25"));
         assertThat(result.currency()).isEqualTo(PLN);
     }
 
@@ -156,7 +156,7 @@ class MoneyTest {
         Money result = money.withCurrency(USD);
 
         // then
-        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.TEN);
+        assertThat(result.value()).isEqualByComparingTo(BigDecimal.TEN);
         assertThat(result.currency()).isEqualTo(USD);
         // Original balance should be unchanged (immutability check)
         assertThat(money.currency()).isEqualTo(PLN);
@@ -173,10 +173,10 @@ class MoneyTest {
         Money result = money.withAmount(newAmount);
 
         // then
-        assertThat(result.amount()).isEqualByComparingTo(newAmount);
+        assertThat(result.value()).isEqualByComparingTo(newAmount);
         assertThat(result.currency()).isEqualTo(PLN);
         // Original balance should be unchanged (immutability check)
-        assertThat(money.amount()).isEqualByComparingTo(BigDecimal.TEN);
+        assertThat(money.value()).isEqualByComparingTo(BigDecimal.TEN);
     }
 
     @Test

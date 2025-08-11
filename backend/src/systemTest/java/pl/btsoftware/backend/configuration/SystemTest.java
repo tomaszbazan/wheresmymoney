@@ -11,8 +11,8 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@ContextConfiguration(initializers = TestcontainersInitializer.class)
+@ContextConfiguration(initializers = pl.btsoftware.backend.configuration.TestcontainersInitializer.class)
 @SpringBootTest
-@ActiveProfiles("integration-test")
-public @interface IntegrationTest {
+@ActiveProfiles("system-test")
+public @interface SystemTest {
 }

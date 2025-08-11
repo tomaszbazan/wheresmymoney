@@ -9,6 +9,7 @@ env:
   IMAGE_TAG: latest
   FRONTEND_DIR: frontend
   CONTAINER_NAME: wheresmymoney
+  BACKEND_BASE_URL: https://api.where.bazan.cloud/api
 
 jobs:
   build-and-deploy:
@@ -37,7 +38,7 @@ jobs:
         run: |
           cd frontend
           flutter pub get
-          flutter build web --release
+          flutter build web --dart-define=BACKEND_BASE_URL=${{ env.BACKEND_BASE_URL }} --release
 
       - name: Build backend with Gradle
         run: |

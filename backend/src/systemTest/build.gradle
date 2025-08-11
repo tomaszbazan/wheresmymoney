@@ -1,0 +1,40 @@
+sourceSets {
+    systemTest {
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
+    }
+}
+
+configurations {
+    systemTestImplementation.extendsFrom testImplementation
+    systemTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    systemTestAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    systemTestCompileOnly "org.projectlombok:lombok:$lombokVersion"
+
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    systemTestImplementation 'org.springframework.boot:spring-boot-starter-test'
+    systemTestImplementation "org.testcontainers:localstack:$localstackVersion"
+    systemTestImplementation "org.testcontainers:junit-jupiter:$localstackVersion"
+    systemTestImplementation 'org.reflections:reflections:0.9.11'
+
+    systemTestImplementation 'org.testcontainers:junit-jupiter'
+    systemTestImplementation 'org.testcontainers:postgresql'
+    systemTestImplementation project
+}
+
+tasks.register('systemTest', Test) {
+    description = 'Runs system tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.systemTest.output.classesDirs
+    classpath = sourceSets.systemTest.runtimeClasspath
+    shouldRunAfter test
+
+    useJUnitPlatform()
+}
+
+check.dependsOn systemTest

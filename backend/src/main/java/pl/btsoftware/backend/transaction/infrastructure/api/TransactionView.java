@@ -20,7 +20,7 @@ public record TransactionView(
         return new TransactionView(
                 transaction.id().value(),
                 transaction.accountId().value(),
-                transaction.amount().amount(),
+                transaction.amount().value(),
                 transaction.type().name(),
                 transaction.description(),
                 transaction.category(),

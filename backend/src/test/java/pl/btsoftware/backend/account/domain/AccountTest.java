@@ -134,7 +134,7 @@ class AccountTest {
         var account = new Account(accountId, "Test Account", PLN);
 
         // then
-        assertThat(account.balance().amount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(account.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(account.balance().currency()).isEqualTo(PLN);
     }
 

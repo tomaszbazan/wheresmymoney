@@ -1,9 +1,9 @@
 package pl.btsoftware.backend;
 
 import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.configuration.IntegrationTest;
+import pl.btsoftware.backend.configuration.SystemTest;
 
-@IntegrationTest
+@SystemTest
 class BackendApplicationTests {
 
     @Test

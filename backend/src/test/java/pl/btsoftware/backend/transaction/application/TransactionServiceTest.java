@@ -53,7 +53,7 @@ class TransactionServiceTest {
         // Then
         assertThat(transaction.id()).isNotNull();
         assertThat(transaction.accountId()).isEqualTo(account.id());
-        assertThat(transaction.amount().amount()).isEqualTo(new BigDecimal("1000.12"));
+        assertThat(transaction.amount().value()).isEqualTo(new BigDecimal("1000.12"));
         assertThat(transaction.type()).isEqualTo(TransactionType.INCOME);
         assertThat(transaction.description()).isEqualTo("Salary payment");
         assertThat(transaction.category()).isEqualTo("Salary");
@@ -64,7 +64,7 @@ class TransactionServiceTest {
 
         // Verify account balance updated by +1000.12
         var updatedAccount = accountModuleFacade.getAccount(account.id().value());
-        assertThat(updatedAccount.balance().amount()).isEqualTo(new BigDecimal("1000.12"));
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("1000.12"));
     }
 
     @Test
@@ -84,7 +84,7 @@ class TransactionServiceTest {
         // Then
         assertThat(transaction.id()).isNotNull();
         assertThat(transaction.accountId()).isEqualTo(account.id());
-        assertThat(transaction.amount().amount()).isEqualTo(new BigDecimal("250.50"));
+        assertThat(transaction.amount().value()).isEqualTo(new BigDecimal("250.50"));
         assertThat(transaction.type()).isEqualTo(TransactionType.EXPENSE);
         assertThat(transaction.description()).isEqualTo("Grocery shopping");
         assertThat(transaction.category()).isEqualTo("Food");
@@ -95,7 +95,7 @@ class TransactionServiceTest {
 
         // Verify account balance updated by -250.50
         var updatedAccount = accountModuleFacade.getAccount(account.id().value());
-        assertThat(updatedAccount.balance().amount()).isEqualTo(new BigDecimal("-250.50"));
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("-250.50"));
     }
 
     @Test
@@ -197,7 +197,7 @@ class TransactionServiceTest {
         assertThat(foundTransaction).isNotNull();
         assertThat(foundTransaction.id()).isEqualTo(createdTransaction.id());
         assertThat(foundTransaction.accountId()).isEqualTo(account.id());
-        assertThat(foundTransaction.amount().amount()).isEqualTo(amount);
+        assertThat(foundTransaction.amount().value()).isEqualTo(amount);
         assertThat(foundTransaction.description()).isEqualTo(description);
         assertThat(foundTransaction.category()).isEqualTo(category);
         assertThat(foundTransaction.type()).isEqualTo(type);
@@ -279,14 +279,14 @@ class TransactionServiceTest {
 
         // Then
         assertThat(updatedTransaction.id()).isEqualTo(transaction.id());
-        assertThat(updatedTransaction.amount().amount()).isEqualTo(newAmount);
+        assertThat(updatedTransaction.amount().value()).isEqualTo(newAmount);
         assertThat(updatedTransaction.description()).isEqualTo("Initial transaction");
         assertThat(updatedTransaction.category()).isEqualTo("Salary");
         assertThat(updatedTransaction.updatedAt()).isAfter(transaction.updatedAt());
 
         // Verify account balance updated by difference (+250.00)
         var updatedAccount = accountModuleFacade.getAccount(account.id().value());
-        assertThat(updatedAccount.balance().amount()).isEqualTo(new BigDecimal("750.00"));
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("750.00"));
     }
 
     @Test
@@ -306,14 +306,14 @@ class TransactionServiceTest {
 
         // Then
         assertThat(updatedTransaction.id()).isEqualTo(transaction.id());
-        assertThat(updatedTransaction.amount().amount()).isEqualTo(amount);
+        assertThat(updatedTransaction.amount().value()).isEqualTo(amount);
         assertThat(updatedTransaction.description()).isEqualTo(newDescription);
         assertThat(updatedTransaction.category()).isEqualTo("Salary");
         assertThat(updatedTransaction.updatedAt()).isAfter(transaction.updatedAt());
 
         // Verify account balance unchanged
         var updatedAccount = accountModuleFacade.getAccount(account.id().value());
-        assertThat(updatedAccount.balance().amount()).isEqualTo(amount);
+        assertThat(updatedAccount.balance().value()).isEqualTo(amount);
     }
 
     @Test
@@ -333,14 +333,14 @@ class TransactionServiceTest {
 
         // Then
         assertThat(updatedTransaction.id()).isEqualTo(transaction.id());
-        assertThat(updatedTransaction.amount().amount()).isEqualTo(amount);
+        assertThat(updatedTransaction.amount().value()).isEqualTo(amount);
         assertThat(updatedTransaction.description()).isEqualTo("Test transaction");
         assertThat(updatedTransaction.category()).isEqualTo(newCategory);
         assertThat(updatedTransaction.updatedAt()).isAfter(transaction.updatedAt());
 
         // Verify account balance unchanged
         var updatedAccount = accountModuleFacade.getAccount(account.id().value());
-        assertThat(updatedAccount.balance().amount()).isEqualTo(new BigDecimal("-100.00"));
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("-100.00"));
     }
 
     @Test
@@ -374,7 +374,7 @@ class TransactionServiceTest {
 
         // Verify account balance reversed (+100.00)
         var updatedAccount = accountModuleFacade.getAccount(account.id().value());
-        assertThat(updatedAccount.balance().amount()).isEqualTo(new BigDecimal("0.00"));
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("0.00"));
 
         // Verify transaction not in normal queries
         assertThat(transactionService.getAllTransactions()).isEmpty();
