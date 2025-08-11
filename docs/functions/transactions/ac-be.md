@@ -90,6 +90,8 @@
 - Return 200 OK
 - Return transaction details including: id, accountId, amount, description, date, category, createdAt, updatedAt
 
+**Test Coverage:** `TransactionServiceTest.shouldGetTransactionById()`
+
 ### AC-3.2: Get Non-existent Transaction
 
 **Given** a non-existent transaction ID
@@ -98,6 +100,8 @@
 
 - Return 404 Not Found
 - Return error message: "Transaction not found"
+
+**Test Coverage:** `TransactionServiceTest.shouldThrowExceptionForNonExistentTransactionId()`
 
 ### AC-3.3: List Account Transactions
 
@@ -110,6 +114,8 @@
 - Include pagination metadata
 - Order by date descending
 
+**Test Coverage:** `TransactionServiceTest.shouldGetTransactionsByAccountId()`
+
 ### AC-3.4: List All Transactions
 
 **Given** multiple accounts with transactions
@@ -120,6 +126,8 @@
 - Return list of all transactions across all accounts
 - Include pagination metadata
 - Order by date descending
+
+**Test Coverage:** `TransactionServiceTest.shouldGetAllTransactions()`
 
 ## 4. Transaction Update
 
@@ -134,6 +142,8 @@
 - Update updatedAt timestamp
 - Return 200 OK with updated transaction
 
+**Test Coverage:** `TransactionServiceTest.shouldUpdateTransactionAmount()`
+
 ### AC-4.2: Update Transaction Description
 
 **Given** an existing transaction
@@ -145,18 +155,9 @@
 - Update updatedAt timestamp
 - Return 200 OK with updated transaction
 
-### AC-4.3: Update Transaction Date
+**Test Coverage:** `TransactionServiceTest.shouldUpdateTransactionDescription()`
 
-**Given** an existing transaction with date 2024-01-15
-**When** I update the transaction date to 2024-01-10
-**Then** the system should:
-
-- Update transaction date to 2024-01-10
-- Keep account balance unchanged
-- Update updatedAt timestamp
-- Return 200 OK with updated transaction
-
-### AC-4.4: Update Transaction Category
+### AC-4.3: Update Transaction Category
 
 **Given** an existing transaction with category "Food"
 **When** I update the transaction category to "Entertainment"
@@ -167,29 +168,9 @@
 - Update updatedAt timestamp
 - Return 200 OK with updated transaction
 
-## 5. Transaction Update Validation
+**Test Coverage:** `TransactionServiceTest.shouldUpdateTransactionCategory()`
 
-### AC-5.1: Reject Update with Zero Amount
-
-**Given** an existing transaction
-**When** I update the transaction amount to 0.00
-**Then** the system should:
-
-- Return 422 Unprocessable Entity
-- Return error message: "Transaction amount cannot be zero"
-- Not update the transaction
-
-### AC-5.2: Reject Update with Future Date
-
-**Given** an existing transaction
-**When** I update the transaction date to future date
-**Then** the system should:
-
-- Return 422 Unprocessable Entity
-- Return error message: "Transaction date cannot be in the future"
-- Not update the transaction
-
-### AC-5.3: Reject Update for Non-existent Transaction
+### AC-4.4: Reject Update for Non-existent Transaction
 
 **Given** a non-existent transaction ID
 **When** I attempt to update the transaction
@@ -198,20 +179,25 @@
 - Return 404 Not Found
 - Return error message: "Transaction not found"
 
-## 6. Transaction Deletion
+**Test Coverage:** `TransactionServiceTest.shouldRejectUpdateForNonexistentTransaction()`
 
-### AC-6.1: Delete Transaction
+## 5. Transaction Deletion
+
+### AC-5.1: Delete Transaction
 
 **Given** an existing transaction with amount -100.00
 **When** I delete the transaction
 **Then** the system should:
 
 - Mark transaction as deleted (soft delete)
+- Store deletedAt timestamp
 - Reverse balance impact on account (+100.00)
 - Return 200 OK
 - Transaction should not appear in normal queries
 
-### AC-6.2: Delete Non-existent Transaction
+**Test Coverage:** `TransactionServiceTest.shouldDeleteTransaction()`
+
+### AC-5.2: Delete Non-existent Transaction
 
 **Given** a non-existent transaction ID
 **When** I attempt to delete the transaction
@@ -220,7 +206,9 @@
 - Return 404 Not Found
 - Return error message: "Transaction not found"
 
-### AC-6.3: Verify Soft Delete Behavior
+**Test Coverage:** `TransactionServiceTest.shouldRejectDeleteForNonexistentTransaction()`
+
+### AC-5.3: Verify Soft Delete Behavior
 
 **Given** a deleted transaction
 **When** I query for the transaction by ID
@@ -230,73 +218,4 @@
 - Transaction should remain in database with isDeleted=true
 - Transaction should not appear in transaction lists
 
-## 7. Balance Management
-
-### AC-7.1: Account Balance Update on Creation
-
-**Given** an account with balance 1000.00
-**When** I create a transaction with amount -200.00
-**Then** the account balance should be updated to 800.00
-
-### AC-7.2: Account Balance Update on Modification
-
-**Given** an account with balance 1000.00 and existing transaction of -200.00
-**When** I update the transaction amount to -300.00
-**Then** the account balance should be updated to 900.00
-
-### AC-7.3: Account Balance Update on Deletion
-
-**Given** an account with balance 800.00 and existing transaction of -200.00
-**When** I delete the transaction
-**Then** the account balance should be updated to 1000.00
-
-## 8. Error Handling
-
-### AC-8.1: Database Connection Error
-
-**Given** database connection is unavailable
-**When** I perform any transaction operation
-**Then** the system should:
-
-- Return 500 Internal Server Error
-- Return error message: "Service temporarily unavailable"
-- Not modify any data
-
-### AC-8.2: Concurrent Transaction Modification
-
-**Given** a transaction being modified by another user
-**When** I attempt to modify the same transaction
-**Then** the system should:
-
-- Handle concurrent modification gracefully
-- Return appropriate error response
-- Maintain data consistency
-
-## 9. API Response Format
-
-### AC-9.1: Transaction Response Structure
-
-**Given** any successful transaction operation
-**When** the system returns transaction data
-**Then** the response should include:
-
-- id (UUID)
-- accountId (UUID)
-- amount (decimal with currency)
-- type (INCOME or EXPENSE)
-- description (string)
-- date (ISO date format)
-- category (string or null)
-- createdAt (ISO datetime format)
-- updatedAt (ISO datetime format)
-
-### AC-9.2: Error Response Structure
-
-**Given** any failed transaction operation
-**When** the system returns an error
-**Then** the response should include:
-
-- error code
-- error message
-- timestamp
-- request path
+**Test Coverage:** `TransactionServiceTest.shouldDeleteTransaction()` (verifies soft delete exclusion from queries)

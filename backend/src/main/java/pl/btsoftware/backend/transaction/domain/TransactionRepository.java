@@ -10,6 +10,8 @@ public interface TransactionRepository {
 
     Optional<Transaction> findById(TransactionId id);
 
+    Optional<Transaction> findByIdIncludingDeleted(TransactionId id);
+
     List<Transaction> findAll();
 
     List<Transaction> findByAccountId(AccountId accountId);

@@ -7,6 +7,9 @@ import pl.btsoftware.backend.account.domain.Money;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+import static java.time.OffsetDateTime.now;
+import static java.time.ZoneOffset.UTC;
+
 public record Transaction(
         TransactionId id,
         AccountId accountId,
@@ -14,15 +17,15 @@ public record Transaction(
         TransactionType type,
         String description,
         String category,
-        OffsetDateTime when,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        OffsetDateTime updatedAt,
+        Tombstone tombstone
 ) {
     public static Transaction create(
             AccountId accountId,
             BigDecimal amount,
             String description,
-            OffsetDateTime date,
+            OffsetDateTime createdAt,
             TransactionType type,
             String category,
             Currency currency
@@ -34,9 +37,25 @@ public record Transaction(
                 type,
                 description,
                 category,
-                date,
-                OffsetDateTime.now(),
-                OffsetDateTime.now()
+                createdAt,
+                now(),
+                Tombstone.active()
         );
+    }
+
+    public Transaction updateAmount(BigDecimal newAmount) {
+        return new Transaction(id, accountId, Money.of(newAmount, amount.currency()), type, description, category, createdAt, now(UTC), tombstone);
+    }
+
+    public Transaction updateDescription(String newDescription) {
+        return new Transaction(id, accountId, amount, type, newDescription, category, createdAt, now(UTC), tombstone);
+    }
+
+    public Transaction updateCategory(String newCategory) {
+        return new Transaction(id, accountId, amount, type, description, newCategory, createdAt, now(UTC), tombstone);
+    }
+
+    public Transaction delete() {
+        return new Transaction(id, accountId, amount, type, description, category, createdAt, updatedAt, Tombstone.deleted());
     }
 }
