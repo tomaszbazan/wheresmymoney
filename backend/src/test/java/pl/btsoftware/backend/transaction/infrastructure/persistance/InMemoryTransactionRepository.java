@@ -20,18 +20,27 @@ public class InMemoryTransactionRepository implements TransactionRepository {
 
     @Override
     public Optional<Transaction> findById(TransactionId id) {
+        return Optional.ofNullable(database.get(id.value()))
+                .filter(transaction -> !transaction.tombstone().isDeleted());
+    }
+
+    @Override
+    public Optional<Transaction> findByIdIncludingDeleted(TransactionId id) {
         return Optional.ofNullable(database.get(id.value()));
     }
 
     @Override
     public List<Transaction> findAll() {
-        return database.values().stream().toList();
+        return database.values().stream()
+                .filter(transaction -> !transaction.tombstone().isDeleted())
+                .toList();
     }
 
     @Override
     public List<Transaction> findByAccountId(AccountId accountId) {
         return database.values().stream()
                 .filter(transaction -> transaction.accountId().equals(accountId))
+                .filter(transaction -> !transaction.tombstone().isDeleted())
                 .toList();
     }
 }
