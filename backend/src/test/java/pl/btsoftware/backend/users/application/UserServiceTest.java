@@ -10,7 +10,8 @@ import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryUserReposi
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserServiceTest {
 
@@ -35,18 +36,18 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        assertNotNull(user.getId());
-        assertEquals("ext-auth-123", user.getExternalAuthId());
-        assertEquals("test@example.com", user.getEmail());
-        assertEquals("John Doe", user.getDisplayName());
-        assertNotNull(user.getGroupId());
-        
-        assertTrue(groupRepository.existsById(user.getGroupId()));
+        assertThat(user.getId()).isNotNull();
+        assertThat(user.getExternalAuthId()).isEqualTo("ext-auth-123");
+        assertThat(user.getEmail()).isEqualTo("test@example.com");
+        assertThat(user.getDisplayName()).isEqualTo("John Doe");
+        assertThat(user.getGroupId()).isNotNull();
+
+        assertThat(groupRepository.existsById(user.getGroupId())).isTrue();
         Group group = groupRepository.findById(user.getGroupId()).get();
-        assertEquals("My Group", group.getName());
-        assertTrue(group.hasMember(user.getId()));
-        assertEquals(1, groupRepository.size());
-        assertEquals(1, userRepository.size());
+        assertThat(group.getName()).isEqualTo("My Group");
+        assertThat(group.hasMember(user.getId())).isTrue();
+        assertThat(groupRepository.size()).isEqualTo(1);
+        assertThat(userRepository.size()).isEqualTo(1);
     }
 
     @Test
@@ -58,7 +59,7 @@ class UserServiceTest {
         User user = userService.registerUser(command);
 
         Group group = groupRepository.findById(user.getGroupId()).get();
-        assertEquals("John Doe's Group", group.getName());
+        assertThat(group.getName()).isEqualTo("John Doe's Group");
     }
 
     @Test
@@ -70,7 +71,7 @@ class UserServiceTest {
         User user = userService.registerUser(command);
 
         Group group = groupRepository.findById(user.getGroupId()).get();
-        assertEquals("John Doe's Group", group.getName());
+        assertThat(group.getName()).isEqualTo("John Doe's Group");
     }
 
     @Test
@@ -88,11 +89,11 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        assertEquals(existingGroup.getId(), user.getGroupId());
-        assertTrue(groupRepository.findById(existingGroup.getId()).get().hasMember(user.getId()));
-        assertEquals(InvitationStatus.ACCEPTED, invitationRepository.findByToken(invitation.getInvitationToken()).get().getStatus());
-        assertEquals(1, groupRepository.size());
-        assertEquals(1, userRepository.size());
+        assertThat(user.getGroupId()).isEqualTo(existingGroup.getId());
+        assertThat(groupRepository.findById(existingGroup.getId()).get().hasMember(user.getId())).isTrue();
+        assertThat(invitationRepository.findByToken(invitation.getInvitationToken()).get().getStatus()).isEqualTo(InvitationStatus.ACCEPTED);
+        assertThat(groupRepository.size()).isEqualTo(1);
+        assertThat(userRepository.size()).isEqualTo(1);
     }
 
     @Test
@@ -101,9 +102,8 @@ class UserServiceTest {
             "ext-auth-123", "test@example.com", "John Doe", "My Group", "invalid-token"
         );
 
-        assertThrows(InvitationNotFoundException.class, () -> {
-            userService.registerUser(command);
-        });
+        assertThatThrownBy(() -> userService.registerUser(command))
+                .isInstanceOf(InvitationNotFoundException.class);
     }
 
     @Test
@@ -117,9 +117,8 @@ class UserServiceTest {
             "ext-auth-123", "other@example.com", "Jane Doe", "Other Group", null
         );
 
-        assertThrows(IllegalStateException.class, () -> {
-            userService.registerUser(duplicateCommand);
-        });
+        assertThatThrownBy(() -> userService.registerUser(duplicateCommand))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -131,13 +130,13 @@ class UserServiceTest {
 
         User foundUser = userService.findByExternalAuthId("ext-auth-123").get();
 
-        assertEquals(savedUser.getId(), foundUser.getId());
-        assertEquals("ext-auth-123", foundUser.getExternalAuthId());
+        assertThat(foundUser.getId()).isEqualTo(savedUser.getId());
+        assertThat(foundUser.getExternalAuthId()).isEqualTo("ext-auth-123");
     }
 
     @Test
     void shouldReturnEmptyWhenUserNotFoundByExternalAuthId() {
-        assertTrue(userService.findByExternalAuthId("non-existing").isEmpty());
+        assertThat(userService.findByExternalAuthId("non-existing")).isEmpty();
     }
 
     @Test
@@ -159,10 +158,10 @@ class UserServiceTest {
         List<User> members1 = userService.findGroupMembers(user1.getGroupId());
         List<User> members2 = userService.findGroupMembers(user2.getGroupId());
 
-        assertEquals(1, members1.size());
-        assertEquals(1, members2.size());
-        assertTrue(members1.contains(user1));
-        assertTrue(members2.contains(user2));
+        assertThat(members1).hasSize(1);
+        assertThat(members2).hasSize(1);
+        assertThat(members1).contains(user1);
+        assertThat(members2).contains(user2);
     }
 
     @Test
@@ -178,21 +177,21 @@ class UserServiceTest {
         User user2 = userService.registerUser(command2);
         GroupId oldGroupId = user1.getGroupId();
         GroupId newGroupId = user2.getGroupId();
-        
-        assertEquals(2, groupRepository.size());
+
+        assertThat(groupRepository.size()).isEqualTo(2);
 
         userService.transferUserToGroup(user1.getId(), newGroupId);
 
         User updatedUser1 = userService.findById(user1.getId()).get();
-        assertEquals(newGroupId, updatedUser1.getGroupId());
+        assertThat(updatedUser1.getGroupId()).isEqualTo(newGroupId);
         
         Group newGroup = groupRepository.findById(newGroupId).get();
-        assertTrue(newGroup.hasMember(user1.getId()));
-        assertTrue(newGroup.hasMember(user2.getId()));
-        assertEquals(2, newGroup.getMemberCount());
-        
-        assertFalse(groupRepository.existsById(oldGroupId));
-        assertEquals(1, groupRepository.size());
+        assertThat(newGroup.hasMember(user1.getId())).isTrue();
+        assertThat(newGroup.hasMember(user2.getId())).isTrue();
+        assertThat(newGroup.getMemberCount()).isEqualTo(2);
+
+        assertThat(groupRepository.existsById(oldGroupId)).isFalse();
+        assertThat(groupRepository.size()).isEqualTo(1);
     }
 
     @Test
@@ -217,9 +216,9 @@ class UserServiceTest {
         
         userService.transferUserToGroup(user1.getId(), user3.getGroupId());
 
-        assertTrue(groupRepository.existsById(targetGroupId));
+        assertThat(groupRepository.existsById(targetGroupId)).isTrue();
         Group remainingGroup = groupRepository.findById(targetGroupId).get();
-        assertTrue(remainingGroup.hasMember(user2.getId()));
-        assertEquals(1, remainingGroup.getMemberCount());
+        assertThat(remainingGroup.hasMember(user2.getId())).isTrue();
+        assertThat(remainingGroup.getMemberCount()).isEqualTo(1);
     }
 }

@@ -6,7 +6,8 @@ import pl.btsoftware.backend.users.domain.error.GroupNameEmptyException;
 import java.time.Instant;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GroupTest {
 
@@ -18,13 +19,13 @@ class GroupTest {
 
         Group group = Group.create(name, description, creatorId);
 
-        assertNotNull(group.getId());
-        assertEquals(name, group.getName());
-        assertEquals(description, group.getDescription());
-        assertEquals(creatorId, group.getCreatedBy());
-        assertTrue(group.hasMember(creatorId));
-        assertEquals(1, group.getMemberCount());
-        assertNotNull(group.getCreatedAt());
+        assertThat(group.getId()).isNotNull();
+        assertThat(group.getName()).isEqualTo(name);
+        assertThat(group.getDescription()).isEqualTo(description);
+        assertThat(group.getCreatedBy()).isEqualTo(creatorId);
+        assertThat(group.hasMember(creatorId)).isTrue();
+        assertThat(group.getMemberCount()).isEqualTo(1);
+        assertThat(group.getCreatedAt()).isNotNull();
     }
 
     @Test
@@ -34,28 +35,25 @@ class GroupTest {
 
         Group group = Group.create(name, null, creatorId);
 
-        assertEquals("", group.getDescription());
+        assertThat(group.getDescription()).isEmpty();
     }
 
     @Test
     void shouldThrowExceptionWhenNameIsNull() {
-        assertThrows(GroupNameEmptyException.class, () -> {
-            Group.create(null, "Description", UserId.generate());
-        });
+        assertThatThrownBy(() -> Group.create(null, "Description", UserId.generate()))
+                .isInstanceOf(GroupNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenNameIsEmpty() {
-        assertThrows(GroupNameEmptyException.class, () -> {
-            Group.create("", "Description", UserId.generate());
-        });
+        assertThatThrownBy(() -> Group.create("", "Description", UserId.generate()))
+                .isInstanceOf(GroupNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenNameIsBlank() {
-        assertThrows(GroupNameEmptyException.class, () -> {
-            Group.create("   ", "Description", UserId.generate());
-        });
+        assertThatThrownBy(() -> Group.create("   ", "Description", UserId.generate()))
+                .isInstanceOf(GroupNameEmptyException.class);
     }
 
     @Test
@@ -66,8 +64,8 @@ class GroupTest {
 
         Group group = Group.create(name, description, creatorId);
 
-        assertEquals("Test Group", group.getName());
-        assertEquals("Test Description", group.getDescription());
+        assertThat(group.getName()).isEqualTo("Test Group");
+        assertThat(group.getDescription()).isEqualTo("Test Description");
     }
 
     @Test
@@ -77,8 +75,8 @@ class GroupTest {
 
         group.addMember(newMember);
 
-        assertTrue(group.hasMember(newMember));
-        assertEquals(2, group.getMemberCount());
+        assertThat(group.hasMember(newMember)).isTrue();
+        assertThat(group.getMemberCount()).isEqualTo(2);
     }
 
     @Test
@@ -90,8 +88,8 @@ class GroupTest {
 
         group.removeMember(member);
 
-        assertFalse(group.hasMember(member));
-        assertEquals(1, group.getMemberCount());
+        assertThat(group.hasMember(member)).isFalse();
+        assertThat(group.getMemberCount()).isEqualTo(1);
     }
 
     @Test
@@ -99,9 +97,8 @@ class GroupTest {
         UserId creator = UserId.generate();
         Group group = Group.create("Test Group", "Description", creator);
 
-        assertThrows(IllegalStateException.class, () -> {
-            group.removeMember(creator);
-        });
+        assertThatThrownBy(() -> group.removeMember(creator))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -111,16 +108,15 @@ class GroupTest {
 
         group.updateName(newName);
 
-        assertEquals(newName, group.getName());
+        assertThat(group.getName()).isEqualTo(newName);
     }
 
     @Test
     void shouldThrowExceptionWhenUpdatingToEmptyName() {
         Group group = Group.create("Old Name", "Description", UserId.generate());
 
-        assertThrows(GroupNameEmptyException.class, () -> {
-            group.updateName("");
-        });
+        assertThatThrownBy(() -> group.updateName(""))
+                .isInstanceOf(GroupNameEmptyException.class);
     }
 
     @Test
@@ -130,7 +126,7 @@ class GroupTest {
 
         group.updateDescription(newDescription);
 
-        assertEquals(newDescription, group.getDescription());
+        assertThat(group.getDescription()).isEqualTo(newDescription);
     }
 
     @Test
@@ -139,21 +135,20 @@ class GroupTest {
 
         group.updateDescription(null);
 
-        assertEquals("", group.getDescription());
+        assertThat(group.getDescription()).isEmpty();
     }
 
     @Test
     void shouldNotBeEmpty() {
         Group group = Group.create("Test Group", "Description", UserId.generate());
 
-        assertFalse(group.isEmpty());
+        assertThat(group.isEmpty()).isFalse();
     }
 
     @Test
     void shouldThrowExceptionWhenCreatedWithEmptyMembers() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new Group(GroupId.generate(), "Name", "Description", Set.of(), UserId.generate(), Instant.now());
-        });
+        assertThatThrownBy(() -> new Group(GroupId.generate(), "Name", "Description", Set.of(), UserId.generate(), Instant.now()))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -165,8 +160,8 @@ class GroupTest {
         Group group1 = new Group(groupId, "Name1", "Desc1", Set.of(creatorId), creatorId, now);
         Group group2 = new Group(groupId, "Name2", "Desc2", Set.of(UserId.generate()), UserId.generate(), now);
 
-        assertEquals(group1, group2);
-        assertEquals(group1.hashCode(), group2.hashCode());
+        assertThat(group1).isEqualTo(group2);
+        assertThat(group1.hashCode()).isEqualTo(group2.hashCode());
     }
 
     @Test
@@ -177,6 +172,6 @@ class GroupTest {
         Group group1 = new Group(GroupId.generate(), "Name", "Desc", Set.of(creatorId), creatorId, now);
         Group group2 = new Group(GroupId.generate(), "Name", "Desc", Set.of(creatorId), creatorId, now);
 
-        assertNotEquals(group1, group2);
+        assertThat(group1).isNotEqualTo(group2);
     }
 }
