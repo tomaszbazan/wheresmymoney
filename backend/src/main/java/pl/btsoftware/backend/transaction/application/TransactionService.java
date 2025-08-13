@@ -20,7 +20,7 @@ public class TransactionService {
     public Transaction createTransaction(CreateTransactionCommand command) {
         var account = accountModuleFacade.getAccount(command.accountId());
         validateDescriptionLength(command.description());
-        validateCurrencyMatch(command.currency(), account.balance().currency());
+        validateCurrencyMatch(command.amount().currency(), account.balance().currency());
 
         var transaction = command.toDomain();
         transactionRepository.store(transaction);

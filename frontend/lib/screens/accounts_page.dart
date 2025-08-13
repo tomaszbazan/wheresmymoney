@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/http_exception.dart';
 import '../services/account_service.dart';
 
 class AccountsPage extends StatefulWidget {
@@ -148,10 +149,17 @@ class _AccountsPageState extends State<AccountsPage> {
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Konto "$accountName" zostało dodane')),
       );
+    } on HttpException catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(e.userFriendlyMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (e) {
       scaffoldMessenger.showSnackBar(
         SnackBar(
-          content: Text('Błąd podczas komunikacji z serwerem: $e'),
+          content: Text('Nieoczekiwany błąd: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -198,10 +206,17 @@ class _AccountsPageState extends State<AccountsPage> {
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Konto "$accountName" zostało usunięte')),
       );
+    } on HttpException catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(e.userFriendlyMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (e) {
       scaffoldMessenger.showSnackBar(
         SnackBar(
-          content: Text('Błąd podczas komunikacji z serwerem: $e'),
+          content: Text('Nieoczekiwany błąd: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -248,11 +263,16 @@ class _AccountsPageState extends State<AccountsPage> {
         }).toList();
         _isLoading = false;
       });
+    } on HttpException catch (e) {
+      setState(() {
+        _error = e.userFriendlyMessage;
+        _isLoading = false;
+        accounts = [];
+      });
     } catch (e) {
       setState(() {
-        _error = '$e';
+        _error = 'Nieoczekiwany błąd: $e';
         _isLoading = false;
-        
         accounts = [];
       });
     }

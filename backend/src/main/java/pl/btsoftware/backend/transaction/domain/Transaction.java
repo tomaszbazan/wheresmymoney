@@ -2,7 +2,6 @@ package pl.btsoftware.backend.transaction.domain;
 
 import pl.btsoftware.backend.shared.*;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 import static java.time.OffsetDateTime.now;
@@ -21,17 +20,16 @@ public record Transaction(
 ) {
     public static Transaction create(
             AccountId accountId,
-            BigDecimal amount,
+            Money amount,
             String description,
             OffsetDateTime createdAt,
             TransactionType type,
-            String category,
-            Currency currency
+            String category
     ) {
         return new Transaction(
                 TransactionId.generate(),
                 accountId,
-                Money.of(amount, currency),
+                amount,
                 type,
                 description,
                 category,

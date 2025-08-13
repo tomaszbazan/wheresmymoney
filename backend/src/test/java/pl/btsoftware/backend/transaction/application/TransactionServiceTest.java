@@ -49,7 +49,7 @@ class TransactionServiceTest {
         var category = "Salary";
 
         // When
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, category);
         Transaction transaction = transactionService.createTransaction(command);
 
         // Then
@@ -83,7 +83,7 @@ class TransactionServiceTest {
         var category = "Food";
 
         // When
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, category);
         Transaction transaction = transactionService.createTransaction(command);
 
         // Then
@@ -117,7 +117,7 @@ class TransactionServiceTest {
         var category = "Test";
 
         // When & Then
-        var command = new CreateTransactionCommand(nonExistentAccountId, amount, description, date, type, category, PLN);
+        var command = new CreateTransactionCommand(nonExistentAccountId, Money.of(amount, PLN), description, date, type, category);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(AccountNotFoundException.class)
                 .hasMessageContaining("Account not found");
@@ -137,7 +137,7 @@ class TransactionServiceTest {
         var category = "Test";
 
         // When & Then
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, category);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Description must be between 1 and 200 characters");
@@ -157,7 +157,7 @@ class TransactionServiceTest {
         var category = "Test";
 
         // When & Then
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, category);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Description must be between 1 and 200 characters");
@@ -177,7 +177,7 @@ class TransactionServiceTest {
         var category = "Test";
 
         // When & Then
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, USD);
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, USD), description, date, type, category);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Transaction currency must match account currency");
@@ -195,7 +195,7 @@ class TransactionServiceTest {
         var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
         var type = TransactionType.INCOME;
         var category = "Salary";
-        var command = new CreateTransactionCommand(account.id(), amount, description, date, type, category, PLN);
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, category);
         var createdTransaction = transactionService.createTransaction(command);
 
         // When
@@ -226,10 +226,10 @@ class TransactionServiceTest {
     void shouldGetAllTransactions() {
         // Given
         var account = accountModuleFacade.createAccount(new CreateAccountCommand("Test Account", PLN));
-        var command1 = new CreateTransactionCommand(account.id(), new BigDecimal("1000.00"), "Salary", 
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary", PLN);
-        var command2 = new CreateTransactionCommand(account.id(), new BigDecimal("250.50"), "Groceries", 
-                OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Food", PLN);
+        var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("1000.00"), PLN), "Salary",
+                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary");
+        var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("250.50"), PLN), "Groceries",
+                OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Food");
         
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
@@ -248,13 +248,13 @@ class TransactionServiceTest {
         // Given
         var account1 = accountModuleFacade.createAccount(new CreateAccountCommand("Account 1", PLN));
         var account2 = accountModuleFacade.createAccount(new CreateAccountCommand("Account 2", PLN));
-        
-        var command1 = new CreateTransactionCommand(account1.id(), new BigDecimal("1000.00"), "Salary", 
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary", PLN);
-        var command2 = new CreateTransactionCommand(account2.id(), new BigDecimal("250.50"), "Groceries", 
-                OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Food", PLN);
-        var command3 = new CreateTransactionCommand(account1.id(), new BigDecimal("100.00"), "Coffee", 
-                OffsetDateTime.of(2024, 1, 17, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Food", PLN);
+
+        var command1 = new CreateTransactionCommand(account1.id(), Money.of(new BigDecimal("1000.00"), PLN), "Salary",
+                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary");
+        var command2 = new CreateTransactionCommand(account2.id(), Money.of(new BigDecimal("250.50"), PLN), "Groceries",
+                OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Food");
+        var command3 = new CreateTransactionCommand(account1.id(), Money.of(new BigDecimal("100.00"), PLN), "Coffee",
+                OffsetDateTime.of(2024, 1, 17, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Food");
         
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
@@ -275,8 +275,8 @@ class TransactionServiceTest {
         // Given
         var account = accountModuleFacade.createAccount(new CreateAccountCommand("Test Account", PLN));
         var initialAmount = new BigDecimal("500.00");
-        var createCommand = new CreateTransactionCommand(account.id(), initialAmount, "Initial transaction", 
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary", PLN);
+        var createCommand = new CreateTransactionCommand(account.id(), Money.of(initialAmount, PLN), "Initial transaction",
+                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary");
         var transaction = transactionService.createTransaction(createCommand);
 
         var newAmount = Money.of(new BigDecimal("750.00"), PLN);
@@ -302,8 +302,8 @@ class TransactionServiceTest {
         // Given
         var account = accountModuleFacade.createAccount(new CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("100.00");
-        var createCommand = new CreateTransactionCommand(account.id(), amount, "Original description", 
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary", PLN);
+        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Original description",
+                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary");
         var transaction = transactionService.createTransaction(createCommand);
         
         var newDescription = "Updated description";
@@ -329,8 +329,8 @@ class TransactionServiceTest {
         // Given
         var account = accountModuleFacade.createAccount(new CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("100.00");
-        var createCommand = new CreateTransactionCommand(account.id(), amount, "Test transaction", 
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Food", PLN);
+        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Test transaction",
+                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Food");
         var transaction = transactionService.createTransaction(createCommand);
         
         var newCategory = "Entertainment";
@@ -368,8 +368,8 @@ class TransactionServiceTest {
         // Given
         var account = accountModuleFacade.createAccount(new CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("100.00");
-        var createCommand = new CreateTransactionCommand(account.id(), amount, "Transaction to delete", 
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Test", PLN);
+        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Transaction to delete",
+                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, "Test");
         var transaction = transactionService.createTransaction(createCommand);
 
         // When
