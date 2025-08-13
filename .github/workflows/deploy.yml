@@ -29,6 +29,21 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Build backend
+        run: |
+          cd backend
+          ./gradlew clean build -x test -x systemTest
+
+      - name: Run unit tests
+        run: |
+          cd backend
+          ./gradlew test -x systemTest 
+
+      - name: Run integration tests
+        run: |
+          cd backend
+          ./gradlew systemTest -x test
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -39,11 +54,6 @@ jobs:
           cd frontend
           flutter pub get
           flutter build web --dart-define=BACKEND_BASE_URL=${{ env.BACKEND_BASE_URL }} --release
-
-      - name: Build backend with Gradle
-        run: |
-          cd backend
-          ./gradlew clean build
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3

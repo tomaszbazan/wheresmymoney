@@ -1,12 +1,13 @@
 package pl.btsoftware.backend.account.domain;
 
 import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.shared.Money;
 
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static pl.btsoftware.backend.account.domain.Currency.*;
+import static pl.btsoftware.backend.shared.Currency.*;
 
 class MoneyTest {
 

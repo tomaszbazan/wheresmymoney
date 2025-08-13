@@ -1,17 +1,16 @@
 package pl.btsoftware.backend.account;
 
 import lombok.AllArgsConstructor;
-import org.springframework.lang.Nullable;
 import pl.btsoftware.backend.account.application.AccountService;
+import pl.btsoftware.backend.account.application.CreateAccountCommand;
+import pl.btsoftware.backend.account.application.UpdateAccountCommand;
 import pl.btsoftware.backend.account.domain.Account;
-import pl.btsoftware.backend.account.domain.Currency;
-import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.TransactionId;
+import pl.btsoftware.backend.shared.TransactionType;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
-
-import static pl.btsoftware.backend.account.domain.AccountId.generate;
 
 @AllArgsConstructor
 public class AccountModuleFacade {
@@ -25,36 +24,27 @@ public class AccountModuleFacade {
         return accountService.getAccounts();
     }
 
-    public Account getAccount(UUID accountId) {
+    public Account getAccount(AccountId accountId) {
         return accountService.getById(accountId);
-    }
-
-    public record CreateAccountCommand(String name, @Nullable Currency currency) {
-        public Account toDomain() {
-            return new Account(generate(), name, currency);
-        }
-    }
-
-    public record UpdateAccountCommand(UUID accountId, String name) {
-        public UpdateAccountCommand {
-            if (accountId == null) {
-                throw new IllegalArgumentException("Account id cannot be null");
-            }
-            if (name == null || name.isBlank()) {
-                throw new AccountNameEmptyException();
-            }
-        }
     }
 
     public Account updateAccount(UpdateAccountCommand command) {
         return accountService.updateAccount(command.accountId(), command.name());
     }
 
-    public void deleteAccount(UUID accountId) {
+    public void deleteAccount(AccountId accountId) {
         accountService.deleteAccount(accountId);
     }
 
-    public void addTransaction(UUID accountId, BigDecimal amount, String transactionType) {
-        accountService.addTransaction(accountId, amount, transactionType);
+    public void addTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType) {
+        accountService.addTransaction(accountId, transactionId, amount, transactionType);
+    }
+
+    public void removeTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType) {
+        accountService.removeTransaction(accountId, transactionId, amount, transactionType);
+    }
+
+    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount, TransactionType transactionType) {
+        accountService.changeTransaction(accountId, transactionId, oldAmount, newAmount, transactionType);
     }
 }

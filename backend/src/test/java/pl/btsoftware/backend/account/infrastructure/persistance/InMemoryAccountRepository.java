@@ -3,28 +3,27 @@ package pl.btsoftware.backend.account.infrastructure.persistance;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.account.domain.Account;
-import pl.btsoftware.backend.account.domain.AccountId;
 import pl.btsoftware.backend.account.domain.AccountRepository;
-import pl.btsoftware.backend.account.domain.Currency;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Currency;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 @Profile("test")
 public class InMemoryAccountRepository implements AccountRepository {
-    private final HashMap<UUID, Account> database = new HashMap<>();
+    private final HashMap<AccountId, Account> database = new HashMap<>();
 
     @Override
     public void store(Account account) {
-        database.put(account.id().value(), account);
+        database.put(account.id(), account);
     }
 
     @Override
     public Optional<Account> findById(AccountId id) {
-        return Optional.ofNullable(database.get(id.value()));
+        return Optional.ofNullable(database.get(id));
     }
 
     @Override
@@ -33,7 +32,7 @@ public class InMemoryAccountRepository implements AccountRepository {
     }
 
     @Override
-    public void deleteById(UUID id) {
+    public void deleteById(AccountId id) {
         database.remove(id);
     }
 

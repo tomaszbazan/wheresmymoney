@@ -1,4 +1,4 @@
-package pl.btsoftware.backend.account.domain;
+package pl.btsoftware.backend.shared;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
 
-import static pl.btsoftware.backend.account.domain.Currency.DEFAULT;
+import static pl.btsoftware.backend.shared.Currency.DEFAULT;
 
 public record Money(BigDecimal value, Currency currency) {
 
@@ -58,6 +58,10 @@ public record Money(BigDecimal value, Currency currency) {
 
     public Money withAmount(BigDecimal newAmount) {
         return new Money(newAmount, this.currency);
+    }
+
+    public Money negate() {
+        return new Money(value.negate(), currency);
     }
 
     @NotNull

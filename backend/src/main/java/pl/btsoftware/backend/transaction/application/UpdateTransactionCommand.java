@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.application;
 
-import pl.btsoftware.backend.transaction.domain.TransactionId;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.TransactionId;
 
 import java.math.BigDecimal;
 
@@ -8,6 +9,7 @@ public record UpdateTransactionCommand(
         TransactionId transactionId,
         BigDecimal amount,
         String description,
-        String category
+        String category,
+        Currency currency
 ) {
 }

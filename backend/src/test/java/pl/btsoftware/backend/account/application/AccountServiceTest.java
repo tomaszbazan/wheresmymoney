@@ -7,18 +7,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import pl.btsoftware.backend.account.AccountModuleFacade.CreateAccountCommand;
 import pl.btsoftware.backend.account.domain.AccountRepository;
-import pl.btsoftware.backend.account.domain.Currency;
 import pl.btsoftware.backend.account.domain.error.*;
 import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountRepository;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.TransactionId;
 
-import java.util.UUID;
+import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
-import static pl.btsoftware.backend.account.domain.Currency.*;
+import static pl.btsoftware.backend.shared.Currency.*;
+import static pl.btsoftware.backend.shared.TransactionType.EXPENSE;
 
 public class AccountServiceTest {
     private AccountRepository accountRepository;
@@ -236,7 +239,7 @@ public class AccountServiceTest {
                     .create());
 
             // when
-            var result = accountService.getById(account.id().value());
+            var result = accountService.getById(account.id());
 
             // then
             assertThat(result).isEqualTo(account);
@@ -251,7 +254,7 @@ public class AccountServiceTest {
         @Test
         void shouldThrowExceptionWhenAccountNotFound() {
             // given
-            var nonExistentAccountId = UUID.randomUUID();
+            var nonExistentAccountId = AccountId.generate();
 
             // when & then
             assertThatThrownBy(() -> accountService.getById(nonExistentAccountId))
@@ -268,7 +271,7 @@ public class AccountServiceTest {
                     .create());
 
             // when
-            var retrievedAccount = accountService.getById(account.id().value());
+            var retrievedAccount = accountService.getById(account.id());
 
             // then
             assertThat(retrievedAccount.id()).isNotNull();
@@ -293,18 +296,18 @@ public class AccountServiceTest {
             var newName = "Updated Name";
 
             // when
-            var updatedAccount = accountService.updateAccount(account.id().value(), newName);
+            var updatedAccount = accountService.updateAccount(account.id(), newName);
 
             // then
             assertThat(updatedAccount.name()).isEqualTo(newName);
-            var retrievedAccount = accountService.getById(account.id().value());
+            var retrievedAccount = accountService.getById(account.id());
             assertThat(retrievedAccount.name()).isEqualTo(newName);
         }
 
         @Test
         void shouldThrowExceptionWhenUpdatingNonExistentAccount() {
             // given
-            var nonExistentAccountId = UUID.randomUUID();
+            var nonExistentAccountId = AccountId.generate();
             var newName = "Updated Name";
 
             // when & then
@@ -322,11 +325,11 @@ public class AccountServiceTest {
             var emptyName = "";
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(account.id().value(), emptyName))
+            assertThatThrownBy(() -> accountService.updateAccount(account.id(), emptyName))
                     .isInstanceOf(AccountNameEmptyException.class);
 
             // and
-            var retrievedAccount = accountService.getById(account.id().value());
+            var retrievedAccount = accountService.getById(account.id());
             assertThat(retrievedAccount.name()).isEqualTo("Original Name");
         }
 
@@ -343,12 +346,12 @@ public class AccountServiceTest {
                     .create());
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(account2.id().value(), "Account One"))
+            assertThatThrownBy(() -> accountService.updateAccount(account2.id(), "Account One"))
                     .isInstanceOf(AccountAlreadyExistsException.class);
 
             // verify original names are preserved
-            var retrievedAccount1 = accountService.getById(account1.id().value());
-            var retrievedAccount2 = accountService.getById(account2.id().value());
+            var retrievedAccount1 = accountService.getById(account1.id());
+            var retrievedAccount2 = accountService.getById(account2.id());
             assertThat(retrievedAccount1.name()).isEqualTo("Account One");
             assertThat(retrievedAccount2.name()).isEqualTo("Account Two");
         }
@@ -363,7 +366,7 @@ public class AccountServiceTest {
             var account = accountService.createAccount(new CreateAccountCommand("Test Account", PLN));
 
             // when
-            accountService.deleteAccount(account.id().value());
+            accountService.deleteAccount(account.id());
 
             // then
             assertThat(accountService.getAccounts()).isEmpty();
@@ -372,11 +375,23 @@ public class AccountServiceTest {
         @Test
         void shouldThrowExceptionWhenDeletingNonExistentAccount() {
             // given
-            var nonExistentAccountId = UUID.randomUUID();
+            var nonExistentAccountId = AccountId.generate();
 
             // when & then
             assertThatThrownBy(() -> accountService.deleteAccount(nonExistentAccountId))
                     .isInstanceOf(AccountNotFoundException.class);
+        }
+
+        @Test
+        void shouldRejectDeletionOfAccountWithTransactionHistory() {
+            // given
+            var account = accountService.createAccount(new CreateAccountCommand("Account With Transactions", PLN));
+            accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("100.00"), PLN), EXPENSE);
+
+            // when & then
+            assertThatThrownBy(() -> accountService.deleteAccount(account.id()))
+                    .isInstanceOf(CannotDeleteAccountWithTransactionsException.class);
+            assertThat(accountService.getAccounts()).hasSize(1);
         }
     }
 }

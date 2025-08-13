@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../widgets/side_menu.dart';
 import 'accounts_page.dart';
 import 'statistics_page.dart';
+import 'transactions_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,6 +20,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
   final List<Widget> _pages = <Widget>[
     const StatisticsPage(),
     const AccountsPage(),
+    const TransactionsPage(),
   ];
   
   @override

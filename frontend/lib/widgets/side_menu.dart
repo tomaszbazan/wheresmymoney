@@ -37,6 +37,11 @@ class SideMenu extends StatelessWidget {
               icon: Icons.account_balance,
               title: 'Konta',
             ),
+            _buildMenuItem(
+              index: 2,
+              icon: Icons.receipt_long,
+              title: 'Transakcje',
+            ),
             const Spacer(),
             // Przycisk do przełączania trybu menu
             ListTile(

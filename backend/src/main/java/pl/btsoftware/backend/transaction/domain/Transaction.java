@@ -1,8 +1,6 @@
 package pl.btsoftware.backend.transaction.domain;
 
-import pl.btsoftware.backend.account.domain.AccountId;
-import pl.btsoftware.backend.account.domain.Currency;
-import pl.btsoftware.backend.account.domain.Money;
+import pl.btsoftware.backend.shared.*;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;

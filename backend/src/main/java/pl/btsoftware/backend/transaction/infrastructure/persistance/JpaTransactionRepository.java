@@ -3,9 +3,9 @@ package pl.btsoftware.backend.transaction.infrastructure.persistance;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
-import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionId;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 
 import java.util.List;

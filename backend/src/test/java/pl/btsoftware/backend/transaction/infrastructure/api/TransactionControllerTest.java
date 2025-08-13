@@ -7,13 +7,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import pl.btsoftware.backend.account.domain.AccountId;
-import pl.btsoftware.backend.account.domain.Money;
+import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
-import pl.btsoftware.backend.transaction.domain.Tombstone;
 import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionId;
-import pl.btsoftware.backend.transaction.domain.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -31,7 +27,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static pl.btsoftware.backend.account.domain.Currency.PLN;
+import static pl.btsoftware.backend.shared.Currency.PLN;
 
 @WebMvcTest(TransactionController.class)
 public class TransactionControllerTest {

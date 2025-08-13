@@ -6,6 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.account.AccountModuleFacade;
+import pl.btsoftware.backend.account.application.CreateAccountCommand;
+import pl.btsoftware.backend.account.application.UpdateAccountCommand;
+import pl.btsoftware.backend.shared.AccountId;
 
 import java.util.UUID;
 
@@ -32,13 +35,13 @@ public class AccountController {
     @ResponseStatus(HttpStatus.CREATED)
     public AccountView createAccount(@Validated @RequestBody CreateAccountRequest request) {
         log.info("Received request to create account with name: {} and currency: {}", request.name(), request.currency());
-        return AccountView.from(accountModuleFacade.createAccount(new AccountModuleFacade.CreateAccountCommand(request.name(), request.currency())));
+        return AccountView.from(accountModuleFacade.createAccount(new CreateAccountCommand(request.name(), request.currency())));
     }
 
     @PutMapping("/{id}")
     public AccountView updateAccount(@PathVariable UUID id, @Validated @RequestBody UpdateAccountRequest request) {
         log.info("Received request to update account with id: {} and new name: {}", id, request.name());
-        return AccountView.from(accountModuleFacade.updateAccount(new AccountModuleFacade.UpdateAccountCommand(id, request.name())));
+        return AccountView.from(accountModuleFacade.updateAccount(new UpdateAccountCommand(AccountId.from(id), request.name())));
     }
 
     @DeleteMapping("/{id}")

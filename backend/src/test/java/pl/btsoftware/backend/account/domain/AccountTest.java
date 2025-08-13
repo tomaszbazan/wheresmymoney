@@ -7,6 +7,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 import pl.btsoftware.backend.account.domain.error.AccountNameInvalidCharactersException;
 import pl.btsoftware.backend.account.domain.error.AccountNameTooLongException;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.Money;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -16,7 +19,7 @@ import static java.math.BigDecimal.TEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static pl.btsoftware.backend.account.domain.Currency.PLN;
+import static pl.btsoftware.backend.shared.Currency.PLN;
 
 class AccountTest {
 
