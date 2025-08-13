@@ -1,4 +1,4 @@
-package pl.btsoftware.backend.transaction.domain;
+package pl.btsoftware.backend.shared;
 
 import java.time.OffsetDateTime;
 

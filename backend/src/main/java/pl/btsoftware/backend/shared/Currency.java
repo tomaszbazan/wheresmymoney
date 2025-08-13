@@ -1,4 +1,4 @@
-package pl.btsoftware.backend.account.domain;
+package pl.btsoftware.backend.shared;
 
 public enum Currency {
     PLN,

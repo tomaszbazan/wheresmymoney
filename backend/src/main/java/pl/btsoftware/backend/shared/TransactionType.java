@@ -1,4 +1,4 @@
-package pl.btsoftware.backend.transaction.domain;
+package pl.btsoftware.backend.shared;
 
 public enum TransactionType {
     INCOME, EXPENSE

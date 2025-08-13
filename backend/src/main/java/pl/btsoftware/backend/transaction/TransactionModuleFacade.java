@@ -1,12 +1,12 @@
 package pl.btsoftware.backend.transaction;
 
 import lombok.AllArgsConstructor;
-import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionId;
 
 import java.math.BigDecimal;
 import java.util.List;

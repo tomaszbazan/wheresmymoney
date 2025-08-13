@@ -3,12 +3,12 @@ package pl.btsoftware.backend.transaction.application;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.account.AccountModuleFacade;
-import pl.btsoftware.backend.account.domain.AccountId;
-import pl.btsoftware.backend.account.domain.Currency;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionId;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
-import pl.btsoftware.backend.transaction.domain.TransactionType;
 
 import java.util.List;
 
@@ -19,13 +19,13 @@ public class TransactionService {
 
     @Transactional // TODO: Verify if transactional works correctly in integration tests
     public Transaction createTransaction(CreateTransactionCommand command) {
-        var account = accountModuleFacade.getAccount(command.accountId().value());
+        var account = accountModuleFacade.getAccount(command.accountId());
         validateDescriptionLength(command.description());
         validateCurrencyMatch(command.currency(), account.balance().currency());
 
         var transaction = command.toDomain();
         transactionRepository.store(transaction);
-        accountModuleFacade.addTransaction(command.accountId().value(), command.amount(), command.type().name());
+        accountModuleFacade.addTransaction(command.accountId(), transaction.id(), transaction.amount(), transaction.type());
 
         return transaction;
     }
@@ -63,13 +63,7 @@ public class TransactionService {
         var updatedTransaction = originalTransaction;
 
         if (command.amount() != null) {
-            var oldAmount = originalTransaction.type() == TransactionType.INCOME ?
-                    originalTransaction.amount().value() : originalTransaction.amount().value().negate();
-            var newAmount = originalTransaction.type() == TransactionType.INCOME ? 
-                    command.amount() : command.amount().negate();
-            var balanceAdjustment = newAmount.subtract(oldAmount);
-            
-            accountModuleFacade.addTransaction(originalTransaction.accountId().value(), balanceAdjustment, TransactionType.INCOME.name());
+            accountModuleFacade.changeTransaction(originalTransaction.accountId(), originalTransaction.id(), updatedTransaction.amount(), Money.of(command.amount(), command.currency()), originalTransaction.type());
             updatedTransaction = updatedTransaction.updateAmount(command.amount());
         }
         
@@ -97,9 +91,6 @@ public class TransactionService {
         var deletedTransaction = transaction.delete();
         transactionRepository.store(deletedTransaction);
 
-        var reverseAmount = transaction.amount().value();
-        var reverseType = transaction.type() == TransactionType.EXPENSE ?
-                TransactionType.INCOME.name() : TransactionType.EXPENSE.name();
-        accountModuleFacade.addTransaction(transaction.accountId().value(), reverseAmount, reverseType);
+        accountModuleFacade.removeTransaction(transaction.accountId(), transactionId, transaction.amount(), transaction.type());
     }
 }

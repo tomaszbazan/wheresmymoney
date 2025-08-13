@@ -1,8 +1,8 @@
 package pl.btsoftware.backend.transaction.infrastructure.persistance;
 
-import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionId;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 
 import java.util.HashMap;

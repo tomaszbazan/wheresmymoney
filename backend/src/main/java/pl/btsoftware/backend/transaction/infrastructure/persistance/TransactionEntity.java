@@ -4,13 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.btsoftware.backend.account.domain.AccountId;
-import pl.btsoftware.backend.account.domain.Currency;
-import pl.btsoftware.backend.account.domain.Money;
-import pl.btsoftware.backend.transaction.domain.Tombstone;
+import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionId;
-import pl.btsoftware.backend.transaction.domain.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;

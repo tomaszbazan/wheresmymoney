@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.domain;
 
-import pl.btsoftware.backend.account.domain.AccountId;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.TransactionId;
 
 import java.util.List;
 import java.util.Optional;

@@ -5,12 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.btsoftware.backend.account.domain.Account;
-import pl.btsoftware.backend.account.domain.AccountId;
-import pl.btsoftware.backend.account.domain.Currency;
-import pl.btsoftware.backend.account.domain.Money;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.Money;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Entity
@@ -43,6 +44,6 @@ public class AccountEntity {
 
     public Account toDomain() {
         AccountId accountId = AccountId.from(id);
-        return new Account(accountId, name, Money.of(balance, currency), createdAt, updatedAt);
+        return new Account(accountId, name, Money.of(balance, currency), new ArrayList<>(), createdAt, updatedAt);
     }
 }

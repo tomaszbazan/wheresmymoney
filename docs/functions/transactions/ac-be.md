@@ -12,11 +12,13 @@
 - date: 2024-01-15
 - type: "Income"
 - category: "Salary"
-  **Then** the system should:
+
+**Then** the system should:
 - Create transaction with generated UUID
 - Set amount 1000.12
 - Set type as INCOME
 - Update account balance by +1000.12
+- Add transaction ID to account's transaction list
 
 **Test Coverage:** `TransactionServiceTest.shouldCreateIncomeTransaction()`
 
@@ -30,11 +32,13 @@
 - date: 2024-01-16
 - type: "Expense"
 - category: "Food"
-  **Then** the system should:
+
+**Then** the system should:
 - Create transaction with generated UUID
 - Set amount 250.50
 - Set type as EXPENSE
 - Update account balance by -250.50
+- Add transaction ID to account's transaction list
 
 **Test Coverage:** `TransactionServiceTest.shouldCreateExpenseTransaction()`
 
@@ -192,6 +196,7 @@
 - Mark transaction as deleted (soft delete)
 - Store deletedAt timestamp
 - Reverse balance impact on account (+100.00)
+- Remove transaction ID from account's transaction list
 - Return 200 OK
 - Transaction should not appear in normal queries
 

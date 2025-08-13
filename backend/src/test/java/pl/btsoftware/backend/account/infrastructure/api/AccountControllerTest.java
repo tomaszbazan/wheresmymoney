@@ -11,17 +11,18 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.account.AccountModuleFacade;
-import pl.btsoftware.backend.account.AccountModuleFacade.CreateAccountCommand;
-import pl.btsoftware.backend.account.AccountModuleFacade.UpdateAccountCommand;
+import pl.btsoftware.backend.account.application.CreateAccountCommand;
+import pl.btsoftware.backend.account.application.UpdateAccountCommand;
 import pl.btsoftware.backend.account.domain.Account;
-import pl.btsoftware.backend.account.domain.AccountId;
-import pl.btsoftware.backend.account.domain.Currency;
-import pl.btsoftware.backend.account.domain.Money;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.Money;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -35,8 +36,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static pl.btsoftware.backend.account.domain.Currency.EUR;
-import static pl.btsoftware.backend.account.domain.Currency.PLN;
+import static pl.btsoftware.backend.shared.Currency.EUR;
+import static pl.btsoftware.backend.shared.Currency.PLN;
 
 @WebMvcTest(AccountController.class)
 public class AccountControllerTest {
@@ -303,6 +304,7 @@ public class AccountControllerTest {
                 new AccountId(id),
                 name,
                 Money.of(BigDecimal.ZERO, currency),
+                new ArrayList<>(),
                 OffsetDateTime.now(ZoneOffset.UTC),
                 OffsetDateTime.now(ZoneOffset.UTC)
         );
