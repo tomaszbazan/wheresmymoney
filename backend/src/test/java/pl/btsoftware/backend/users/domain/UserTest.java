@@ -6,7 +6,8 @@ import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserTest {
 
@@ -19,51 +20,50 @@ class UserTest {
 
         User user = User.create(externalAuthId, email, displayName, groupId);
 
-        assertNotNull(user.getId());
-        assertEquals(externalAuthId, user.getExternalAuthId());
-        assertEquals(email, user.getEmail());
-        assertEquals(displayName, user.getDisplayName());
-        assertEquals(groupId, user.getGroupId());
-        assertNotNull(user.getCreatedAt());
-        assertNotNull(user.getLastLoginAt());
-        assertNotNull(user.getJoinedGroupAt());
+        assertThat(user.getId()).isNotNull();
+        assertThat(user.getExternalAuthId()).isEqualTo(externalAuthId);
+        assertThat(user.getEmail()).isEqualTo(email);
+        assertThat(user.getDisplayName()).isEqualTo(displayName);
+        assertThat(user.getGroupId()).isEqualTo(groupId);
+        assertThat(user.getCreatedAt()).isNotNull();
+        assertThat(user.getLastLoginAt()).isNotNull();
+        assertThat(user.getJoinedGroupAt()).isNotNull();
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsNull() {
-        assertThrows(UserEmailEmptyException.class, () -> {
-            User.create("ext-auth-123", null, "John Doe", GroupId.generate());
-        });
+        assertThatThrownBy(() -> User.create("ext-auth-123", null, "John Doe", GroupId.generate()))
+                .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsEmpty() {
-        assertThrows(UserEmailEmptyException.class, () ->
-                User.create("ext-auth-123", "", "John Doe", GroupId.generate()));
+        assertThatThrownBy(() -> User.create("ext-auth-123", "", "John Doe", GroupId.generate()))
+                .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsBlank() {
-        assertThrows(UserEmailEmptyException.class, () ->
-                User.create("ext-auth-123", "   ", "John Doe", GroupId.generate()));
+        assertThatThrownBy(() -> User.create("ext-auth-123", "   ", "John Doe", GroupId.generate()))
+                .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsNull() {
-        assertThrows(DisplayNameEmptyException.class, () ->
-                User.create("ext-auth-123", "test@example.com", null, GroupId.generate()));
+        assertThatThrownBy(() -> User.create("ext-auth-123", "test@example.com", null, GroupId.generate()))
+                .isInstanceOf(DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsEmpty() {
-        assertThrows(DisplayNameEmptyException.class, () ->
-                User.create("ext-auth-123", "test@example.com", "", GroupId.generate()));
+        assertThatThrownBy(() -> User.create("ext-auth-123", "test@example.com", "", GroupId.generate()))
+                .isInstanceOf(DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsBlank() {
-        assertThrows(DisplayNameEmptyException.class, () ->
-                User.create("ext-auth-123", "test@example.com", "   ", GroupId.generate()));
+        assertThatThrownBy(() -> User.create("ext-auth-123", "test@example.com", "   ", GroupId.generate()))
+                .isInstanceOf(DisplayNameEmptyException.class);
     }
 
     @Test
@@ -73,8 +73,8 @@ class UserTest {
 
         User user = User.create("ext-auth-123", email, displayName, GroupId.generate());
 
-        assertEquals("test@example.com", user.getEmail());
-        assertEquals("John Doe", user.getDisplayName());
+        assertThat(user.getEmail()).isEqualTo("test@example.com");
+        assertThat(user.getDisplayName()).isEqualTo("John Doe");
     }
 
     @Test
@@ -85,17 +85,16 @@ class UserTest {
 
         user.changeGroup(newGroupId);
 
-        assertEquals(newGroupId, user.getGroupId());
-        assertTrue(user.getJoinedGroupAt().isAfter(beforeChange) || user.getJoinedGroupAt().equals(beforeChange));
+        assertThat(user.getGroupId()).isEqualTo(newGroupId);
+        assertThat(user.getJoinedGroupAt()).isAfterOrEqualTo(beforeChange);
     }
 
     @Test
     void shouldThrowExceptionWhenChangingToNullGroup() {
         User user = User.create("ext-auth-123", "test@example.com", "John Doe", GroupId.generate());
 
-        assertThrows(NullPointerException.class, () -> {
-            user.changeGroup(null);
-        });
+        assertThatThrownBy(() -> user.changeGroup(null))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -107,8 +106,8 @@ class UserTest {
         User user1 = new User(userId, "ext-auth-123", "test@example.com", "John Doe", groupId, now, now, now);
         User user2 = new User(userId, "ext-auth-456", "other@example.com", "Jane Doe", GroupId.generate(), now, now, now);
 
-        assertEquals(user1, user2);
-        assertEquals(user1.hashCode(), user2.hashCode());
+        assertThat(user1).isEqualTo(user2);
+        assertThat(user1.hashCode()).isEqualTo(user2.hashCode());
     }
 
     @Test
@@ -119,6 +118,6 @@ class UserTest {
         User user1 = new User(UserId.generate(), "ext-auth-123", "test@example.com", "John Doe", groupId, now, now, now);
         User user2 = new User(UserId.generate(), "ext-auth-123", "test@example.com", "John Doe", groupId, now, now, now);
 
-        assertNotEquals(user1, user2);
+        assertThat(user1).isNotEqualTo(user2);
     }
 }
