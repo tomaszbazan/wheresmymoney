@@ -18,7 +18,8 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static java.time.OffsetDateTime.now;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static pl.btsoftware.backend.shared.Currency.PLN;
 import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
@@ -56,17 +57,17 @@ public class TransactionServiceTest {
         var transaction = transactionService.createTransaction(command);
 
         // Then
-        assertNotNull(transaction.id());
-        assertEquals(accountId.id(), transaction.accountId());
-        assertEquals(new BigDecimal("100.00"), transaction.amount().value());
-        assertEquals(INCOME, transaction.type());
-        assertEquals("Salary payment", transaction.description());
-        assertEquals("Salary", transaction.category());
-        assertEquals(PLN, transaction.amount().currency());
-        assertFalse(transaction.tombstone().isDeleted());
+        assertThat(transaction.id()).isNotNull();
+        assertThat(transaction.accountId()).isEqualTo(accountId.id());
+        assertThat(transaction.amount().value()).isEqualTo(new BigDecimal("100.00"));
+        assertThat(transaction.type()).isEqualTo(INCOME);
+        assertThat(transaction.description()).isEqualTo("Salary payment");
+        assertThat(transaction.category()).isEqualTo("Salary");
+        assertThat(transaction.amount().currency()).isEqualTo(PLN);
+        assertThat(transaction.tombstone().isDeleted()).isFalse();
 
         var account = accountModuleFacade.getAccount(accountId.id());
-        assertEquals(new BigDecimal("100.00"), account.balance().value());
+        assertThat(account.balance().value()).isEqualTo(new BigDecimal("100.00"));
     }
 
     @Test
@@ -89,12 +90,12 @@ public class TransactionServiceTest {
         var transaction = transactionService.createTransaction(command);
 
         // Then
-        assertNotNull(transaction.id());
-        assertEquals(TransactionType.EXPENSE, transaction.type());
-        assertEquals("Grocery shopping", transaction.description());
+        assertThat(transaction.id()).isNotNull();
+        assertThat(transaction.type()).isEqualTo(TransactionType.EXPENSE);
+        assertThat(transaction.description()).isEqualTo("Grocery shopping");
 
         var account = accountModuleFacade.getAccount(accountId.id());
-        assertEquals(new BigDecimal("150.00"), account.balance().value());
+        assertThat(account.balance().value()).isEqualTo(new BigDecimal("150.00"));
     }
 
     @Test
@@ -112,10 +113,9 @@ public class TransactionServiceTest {
         );
 
         // When & Then
-        var exception = assertThrows(IllegalArgumentException.class, () ->
-                transactionService.createTransaction(command)
-        );
-        assertEquals("Description must be between 1 and 200 characters", exception.getMessage());
+        assertThatThrownBy(() -> transactionService.createTransaction(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Description must be between 1 and 200 characters");
     }
 
     @Test
@@ -134,10 +134,9 @@ public class TransactionServiceTest {
         );
 
         // When & Then
-        var exception = assertThrows(IllegalArgumentException.class, () ->
-                transactionService.createTransaction(command)
-        );
-        assertEquals("Description must be between 1 and 200 characters", exception.getMessage());
+        assertThatThrownBy(() -> transactionService.createTransaction(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Description must be between 1 and 200 characters");
     }
 
     @Test
@@ -155,10 +154,9 @@ public class TransactionServiceTest {
         );
 
         // When & Then
-        var exception = assertThrows(IllegalArgumentException.class, () ->
-                transactionService.createTransaction(command)
-        );
-        assertEquals("Transaction currency must match account currency", exception.getMessage());
+        assertThatThrownBy(() -> transactionService.createTransaction(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction currency must match account currency");
     }
 
     @Test
@@ -180,8 +178,8 @@ public class TransactionServiceTest {
         var retrievedTransaction = transactionService.getTransactionById(createdTransaction.id());
 
         // Then
-        assertEquals(createdTransaction.id(), retrievedTransaction.id());
-        assertEquals(createdTransaction.description(), retrievedTransaction.description());
+        assertThat(retrievedTransaction.id()).isEqualTo(createdTransaction.id());
+        assertThat(retrievedTransaction.description()).isEqualTo(createdTransaction.description());
     }
 
     @Test
@@ -190,10 +188,9 @@ public class TransactionServiceTest {
         var nonExistentId = TransactionId.generate();
 
         // When & Then
-        var exception = assertThrows(IllegalArgumentException.class, () ->
-                transactionService.getTransactionById(nonExistentId)
-        );
-        assertEquals("Transaction not found", exception.getMessage());
+        assertThatThrownBy(() -> transactionService.getTransactionById(nonExistentId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction not found");
     }
 
     @Test
@@ -226,9 +223,9 @@ public class TransactionServiceTest {
         var allTransactions = transactionService.getAllTransactions();
 
         // Then
-        assertTrue(allTransactions.size() >= 2);
-        assertTrue(allTransactions.stream().anyMatch(t -> t.id().equals(transaction1.id())));
-        assertTrue(allTransactions.stream().anyMatch(t -> t.id().equals(transaction2.id())));
+        assertThat(allTransactions).hasSizeGreaterThanOrEqualTo(2);
+        assertThat(allTransactions).anyMatch(t -> t.id().equals(transaction1.id()));
+        assertThat(allTransactions).anyMatch(t -> t.id().equals(transaction2.id()));
     }
 
     @Test
@@ -263,8 +260,8 @@ public class TransactionServiceTest {
         var account1Transactions = transactionService.getTransactionsByAccountId(account1Id.id());
 
         // Then
-        assertEquals(1, account1Transactions.size());
-        assertEquals("Transaction for account 1", account1Transactions.getFirst().description());
+        assertThat(account1Transactions).hasSize(1);
+        assertThat(account1Transactions.getFirst().description()).isEqualTo("Transaction for account 1");
     }
 
     @Test
@@ -284,22 +281,21 @@ public class TransactionServiceTest {
 
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(),
-                new BigDecimal("150.00"),
+                Money.of(new BigDecimal("150.00"), PLN),
                 null,
-                null,
-                PLN
+                null
         );
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand);
 
         // Then
-        assertEquals(new BigDecimal("150.00"), updatedTransaction.amount().value());
-        assertEquals("Original transaction", updatedTransaction.description());
-        assertEquals("Original", updatedTransaction.category());
+        assertThat(updatedTransaction.amount().value()).isEqualTo(new BigDecimal("150.00"));
+        assertThat(updatedTransaction.description()).isEqualTo("Original transaction");
+        assertThat(updatedTransaction.category()).isEqualTo("Original");
 
         var account = accountModuleFacade.getAccount(accountId.id());
-        assertEquals(new BigDecimal("150.00"), account.balance().value());
+        assertThat(account.balance().value()).isEqualTo(new BigDecimal("150.00"));
     }
 
     @Test
@@ -321,16 +317,15 @@ public class TransactionServiceTest {
                 transaction.id(),
                 null,
                 "Updated description",
-                null,
-                PLN
+                null
         );
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand);
 
         // Then
-        assertEquals("Updated description", updatedTransaction.description());
-        assertEquals(new BigDecimal("100.00"), updatedTransaction.amount().value());
+        assertThat(updatedTransaction.description()).isEqualTo("Updated description");
+        assertThat(updatedTransaction.amount().value()).isEqualTo(new BigDecimal("100.00"));
     }
 
     @Test
@@ -352,16 +347,15 @@ public class TransactionServiceTest {
                 transaction.id(),
                 null,
                 null,
-                "Updated Category",
-                PLN
+                "Updated Category"
         );
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand);
 
         // Then
-        assertEquals("Updated Category", updatedTransaction.category());
-        assertEquals("Test transaction", updatedTransaction.description());
+        assertThat(updatedTransaction.category()).isEqualTo("Updated Category");
+        assertThat(updatedTransaction.description()).isEqualTo("Test transaction");
     }
 
     @Test
@@ -370,17 +364,15 @@ public class TransactionServiceTest {
         var nonExistentId = TransactionId.generate();
         var updateCommand = new UpdateTransactionCommand(
                 nonExistentId,
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 null,
-                null,
-                PLN
+                null
         );
 
         // When & Then
-        var exception = assertThrows(IllegalArgumentException.class, () ->
-                transactionService.updateTransaction(updateCommand)
-        );
-        assertEquals("Transaction not found", exception.getMessage());
+        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction not found");
     }
 
     @Test
@@ -403,10 +395,10 @@ public class TransactionServiceTest {
 
         // Then
         var deletedTransaction = transactionRepository.findByIdIncludingDeleted(transaction.id()).orElseThrow();
-        assertTrue(deletedTransaction.tombstone().isDeleted());
+        assertThat(deletedTransaction.tombstone().isDeleted()).isTrue();
 
         var account = accountModuleFacade.getAccount(accountId.id());
-        assertEquals(0, account.balance().value().compareTo(BigDecimal.ZERO));
+        assertThat(account.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     @Test
@@ -431,7 +423,7 @@ public class TransactionServiceTest {
 
         // Then
         var account = accountModuleFacade.getAccount(accountId.id());
-        assertEquals(new BigDecimal("200.00"), account.balance().value());
+        assertThat(account.balance().value()).isEqualTo(new BigDecimal("200.00"));
     }
 
     @Test
@@ -440,10 +432,9 @@ public class TransactionServiceTest {
         var nonExistentId = TransactionId.generate();
 
         // When & Then
-        var exception = assertThrows(IllegalArgumentException.class, () ->
-                transactionService.deleteTransaction(nonExistentId)
-        );
-        assertEquals("Transaction not found", exception.getMessage());
+        assertThatThrownBy(() -> transactionService.deleteTransaction(nonExistentId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction not found");
     }
 
     @Test
@@ -463,9 +454,8 @@ public class TransactionServiceTest {
         transactionService.deleteTransaction(transaction.id());
 
         // When & Then
-        var exception = assertThrows(IllegalArgumentException.class, () ->
-                transactionService.deleteTransaction(transaction.id())
-        );
-        assertEquals("Transaction not found", exception.getMessage());
+        assertThatThrownBy(() -> transactionService.deleteTransaction(transaction.id()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction not found");
     }
 }

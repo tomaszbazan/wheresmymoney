@@ -8,6 +8,7 @@ import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountRepository;
 import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.domain.Transaction;
@@ -64,7 +65,7 @@ class TransactionServiceTest {
         assertThat(transactionRepository.findAll()).hasSize(1);
 
         // Verify account balance updated by +1000.12
-        var updatedAccount = accountModuleFacade.getAccount(account.id().value());
+        var updatedAccount = accountModuleFacade.getAccount(account.id());
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("1000.12"));
 
         // Verify transaction ID added to account's transaction list
@@ -98,7 +99,7 @@ class TransactionServiceTest {
         assertThat(transactionRepository.findAll()).hasSize(1);
 
         // Verify account balance updated by -250.50
-        var updatedAccount = accountModuleFacade.getAccount(account.id().value());
+        var updatedAccount = accountModuleFacade.getAccount(account.id());
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("-250.50"));
 
         // Verify transaction ID added to account's transaction list
@@ -238,7 +239,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(allTransactions).hasSize(2);
-        assertThat(allTransactions.stream().map(t -> t.description()).toList())
+        assertThat(allTransactions.stream().map(Transaction::description).toList())
                 .containsExactlyInAnyOrder("Salary", "Groceries");
     }
 
@@ -264,7 +265,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(account1Transactions).hasSize(2);
-        assertThat(account1Transactions.stream().map(t -> t.description()).toList())
+        assertThat(account1Transactions.stream().map(Transaction::description).toList())
                 .containsExactlyInAnyOrder("Salary", "Coffee");
         assertThat(account1Transactions).allMatch(t -> t.accountId().equals(account1.id()));
     }
@@ -277,8 +278,8 @@ class TransactionServiceTest {
         var createCommand = new CreateTransactionCommand(account.id(), initialAmount, "Initial transaction", 
                 OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, "Salary", PLN);
         var transaction = transactionService.createTransaction(createCommand);
-        
-        var newAmount = new BigDecimal("750.00");
+
+        var newAmount = Money.of(new BigDecimal("750.00"), PLN);
         var updateCommand = new UpdateTransactionCommand(transaction.id(), newAmount, null, null);
 
         // When
@@ -286,13 +287,13 @@ class TransactionServiceTest {
 
         // Then
         assertThat(updatedTransaction.id()).isEqualTo(transaction.id());
-        assertThat(updatedTransaction.amount().value()).isEqualTo(newAmount);
+        assertThat(updatedTransaction.amount()).isEqualTo(newAmount);
         assertThat(updatedTransaction.description()).isEqualTo("Initial transaction");
         assertThat(updatedTransaction.category()).isEqualTo("Salary");
         assertThat(updatedTransaction.updatedAt()).isAfter(transaction.updatedAt());
 
         // Verify account balance updated by difference (+250.00)
-        var updatedAccount = accountModuleFacade.getAccount(account.id().value());
+        var updatedAccount = accountModuleFacade.getAccount(account.id());
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("750.00"));
     }
 
@@ -319,7 +320,7 @@ class TransactionServiceTest {
         assertThat(updatedTransaction.updatedAt()).isAfter(transaction.updatedAt());
 
         // Verify account balance unchanged
-        var updatedAccount = accountModuleFacade.getAccount(account.id().value());
+        var updatedAccount = accountModuleFacade.getAccount(account.id());
         assertThat(updatedAccount.balance().value()).isEqualTo(amount);
     }
 
@@ -346,7 +347,7 @@ class TransactionServiceTest {
         assertThat(updatedTransaction.updatedAt()).isAfter(transaction.updatedAt());
 
         // Verify account balance unchanged
-        var updatedAccount = accountModuleFacade.getAccount(account.id().value());
+        var updatedAccount = accountModuleFacade.getAccount(account.id());
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("-100.00"));
     }
 
@@ -380,7 +381,7 @@ class TransactionServiceTest {
                 .hasMessageContaining("Transaction not found");
 
         // Verify account balance reversed (+100.00)
-        var updatedAccount = accountModuleFacade.getAccount(account.id().value());
+        var updatedAccount = accountModuleFacade.getAccount(account.id());
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("0.00"));
 
         // Verify transaction not in normal queries

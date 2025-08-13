@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
+import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 
 import java.math.BigDecimal;
@@ -22,7 +23,6 @@ import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -137,10 +137,9 @@ public class TransactionControllerTest {
         var accountId = randomUUID();
         var updatedTransaction = createTransaction(transactionId, accountId, new BigDecimal("150.00"), "Updated transaction", TransactionType.INCOME);
 
-        when(transactionModuleFacade.updateTransaction(eq(transactionId), any(BigDecimal.class), any(String.class), any(String.class)))
-                .thenReturn(updatedTransaction);
+        when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class))).thenReturn(updatedTransaction);
 
-        var updateRequest = new UpdateTransactionRequest(new BigDecimal("150.00"), "Updated transaction", "Updated Category");
+        var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("150.00"), PLN), "Updated transaction", "Updated Category");
         String json = objectMapper.writeValueAsString(updateRequest);
 
         // when & then
@@ -159,10 +158,9 @@ public class TransactionControllerTest {
         // given
         var nonExistentId = randomUUID();
 
-        when(transactionModuleFacade.updateTransaction(eq(nonExistentId), any(BigDecimal.class), any(String.class), any(String.class)))
-                .thenThrow(new IllegalArgumentException("Transaction not found"));
+        when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class))).thenThrow(new IllegalArgumentException("Transaction not found"));
 
-        var updateRequest = new UpdateTransactionRequest(new BigDecimal("100.00"), "Test", "Test");
+        var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("100.00"), PLN), "Test", "Test");
 
         // when & then
         mockMvc.perform(put("/api/transactions/" + nonExistentId)

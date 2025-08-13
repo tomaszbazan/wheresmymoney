@@ -1,10 +1,20 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
-import java.math.BigDecimal;
+import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.TransactionId;
+import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 
 public record UpdateTransactionRequest(
-        BigDecimal amount,
+        Money amount,
         String description,
         String category
 ) {
+    public UpdateTransactionCommand toCommand(TransactionId transactionId) {
+        return new UpdateTransactionCommand(
+                transactionId,
+                amount,
+                description,
+                category
+        );
+    }
 }
