@@ -61,8 +61,8 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
             case EXPENSE -> {
                 return updateBalance(amount.negate()).addTransactionId(transactionId);
             }
-            default -> throw new IllegalArgumentException("Unsupported transaction type: " + transactionType);
         }
+        return this;
     }
 
     public Account removeTransaction(TransactionId transactionId, Money amount, TransactionType transactionType) {
@@ -76,8 +76,8 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
             case EXPENSE -> {
                 return updateBalance(amount).removeTransactionId(transactionId);
             }
-            default -> throw new IllegalArgumentException("Unsupported transaction type: " + transactionType);
         }
+        return this;
     }
 
     public Account changeTransaction(TransactionId transactionId, Money oldAmount, Money newAmount, TransactionType transactionType) {
@@ -95,8 +95,8 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
             case EXPENSE -> {
                 return updateBalance(balanceChange.negate()).removeTransactionId(transactionId).addTransactionId(transactionId);
             }
-            default -> throw new IllegalArgumentException("Unsupported transaction type: " + transactionType);
         }
+        return this;
     }
 
     private Account addTransactionId(TransactionId transactionId) {

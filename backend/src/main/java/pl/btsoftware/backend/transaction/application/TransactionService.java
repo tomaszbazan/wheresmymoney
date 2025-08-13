@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
-import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
@@ -63,7 +62,7 @@ public class TransactionService {
         var updatedTransaction = originalTransaction;
 
         if (command.amount() != null) {
-            accountModuleFacade.changeTransaction(originalTransaction.accountId(), originalTransaction.id(), updatedTransaction.amount(), Money.of(command.amount(), command.currency()), originalTransaction.type());
+            accountModuleFacade.changeTransaction(originalTransaction.accountId(), originalTransaction.id(), updatedTransaction.amount(), command.amount(), originalTransaction.type());
             updatedTransaction = updatedTransaction.updateAmount(command.amount());
         }
         

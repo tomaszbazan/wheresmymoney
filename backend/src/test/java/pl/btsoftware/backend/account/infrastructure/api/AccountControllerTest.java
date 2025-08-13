@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
@@ -24,7 +23,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -34,6 +32,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static pl.btsoftware.backend.shared.Currency.EUR;
@@ -54,8 +53,8 @@ public class AccountControllerTest {
     @Test
     void shouldReturnListOfAccounts() throws Exception {
         // given
-        var accountId1 = randomUUID();
-        var accountId2 = randomUUID();
+        var accountId1 = AccountId.generate();
+        var accountId2 = AccountId.generate();
         var account1 = createAccount(accountId1, "Checking Account", PLN);
         var account2 = createAccount(accountId2, "Savings Account", PLN);
 
@@ -63,15 +62,15 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/accounts")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON))
                 .andExpect(jsonPath("$.accounts", hasSize(2)))
-                .andExpect(jsonPath("$.accounts[0].id").value(accountId1.toString()))
+                .andExpect(jsonPath("$.accounts[0].id").value(accountId1.value().toString()))
                 .andExpect(jsonPath("$.accounts[0].name").value("Checking Account"))
                 .andExpect(jsonPath("$.accounts[0].balance").value(0))
                 .andExpect(jsonPath("$.accounts[0].currency").value("PLN"))
-                .andExpect(jsonPath("$.accounts[1].id").value(accountId2.toString()))
+                .andExpect(jsonPath("$.accounts[1].id").value(accountId2.value().toString()))
                 .andExpect(jsonPath("$.accounts[1].name").value("Savings Account"))
                 .andExpect(jsonPath("$.accounts[1].balance").value(0))
                 .andExpect(jsonPath("$.accounts[1].currency").value("PLN"));
@@ -92,9 +91,9 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/accounts")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON))
                 .andExpect(jsonPath("$.accounts", hasSize(0)));
     }
 
@@ -105,14 +104,14 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(delete("/api/accounts/" + accountId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void shouldUpdateAccount() throws Exception {
         // given
-        var accountId = randomUUID();
+        var accountId = AccountId.generate();
         var updatedAccount = createAccount(accountId, "Updated Account", PLN);
 
         when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class)))
@@ -122,12 +121,12 @@ public class AccountControllerTest {
         String json = objectMapper.writeValueAsString(request);
 
         // when & then
-        mockMvc.perform(put("/api/accounts/" + accountId)
-                        .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/accounts/" + accountId.value())
+                        .contentType(APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(accountId.toString()))
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(accountId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Updated Account"))
                 .andExpect(jsonPath("$.balance").value(0))
                 .andExpect(jsonPath("$.currency").value("PLN"));
@@ -136,7 +135,7 @@ public class AccountControllerTest {
     @Test
     void shouldCreateAccount() throws Exception {
         // given
-        var accountId = randomUUID();
+        var accountId = AccountId.generate();
         var createdAccount = createAccount(accountId, "Test Account", EUR);
 
         when(accountModuleFacade.createAccount(any(CreateAccountCommand.class)))
@@ -151,11 +150,11 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/accounts")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(APPLICATION_JSON)
                         .content(createAccountRequest))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(accountId.toString()))
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(accountId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Test Account"))
                 .andExpect(jsonPath("$.balance").value(0))
                 .andExpect(jsonPath("$.currency").value("EUR"))
@@ -171,7 +170,7 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/accounts")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createAccountRequest)))
                 .andExpect(status().isBadRequest());
     }
@@ -183,7 +182,7 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/accounts")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createAccountRequest)))
                 .andExpect(status().isBadRequest());
     }
@@ -200,7 +199,7 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/accounts")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(APPLICATION_JSON)
                         .content(createAccountRequest))
                 .andExpect(status().isBadRequest());
     }
@@ -208,17 +207,17 @@ public class AccountControllerTest {
     @Test
     void shouldGetAccountById() throws Exception {
         // given
-        var accountId = randomUUID();
+        var accountId = AccountId.generate();
         var account = createAccount(accountId, "Test Account", PLN);
 
         when(accountModuleFacade.getAccount(accountId)).thenReturn(account);
 
         // when & then
-        mockMvc.perform(get("/api/accounts/" + accountId)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/accounts/" + accountId.value())
+                        .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(accountId.toString()))
+                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(accountId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Test Account"))
                 .andExpect(jsonPath("$.balance").value(0))
                 .andExpect(jsonPath("$.currency").value("PLN"))
@@ -229,22 +228,22 @@ public class AccountControllerTest {
     @Test
     void shouldReturnNotFoundWhenGettingNonExistentAccount() throws Exception {
         // given
-        var nonExistentId = randomUUID();
+        var nonExistentId = AccountId.generate();
 
         when(accountModuleFacade.getAccount(nonExistentId))
                 .thenThrow(new AccountNotFoundException(nonExistentId));
 
         // when & then
-        mockMvc.perform(get("/api/accounts/" + nonExistentId)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/accounts/" + nonExistentId.value())
+                        .contentType(APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId)));
+                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId.value())));
     }
 
     @Test
     void shouldReturnNotFoundWhenUpdatingNonExistentAccount() throws Exception {
         // given
-        var nonExistentId = randomUUID();
+        var nonExistentId = AccountId.generate();
 
         when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class)))
                 .thenThrow(new AccountNotFoundException(nonExistentId));
@@ -252,11 +251,11 @@ public class AccountControllerTest {
         var updateRequest = new UpdateAccountRequest("Updated Name");
 
         // when & then
-        mockMvc.perform(put("/api/accounts/" + nonExistentId)
-                        .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/accounts/" + nonExistentId.value())
+                        .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId)));
+                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId.value())));
     }
 
     @ParameterizedTest
@@ -267,7 +266,7 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(put("/api/accounts/" + randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateAccountRequest)))
                 .andExpect(status().isBadRequest());
     }
@@ -279,7 +278,7 @@ public class AccountControllerTest {
 
         // when & then
         mockMvc.perform(put("/api/accounts/" + randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON)
+                        .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateAccountRequest)))
                 .andExpect(status().isBadRequest());
     }
@@ -287,21 +286,21 @@ public class AccountControllerTest {
     @Test
     void shouldReturnNotFoundWhenDeletingNonExistentAccount() throws Exception {
         // given
-        var nonExistentId = randomUUID();
+        var nonExistentId = AccountId.generate();
 
         doThrow(new AccountNotFoundException(nonExistentId))
                 .when(accountModuleFacade).deleteAccount(nonExistentId);
 
         // when & then
-        mockMvc.perform(delete("/api/accounts/" + nonExistentId)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/api/accounts/" + nonExistentId.value())
+                        .contentType(APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId)));
+                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId.value())));
     }
 
-    private Account createAccount(UUID id, String name, Currency currency) {
+    private Account createAccount(AccountId accountId, String name, Currency currency) {
         return new Account(
-                new AccountId(id),
+                accountId,
                 name,
                 Money.of(BigDecimal.ZERO, currency),
                 new ArrayList<>(),

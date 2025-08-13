@@ -10,6 +10,7 @@ import pl.btsoftware.backend.account.domain.error.AccountNameTooLongException;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.TransactionId;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -20,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static pl.btsoftware.backend.shared.Currency.PLN;
+import static pl.btsoftware.backend.shared.TransactionType.EXPENSE;
+import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
 class AccountTest {
 
@@ -166,5 +169,218 @@ class AccountTest {
         // when & then
         assertThatThrownBy(() -> new Account(accountId, name, balance, createdAt))
                 .isInstanceOf(expectedException);
+    }
+
+    @Test
+    void shouldAddIncomeTransactionAndUpdateBalance() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var amount = Money.of(BigDecimal.valueOf(100), PLN);
+
+        // when
+        var updatedAccount = account.addTransaction(transactionId, amount, INCOME);
+
+        // then
+        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(100));
+        assertThat(updatedAccount.transactionIds()).contains(transactionId);
+        assertThat(updatedAccount.transactionIds()).hasSize(1);
+    }
+
+    @Test
+    void shouldAddExpenseTransactionAndUpdateBalance() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var amount = Money.of(BigDecimal.valueOf(50), PLN);
+
+        // when
+        var updatedAccount = account.addTransaction(transactionId, amount, EXPENSE);
+
+        // then
+        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(-50));
+        assertThat(updatedAccount.transactionIds()).contains(transactionId);
+        assertThat(updatedAccount.transactionIds()).hasSize(1);
+    }
+
+    @Test
+    void shouldAddMultipleTransactions() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId1 = TransactionId.generate();
+        var transactionId2 = TransactionId.generate();
+        var incomeAmount = Money.of(BigDecimal.valueOf(200), PLN);
+        var expenseAmount = Money.of(BigDecimal.valueOf(75), PLN);
+
+        // when
+        var accountAfterIncome = account.addTransaction(transactionId1, incomeAmount, INCOME);
+        var accountAfterBoth = accountAfterIncome.addTransaction(transactionId2, expenseAmount, EXPENSE);
+
+        // then
+        assertThat(accountAfterBoth.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(125));
+        assertThat(accountAfterBoth.transactionIds()).contains(transactionId1, transactionId2);
+        assertThat(accountAfterBoth.transactionIds()).hasSize(2);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAddingTransactionWithMismatchedCurrency() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var amount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
+
+        // when & then
+        assertThatThrownBy(() -> account.addTransaction(transactionId, amount, INCOME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction currency must match account currency");
+    }
+
+    @Test
+    void shouldThrowExceptionForUnsupportedTransactionTypeInAddTransaction() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var amount = Money.of(BigDecimal.valueOf(100), PLN);
+
+        // when & then
+        assertThatThrownBy(() -> account.addTransaction(transactionId, amount, null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void shouldRemoveIncomeTransactionAndUpdateBalance() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var amount = Money.of(BigDecimal.valueOf(100), PLN);
+        var accountWithTransaction = account.addTransaction(transactionId, amount, INCOME);
+
+        // when
+        var updatedAccount = accountWithTransaction.removeTransaction(transactionId, amount, INCOME);
+
+        // then
+        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(updatedAccount.transactionIds()).doesNotContain(transactionId);
+        assertThat(updatedAccount.transactionIds()).isEmpty();
+    }
+
+    @Test
+    void shouldRemoveExpenseTransactionAndUpdateBalance() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var amount = Money.of(BigDecimal.valueOf(50), PLN);
+        var accountWithTransaction = account.addTransaction(transactionId, amount, EXPENSE);
+
+        // when
+        var updatedAccount = accountWithTransaction.removeTransaction(transactionId, amount, EXPENSE);
+
+        // then
+        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(updatedAccount.transactionIds()).doesNotContain(transactionId);
+        assertThat(updatedAccount.transactionIds()).isEmpty();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRemovingTransactionWithMismatchedCurrency() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var amount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
+
+        // when & then
+        assertThatThrownBy(() -> account.removeTransaction(transactionId, amount, INCOME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction currency must match account currency");
+    }
+
+    @Test
+    void shouldThrowExceptionForUnsupportedTransactionTypeInRemoveTransaction() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var amount = Money.of(BigDecimal.valueOf(100), PLN);
+
+        // when & then
+        assertThatThrownBy(() -> account.removeTransaction(transactionId, amount, null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void shouldChangeIncomeTransactionAmount() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var oldAmount = Money.of(BigDecimal.valueOf(100), PLN);
+        var newAmount = Money.of(BigDecimal.valueOf(150), PLN);
+        var accountWithTransaction = account.addTransaction(transactionId, oldAmount, INCOME);
+
+        // when
+        var updatedAccount = accountWithTransaction.changeTransaction(transactionId, oldAmount, newAmount, INCOME);
+
+        // then
+        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(150));
+        assertThat(updatedAccount.transactionIds()).contains(transactionId);
+        assertThat(updatedAccount.transactionIds()).hasSize(1);
+    }
+
+    @Test
+    void shouldChangeExpenseTransactionAmount() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var oldAmount = Money.of(BigDecimal.valueOf(75), PLN);
+        var newAmount = Money.of(BigDecimal.valueOf(100), PLN);
+        var accountWithTransaction = account.addTransaction(transactionId, oldAmount, EXPENSE);
+
+        // when
+        var updatedAccount = accountWithTransaction.changeTransaction(transactionId, oldAmount, newAmount, EXPENSE);
+
+        // then
+        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(-100));
+        assertThat(updatedAccount.transactionIds()).contains(transactionId);
+        assertThat(updatedAccount.transactionIds()).hasSize(1);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenChangingNonExistentTransaction() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var oldAmount = Money.of(BigDecimal.valueOf(100), PLN);
+        var newAmount = Money.of(BigDecimal.valueOf(150), PLN);
+
+        // when & then
+        assertThatThrownBy(() -> account.changeTransaction(transactionId, oldAmount, newAmount, INCOME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction ID not found in account");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenChangingTransactionWithMismatchedCurrency() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var oldAmount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
+        var newAmount = Money.of(BigDecimal.valueOf(150), Currency.EUR);
+
+        // when & then
+        assertThatThrownBy(() -> account.changeTransaction(transactionId, oldAmount, newAmount, INCOME))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Transaction currency must match account currency");
+    }
+
+    @Test
+    void shouldThrowExceptionForUnsupportedTransactionTypeInChangeTransaction() {
+        // given
+        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var transactionId = TransactionId.generate();
+        var oldAmount = Money.of(BigDecimal.valueOf(100), PLN);
+        var newAmount = Money.of(BigDecimal.valueOf(150), PLN);
+        var accountWithTransaction = account.addTransaction(transactionId, oldAmount, INCOME);
+
+        // when & then
+        assertThatThrownBy(() -> accountWithTransaction.changeTransaction(transactionId, oldAmount, newAmount, null))
+                .isInstanceOf(NullPointerException.class);
     }
 }

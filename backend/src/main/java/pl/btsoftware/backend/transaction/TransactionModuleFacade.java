@@ -8,7 +8,6 @@ import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,8 +31,7 @@ public class TransactionModuleFacade {
         return transactionService.getTransactionsByAccountId(AccountId.from(accountId));
     }
 
-    public Transaction updateTransaction(UUID transactionId, BigDecimal amount, String description, String category) {
-        var command = new UpdateTransactionCommand(TransactionId.of(transactionId), amount, description, category);
+    public Transaction updateTransaction(UpdateTransactionCommand command) {
         return transactionService.updateTransaction(command);
     }
 

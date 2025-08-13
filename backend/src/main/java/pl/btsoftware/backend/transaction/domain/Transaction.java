@@ -41,8 +41,8 @@ public record Transaction(
         );
     }
 
-    public Transaction updateAmount(BigDecimal newAmount) {
-        return new Transaction(id, accountId, Money.of(newAmount, amount.currency()), type, description, category, createdAt, now(UTC), tombstone);
+    public Transaction updateAmount(Money newAmount) {
+        return new Transaction(id, accountId, newAmount, type, description, category, createdAt, now(UTC), tombstone);
     }
 
     public Transaction updateDescription(String newDescription) {

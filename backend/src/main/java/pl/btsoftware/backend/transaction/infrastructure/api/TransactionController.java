@@ -3,6 +3,7 @@ package pl.btsoftware.backend.transaction.infrastructure.api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 
 import java.util.UUID;
@@ -35,7 +36,7 @@ public class TransactionController {
         return TransactionsView.from(transactions);
     }
 
-    @GetMapping("/accounts/{accountId}/transactions")
+    @GetMapping("/accounts/{accountId}/transactions") // TODO: Consider renaming
     public TransactionsView getAccountTransactions(@PathVariable UUID accountId) {
         log.info("Received request to get transactions for account with id: {}", accountId);
         var transactions = transactionModuleFacade.getTransactionsByAccountId(accountId);
@@ -45,7 +46,7 @@ public class TransactionController {
     @PutMapping("/transactions/{id}")
     public TransactionView updateTransaction(@PathVariable UUID id, @RequestBody UpdateTransactionRequest request) {
         log.info("Received request to update transaction with id: {}", id);
-        var transaction = transactionModuleFacade.updateTransaction(id, request.amount(), request.description(), request.category());
+        var transaction = transactionModuleFacade.updateTransaction(request.toCommand(TransactionId.of(id)));
         return TransactionView.from(transaction);
     }
 

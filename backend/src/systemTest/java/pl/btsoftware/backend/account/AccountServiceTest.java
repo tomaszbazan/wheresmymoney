@@ -1,9 +1,11 @@
 package pl.btsoftware.backend.account;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
+import pl.btsoftware.backend.account.domain.AccountRepository;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.configuration.SystemTest;
@@ -24,6 +26,16 @@ public class AccountServiceTest {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @BeforeEach
+    void setUp() {
+        accountRepository.findAll().forEach(
+                account -> accountRepository.deleteById(account.id())
+        );
+    }
 
     @Test
     void shouldCreateAccountWithSpecificCurrency() {
@@ -116,9 +128,10 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        var updatedAccount = accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), INCOME);
+        accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), INCOME);
 
         // then
+        var updatedAccount = accountService.getById(account.id());
         assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("500"));
     }
 
@@ -129,9 +142,10 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        var updatedAccount = accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), EXPENSE);
+        accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), EXPENSE);
 
         // then
+        var updatedAccount = accountService.getById(account.id());
         assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("-500"));
     }
 }
