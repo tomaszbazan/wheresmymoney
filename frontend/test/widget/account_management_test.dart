@@ -173,7 +173,8 @@ void main() {
         await tester.pumpAndSettle();
         
         // Should show error message
-        expect(find.text('Exception: Network error'), findsOneWidget);
+        expect(find.text('Nieoczekiwany błąd: Exception: Network error'),
+            findsOneWidget);
         expect(find.text('Brak kont do wyświetlenia'), findsOneWidget);
       });
     });

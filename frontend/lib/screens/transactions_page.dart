@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/account.dart';
+import '../models/http_exception.dart';
 import '../models/transaction.dart';
 import '../services/account_service.dart';
 import '../services/transaction_service.dart';
@@ -48,11 +49,23 @@ class _TransactionsPageState extends State<TransactionsPage>
         _allTransactions = transactions;
         _accounts = accounts;
       });
+    } on HttpException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.userFriendlyMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Błąd ładowania danych: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Nieoczekiwany błąd: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -136,10 +149,22 @@ class _TransactionsPageState extends State<TransactionsPage>
             const SnackBar(content: Text('Transakcja została usunięta')),
           );
         }
+      } on HttpException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.userFriendlyMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Błąd usuwania transakcji: $e')),
+            SnackBar(
+              content: Text('Nieoczekiwany błąd: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }

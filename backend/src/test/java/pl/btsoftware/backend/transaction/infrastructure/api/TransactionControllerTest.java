@@ -181,12 +181,11 @@ public class TransactionControllerTest {
 
         var createRequest = new CreateTransactionRequest(
                 accountId,
-                new BigDecimal("100.50"),
+                Money.of(new BigDecimal("100.50"), PLN),
                 "Test transaction",
                 OffsetDateTime.now(ZoneOffset.UTC),
                 "INCOME",
-                "Salary",
-                "PLN"
+                "Salary"
         );
 
         // when & then

@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.configuration.SystemTest;
-import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.shared.TransactionType;
@@ -20,6 +19,7 @@ import java.util.UUID;
 import static java.time.OffsetDateTime.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static pl.btsoftware.backend.shared.Currency.EUR;
 import static pl.btsoftware.backend.shared.Currency.PLN;
 import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
@@ -45,12 +45,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var command = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Salary payment",
                 now(),
                 INCOME,
-                "Salary",
-                PLN
+                "Salary"
         );
 
         // When
@@ -78,12 +77,11 @@ public class TransactionServiceTest {
 
         var command = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("50.00"),
+                Money.of(new BigDecimal("50.00"), PLN),
                 "Grocery shopping",
                 now(),
                 TransactionType.EXPENSE,
-                "Food",
-                PLN
+                "Food"
         );
 
         // When
@@ -104,12 +102,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var command = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "",
                 now(),
                 INCOME,
-                "Category",
-                PLN
+                "Category"
         );
 
         // When & Then
@@ -125,12 +122,11 @@ public class TransactionServiceTest {
         var longDescription = "A".repeat(201);
         var command = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 longDescription,
                 now(),
                 INCOME,
-                "Category",
-                PLN
+                "Category"
         );
 
         // When & Then
@@ -145,12 +141,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var command = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), EUR),
                 "Payment",
                 now(),
                 INCOME,
-                "Category",
-                Currency.EUR
+                "Category"
         );
 
         // When & Then
@@ -165,12 +160,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var command = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
                 now(),
                 INCOME,
-                "Test",
-                PLN
+                "Test"
         );
         var createdTransaction = transactionService.createTransaction(command);
 
@@ -199,21 +193,19 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var command1 = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction 1",
                 now(),
                 INCOME,
-                "Test",
-                PLN
+                "Test"
         );
         var command2 = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("50.00"),
+                Money.of(new BigDecimal("50.00"), PLN),
                 "Transaction 2",
                 now(),
                 TransactionType.EXPENSE,
-                "Test",
-                PLN
+                "Test"
         );
 
         var transaction1 = transactionService.createTransaction(command1);
@@ -236,21 +228,19 @@ public class TransactionServiceTest {
 
         var command1 = new CreateTransactionCommand(
                 account1Id.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction for account 1",
                 now(),
                 INCOME,
-                "Test",
-                PLN
+                "Test"
         );
         var command2 = new CreateTransactionCommand(
                 account2Id.id(),
-                new BigDecimal("50.00"),
+                Money.of(new BigDecimal("50.00"), PLN),
                 "Transaction for account 2",
                 now(),
                 TransactionType.EXPENSE,
-                "Test",
-                PLN
+                "Test"
         );
 
         transactionService.createTransaction(command1);
@@ -270,12 +260,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Original transaction",
                 now(),
                 INCOME,
-                "Original",
-                PLN
+                "Original"
         );
         var transaction = transactionService.createTransaction(createCommand);
 
@@ -304,12 +293,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Original description",
                 now(),
                 INCOME,
-                "Original",
-                PLN
+                "Original"
         );
         var transaction = transactionService.createTransaction(createCommand);
 
@@ -334,12 +322,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
                 now(),
                 INCOME,
-                "Original Category",
-                PLN
+                "Original Category"
         );
         var transaction = transactionService.createTransaction(createCommand);
 
@@ -381,12 +368,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction to delete",
                 now(),
                 INCOME,
-                "Test",
-                PLN
+                "Test"
         );
         var transaction = transactionService.createTransaction(createCommand);
 
@@ -409,12 +395,11 @@ public class TransactionServiceTest {
 
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("50.00"),
+                Money.of(new BigDecimal("50.00"), PLN),
                 "Expense to delete",
                 now(),
                 TransactionType.EXPENSE,
-                "Test",
-                PLN
+                "Test"
         );
         var transaction = transactionService.createTransaction(createCommand);
 
@@ -443,12 +428,11 @@ public class TransactionServiceTest {
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
-                new BigDecimal("100.00"),
+                Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction to delete twice",
                 now(),
                 INCOME,
-                "Test",
-                PLN
+                "Test"
         );
         var transaction = transactionService.createTransaction(createCommand);
         transactionService.deleteTransaction(transaction.id());

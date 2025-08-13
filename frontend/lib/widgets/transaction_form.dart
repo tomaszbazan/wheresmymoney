@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/account.dart';
+import '../models/http_exception.dart';
 import '../models/transaction.dart';
 import '../services/transaction_service.dart';
 
@@ -76,27 +77,20 @@ class _TransactionFormState extends State<TransactionForm> {
     setState(() => _isLoading = true);
 
     try {
-      double amount = double.parse(_amountController.text);
-
-      if (_selectedType == 'EXPENSE') {
-        amount = -amount.abs();
-      } else {
-        amount = amount.abs();
-      }
-
       final Transaction transaction;
 
       if (widget.transaction != null) {
         transaction = await _transactionService.updateTransaction(
           id: widget.transaction!.id,
-          amount: amount,
+          amount: double.parse(_amountController.text),
           description: _descriptionController.text,
           category: _categoryController.text,
+          currency: _selectedCurrency,
         );
       } else {
         transaction = await _transactionService.createTransaction(
           accountId: _selectedAccountId!,
-          amount: amount,
+          amount: double.parse(_amountController.text),
           description: _descriptionController.text,
           date: _selectedDate,
           type: _selectedType!,
@@ -106,10 +100,22 @@ class _TransactionFormState extends State<TransactionForm> {
       }
 
       widget.onSaved(transaction);
+    } on HttpException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.userFriendlyMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Błąd zapisywania transakcji: $e')),
+          SnackBar(
+            content: Text('Nieoczekiwany błąd: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
