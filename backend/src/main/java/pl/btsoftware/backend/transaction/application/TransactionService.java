@@ -30,8 +30,8 @@ public class TransactionService {
     }
 
     private void validateDescriptionLength(String description) {
-        if (description == null || description.trim().isEmpty() || description.length() > 200) {
-            throw new IllegalArgumentException("Description must be between 1 and 200 characters");
+        if (description != null && description.length() > 200) {
+            throw new IllegalArgumentException("Description cannot exceed 200 characters");
         }
     }
 

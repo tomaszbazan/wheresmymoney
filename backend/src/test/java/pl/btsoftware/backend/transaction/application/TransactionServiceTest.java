@@ -127,7 +127,7 @@ class TransactionServiceTest {
     }
 
     @Test
-    void shouldRejectTransactionWithEmptyDescription() {
+    void shouldAllowTransactionWithEmptyDescription() {
         // Given
         var account = accountModuleFacade.createAccount(new CreateAccountCommand("Test Account", PLN));
         var amount = new BigDecimal("100.00");
@@ -136,14 +136,32 @@ class TransactionServiceTest {
         var type = TransactionType.INCOME;
         var category = "Test";
 
-        // When & Then
+        // When
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, category);
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Description must be between 1 and 200 characters");
+        var transaction = transactionService.createTransaction(command);
 
-        // Verify no transaction was created
-        assertThat(transactionRepository.findAll()).isEmpty();
+        // Then
+        assertThat(transaction.description()).isEqualTo("");
+        assertThat(transactionRepository.findAll()).hasSize(1);
+    }
+
+    @Test
+    void shouldAllowTransactionWithNullDescription() {
+        // Given
+        var account = accountModuleFacade.createAccount(new CreateAccountCommand("Test Account", PLN));
+        var amount = new BigDecimal("100.00");
+        String description = null;
+        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var type = TransactionType.INCOME;
+        var category = "Test";
+
+        // When
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, category);
+        var transaction = transactionService.createTransaction(command);
+
+        // Then
+        assertThat(transaction.description()).isNull();
+        assertThat(transactionRepository.findAll()).hasSize(1);
     }
 
     @Test
@@ -160,7 +178,7 @@ class TransactionServiceTest {
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, category);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Description must be between 1 and 200 characters");
+                .hasMessageContaining("Description cannot exceed 200 characters");
 
         // Verify no transaction was created
         assertThat(transactionRepository.findAll()).isEmpty();

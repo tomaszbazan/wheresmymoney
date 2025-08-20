@@ -97,7 +97,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenDescriptionIsEmpty() {
+    void shouldAllowTransactionWithEmptyDescription() {
         // Given
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
         var command = new CreateTransactionCommand(
@@ -109,10 +109,31 @@ public class TransactionServiceTest {
                 "Category"
         );
 
-        // When & Then
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Description must be between 1 and 200 characters");
+        // When
+        var transaction = transactionService.createTransaction(command);
+
+        // Then
+        assertThat(transaction.description()).isEqualTo("");
+    }
+
+    @Test
+    void shouldAllowTransactionWithNullDescription() {
+        // Given
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var command = new CreateTransactionCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                null,
+                now(),
+                INCOME,
+                "Category"
+        );
+
+        // When
+        var transaction = transactionService.createTransaction(command);
+
+        // Then
+        assertThat(transaction.description()).isNull();
     }
 
     @Test
@@ -132,7 +153,7 @@ public class TransactionServiceTest {
         // When & Then
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Description must be between 1 and 200 characters");
+                .hasMessage("Description cannot exceed 200 characters");
     }
 
     @Test
