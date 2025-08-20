@@ -66,10 +66,7 @@
 - Return error message: "Description must be between 1 and 200 characters"
 - Not create any transaction
 
-**Test Coverage:**
-
-- `TransactionServiceTest.shouldRejectTransactionWithEmptyDescription()`
-- `TransactionServiceTest.shouldRejectTransactionWithDescriptionTooLong()`
+**Test Coverage:** `TransactionServiceTest.shouldRejectTransactionWithDescriptionTooLong()`
 
 ### AC-2.3: Reject Transaction with Currency Mismatch
 

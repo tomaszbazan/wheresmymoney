@@ -19,6 +19,21 @@ class TransactionForm extends StatefulWidget {
     required this.onSaved,
   });
 
+  static String normalizeAmount(String amount) {
+    String normalized = amount.trim().replaceAll(',', '.');
+    
+    if (!normalized.contains('.')) {
+      normalized = '$normalized.00';
+    } else {
+      final parts = normalized.split('.');
+      if (parts.length == 2 && parts[1].length == 1) {
+        normalized = '${parts[0]}.${parts[1]}0';
+      }
+    }
+    
+    return normalized;
+  }
+
   @override
   State<TransactionForm> createState() => _TransactionFormState();
 }
@@ -33,7 +48,7 @@ class _TransactionFormState extends State<TransactionForm> {
 
   String? _selectedAccountId;
   String? _selectedType;
-  final String _selectedCurrency = 'PLN';
+  String _selectedCurrency = 'PLN';
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
 
@@ -55,10 +70,12 @@ class _TransactionFormState extends State<TransactionForm> {
       _selectedAccountId = widget.transaction!.accountId;
       _selectedType = widget.transaction!.type;
       _selectedDate = widget.transaction!.createdAt;
+      _updateCurrencyFromAccount();
     } else {
       _selectedType = widget.type;
       _selectedAccountId =
           widget.accounts.isNotEmpty ? widget.accounts.first.id : null;
+      _updateCurrencyFromAccount();
     }
   }
 
@@ -70,6 +87,16 @@ class _TransactionFormState extends State<TransactionForm> {
     super.dispose();
   }
 
+  void _updateCurrencyFromAccount() {
+    if (_selectedAccountId != null) {
+      final selectedAccount = widget.accounts.firstWhere(
+        (account) => account.id == _selectedAccountId,
+        orElse: () => widget.accounts.first,
+      );
+      _selectedCurrency = selectedAccount.currency ?? 'PLN';
+    }
+  }
+
   Future<void> _saveTransaction() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedAccountId == null) return;
@@ -77,12 +104,13 @@ class _TransactionFormState extends State<TransactionForm> {
     setState(() => _isLoading = true);
 
     try {
+      final normalizedAmount = TransactionForm.normalizeAmount(_amountController.text);
       final Transaction transaction;
 
       if (widget.transaction != null) {
         transaction = await _transactionService.updateTransaction(
           id: widget.transaction!.id,
-          amount: double.parse(_amountController.text),
+          amount: double.parse(normalizedAmount),
           description: _descriptionController.text,
           category: _categoryController.text,
           currency: _selectedCurrency,
@@ -90,7 +118,7 @@ class _TransactionFormState extends State<TransactionForm> {
       } else {
         transaction = await _transactionService.createTransaction(
           accountId: _selectedAccountId!,
-          amount: double.parse(_amountController.text),
+          amount: double.parse(normalizedAmount),
           description: _descriptionController.text,
           date: _selectedDate,
           type: _selectedType!,
@@ -169,7 +197,10 @@ class _TransactionFormState extends State<TransactionForm> {
                       );
                     }).toList(),
                 onChanged: (value) {
-                  setState(() => _selectedAccountId = value);
+                  setState(() {
+                    _selectedAccountId = value;
+                    _updateCurrencyFromAccount();
+                  });
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -205,10 +236,10 @@ class _TransactionFormState extends State<TransactionForm> {
 
             TextFormField(
               controller: _amountController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Kwota',
-                border: OutlineInputBorder(),
-                prefixText: 'PLN ',
+                border: const OutlineInputBorder(),
+                prefixText: '$_selectedCurrency ',
                 hintText: '0.00',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -219,7 +250,8 @@ class _TransactionFormState extends State<TransactionForm> {
                   return 'Wprowadź kwotę';
                 }
 
-                final doubleValue = double.tryParse(value);
+                final normalizedValue = TransactionForm.normalizeAmount(value);
+                final doubleValue = double.tryParse(normalizedValue);
                 if (doubleValue == null) {
                   return 'Wprowadź poprawną kwotę';
                 }
@@ -228,20 +260,9 @@ class _TransactionFormState extends State<TransactionForm> {
                   return 'Kwota musi być większa od zera';
                 }
 
-                // Walidacja formatu: dokładnie dwa miejsca po przecinku
-                final regex = RegExp(r'^\d+\.?\d{0,2}$');
-                if (!regex.hasMatch(value)) {
-                  return 'Kwota może mieć maksymalnie 2 miejsca po przecinku';
-                }
-
-                // Sprawdź czy ma dokładnie dwa miejsca po przecinku (jeśli ma przecinek)
-                if (value.contains('.')) {
-                  final parts = value.split('.');
-                  if (parts[1].length != 2) {
-                    return 'Kwota musi mieć dokładnie 2 miejsca po przecinku';
-                  }
-                } else {
-                  return 'Kwota musi mieć dokładnie 2 miejsca po przecinku (np. 10.00)';
+                final regex = RegExp(r'^\d+([.,]\d{1,2})?$');
+                if (!regex.hasMatch(value.trim())) {
+                  return 'Wprowadź poprawną kwotę (np. 100, 100.00, 100,50)';
                 }
 
                 return null;
