@@ -1,11 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:http/http.dart' as http;
-
-import '../config/api_config.dart';
-import '../models/http_exception.dart';
 import '../models/transaction.dart';
+import 'http_client.dart';
+import 'auth_service.dart';
 
 abstract class TransactionServiceInterface {
   Future<List<Transaction>> getTransactions();
@@ -34,62 +29,26 @@ abstract class TransactionServiceInterface {
 }
 
 class TransactionService implements TransactionServiceInterface {
-  final http.Client _httpClient;
+  final ApiClient _apiClient;
 
-  TransactionService({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+  TransactionService({AuthService? authService})
+      : _apiClient = ApiClient(authService ?? AuthService());
   @override
   Future<List<Transaction>> getTransactions() async {
-    try {
-      final response = await _httpClient.get(
-        Uri.parse('${ApiConfig.backendUrl}/transactions'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-
-        if (responseData.containsKey('transactions')) {
-          final List<dynamic> transactionsJson = responseData['transactions'];
-          return transactionsJson
-              .map((json) => Transaction.fromJson(json))
-              .toList();
-        } else {
-          return [];
-        }
-      } else {
-        throw HttpException(response.statusCode, response.body);
-      }
-    } on SocketException {
-      throw const HttpException(0, 'Connection refused');
-    }
+    return await _apiClient.getList<Transaction>(
+      '/transactions',
+      'transactions',
+      Transaction.fromJson,
+    );
   }
 
   @override
   Future<List<Transaction>> getTransactionsByAccountId(String accountId) async {
-    try {
-      final response = await _httpClient.get(
-        Uri.parse('${ApiConfig.backendUrl}/accounts/$accountId/transactions'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-
-        if (responseData.containsKey('transactions')) {
-          final List<dynamic> transactionsJson = responseData['transactions'];
-          return transactionsJson
-              .map((json) => Transaction.fromJson(json))
-              .toList();
-        } else {
-          return [];
-        }
-      } else {
-        throw HttpException(response.statusCode, response.body);
-      }
-    } on SocketException {
-      throw const HttpException(0, 'Connection refused');
-    }
+    return await _apiClient.getList<Transaction>(
+      '/accounts/$accountId/transactions',
+      'transactions',
+      Transaction.fromJson,
+    );
   }
 
   @override
@@ -114,21 +73,11 @@ class TransactionService implements TransactionServiceInterface {
       'category': category,
     };
 
-    try {
-      final response = await _httpClient.post(
-        Uri.parse('${ApiConfig.backendUrl}/transactions'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(transactionData),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return Transaction.fromJson(jsonDecode(response.body));
-      } else {
-        throw HttpException(response.statusCode, response.body);
-      }
-    } on SocketException {
-      throw const HttpException(0, 'Connection refused');
-    }
+    return await _apiClient.post<Transaction>(
+      '/transactions',
+      transactionData,
+      Transaction.fromJson,
+    );
   }
 
   @override
@@ -148,36 +97,15 @@ class TransactionService implements TransactionServiceInterface {
       'category': category,
     };
 
-    try {
-      final response = await _httpClient.put(
-        Uri.parse('${ApiConfig.backendUrl}/transactions/$id'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(transactionData),
-      );
-
-      if (response.statusCode == 200) {
-        return Transaction.fromJson(jsonDecode(response.body));
-      } else {
-        throw HttpException(response.statusCode, response.body);
-      }
-    } on SocketException {
-      throw const HttpException(0, 'Connection refused');
-    }
+    return await _apiClient.put<Transaction>(
+      '/transactions/$id',
+      transactionData,
+      Transaction.fromJson,
+    );
   }
 
   @override
   Future<void> deleteTransaction(String transactionId) async {
-    try {
-      final response = await _httpClient.delete(
-        Uri.parse('${ApiConfig.backendUrl}/transactions/$transactionId'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw HttpException(response.statusCode, response.body);
-      }
-    } on SocketException {
-      throw const HttpException(0, 'Connection refused');
-    }
+    await _apiClient.delete('/transactions/$transactionId');
   }
 }
