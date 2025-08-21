@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class SideMenu extends StatelessWidget {
   final bool isExpanded;
@@ -43,6 +44,12 @@ class SideMenu extends StatelessWidget {
               title: 'Transakcje',
             ),
             const Spacer(),
+            // Logout button
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: isExpanded ? const Text('Wyloguj', style: TextStyle(color: Colors.red)) : null,
+              onTap: () => _showLogoutDialog(context),
+            ),
             // Przycisk do przełączania trybu menu
             ListTile(
               leading: Icon(
@@ -103,6 +110,32 @@ class SideMenu extends StatelessWidget {
       title: isExpanded ? Text(title) : null,
       selected: selectedIndex == index,
       onTap: () => onItemTapped(index),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Wylogowanie'),
+        content: const Text('Czy na pewno chcesz się wylogować?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Anuluj'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final authService = AuthService();
+              await authService.signOut();
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+              }
+            },
+            child: const Text('Wyloguj', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 }

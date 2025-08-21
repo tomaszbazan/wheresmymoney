@@ -1,0 +1,59 @@
+name: Build Flutter App
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.22.0'
+        
+    - name: Install dependencies
+      run: flutter pub get
+      working-directory: frontend
+      
+    - name: Generate configuration
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      run: |
+        cd frontend
+        ./scripts/generate_config.sh
+      
+    - name: Run tests
+      run: flutter test
+      working-directory: frontend
+      
+    - name: Analyze code
+      run: flutter analyze
+      working-directory: frontend
+      
+    - name: Build APK
+      run: flutter build apk --release
+      working-directory: frontend
+      
+    - name: Build Web
+      run: flutter build web --release
+      working-directory: frontend
+      
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release.apk
+        path: frontend/build/app/outputs/flutter-apk/app-release.apk
+        
+    - name: Upload Web artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: web-build
+        path: frontend/build/web/
