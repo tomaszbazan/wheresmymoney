@@ -95,7 +95,7 @@ jobs:
             # Start backend container
             docker run -d \
             --restart unless-stopped \
-            -p 8081:8080 \
+            -p 9080:9080 \
             --network host \
             --name ${{ env.BACKEND_CONTAINER_NAME }} \
             -e "SPRING_DATASOURCE_URL=${{ secrets.DATASOURCE_URL }}" \
@@ -106,7 +106,7 @@ jobs:
             # Start frontend container
             docker run -d \
             --restart unless-stopped \
-            -p 8100:80 \
+            -p 9081:80 \
             --network host \
             --name ${{ env.FRONTEND_CONTAINER_NAME }} \
             ${{ env.FRONTEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }}

@@ -18,7 +18,7 @@ if [ "$1" = "backend" ]; then
     docker-compose up --no-deps --build -d postgres backend
     
     echo "✅ Backend services started!"
-    echo "Backend: http://localhost:8080"
+    echo "Backend: http://localhost:9080"
     echo "Database: localhost:5433"
 else
     echo "🚀 Building and starting Where's My Money application..."
@@ -32,8 +32,8 @@ else
     docker-compose up --no-deps --build -d
     
     echo "✅ Application started!"
-    echo "Backend: http://localhost:8080"
-    echo "Frontend: http://localhost:8100"
+    echo "Backend: http://localhost:9080"
+    echo "Frontend: http://localhost:9081"
     echo "Database: localhost:5433"
     echo ""
     echo "💡 To configure Supabase, set environment variables:"
