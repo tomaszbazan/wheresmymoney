@@ -23,5 +23,16 @@ RUN flutter build web \
 
 FROM nginx:alpine
 COPY --from=build /app/build/web /usr/share/nginx/html
-EXPOSE 80
+
+# Create nginx config for port 9081
+RUN echo 'server { \
+    listen 9081; \
+    location / { \
+        root /usr/share/nginx/html; \
+        index index.html index.htm; \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 9081
 CMD ["nginx", "-g", "daemon off;"]
