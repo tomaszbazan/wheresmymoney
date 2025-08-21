@@ -74,13 +74,14 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}:latest
 
       - name: Deploy Frontend to /var/www
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "${{ env.FRONTEND_DIR }}/build/web/*"
+          source: "${{ env.FRONTEND_DIR }}/build/web/"
           target: "/var/www/wheresmymoney"
+          strip_components: 1
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -96,7 +97,11 @@ jobs:
             docker ps -aq --filter "name=${{ env.CONTAINER_NAME }}" | grep -q . && docker stop ${{ env.CONTAINER_NAME }}
             docker ps -aq --filter "name=${{ env.CONTAINER_NAME }}" | grep -q . && docker rm ${{ env.CONTAINER_NAME }}
             
-            docker run -d --restart unless-stopped -p 8081:8080 --name ${{ env.CONTAINER_NAME}} ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            docker run -d \ 
+            --restart unless-stopped \
+            -p 8081:8080 \
+            --name ${{ env.CONTAINER_NAME}} \
             -e SPRING_DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
             -e SPRING_DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
-            -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }}
+            -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} \
+            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
