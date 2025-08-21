@@ -96,6 +96,7 @@ jobs:
             docker run -d \
             --restart unless-stopped \
             -p 8081:8080 \
+            --network host \
             --name ${{ env.BACKEND_CONTAINER_NAME }} \
             -e "SPRING_DATASOURCE_URL=${{ secrets.DATASOURCE_URL }}" \
             -e "SPRING_DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }}" \
@@ -106,5 +107,6 @@ jobs:
             docker run -d \
             --restart unless-stopped \
             -p 8100:80 \
+            --network host \
             --name ${{ env.FRONTEND_CONTAINER_NAME }} \
             ${{ env.FRONTEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
