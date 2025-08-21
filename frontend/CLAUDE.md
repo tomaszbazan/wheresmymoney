@@ -25,7 +25,7 @@ This is a Flutter expense tracking app with a clean architecture pattern:
 ### Key Components
 - **MainScreen**: Uses TabController + SideMenu for desktop-style navigation
 - **SideMenu**: Animated collapsible sidebar with expand/collapse functionality
-- **Services**: HTTP-based services expecting API at localhost:8080/api
+- **Services**: HTTP-based services expecting API at localhost:9080/api
 - **Models**: Handle flexible JSON parsing (int/double conversion, optional fields)
 
 ## Code Style Guidelines
