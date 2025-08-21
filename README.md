@@ -6,3 +6,9 @@ To start the app, run the following command:
 ```
 ./scripts/run.sh
 ```
+
+To start only backend services, run:
+
+```
+./scripts/run.sh backend
+```
