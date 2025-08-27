@@ -1,37 +1,32 @@
 package pl.btsoftware.backend.users.application;
 
+import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.users.domain.*;
 import pl.btsoftware.backend.users.domain.error.InvitationNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final GroupInvitationRepository invitationRepository;
 
-    public UserService(UserRepository userRepository, GroupRepository groupRepository, 
-                      GroupInvitationRepository invitationRepository) {
-        this.userRepository = userRepository;
-        this.groupRepository = groupRepository;
-        this.invitationRepository = invitationRepository;
-    }
-
     public User registerUser(RegisterUserCommand command) {
-        if (userRepository.existsByExternalAuthId(command.getExternalAuthId())) {
+        if (userRepository.existsByExternalAuthId(command.externalAuthId())) {
             throw new IllegalStateException("User with external auth ID already exists");
         }
 
-        User user = User.create(
-            command.getExternalAuthId(),
-            command.getEmail(),
-            command.getDisplayName(),
-            GroupId.generate() // temporary group id, will be updated
+        var user = User.create(
+                command.externalAuthId(),
+                command.email(),
+                command.displayName(),
+                GroupId.generate()
         );
         
         GroupId groupId;
-        
+
         if (command.hasInvitationToken()) {
             groupId = handleInvitationBasedRegistration(command);
             user.changeGroup(groupId);
@@ -82,7 +77,7 @@ public class UserService {
     }
 
     private GroupId handleInvitationBasedRegistration(RegisterUserCommand command) {
-        GroupInvitation invitation = invitationRepository.findByToken(command.getInvitationToken())
+        GroupInvitation invitation = invitationRepository.findByToken(command.invitationToken())
             .orElseThrow(InvitationNotFoundException::new);
         
         invitation.accept();
@@ -92,11 +87,11 @@ public class UserService {
     }
 
     private GroupId createNewGroupForUser(RegisterUserCommand command, UserId userId) {
-        String groupName = command.getGroupName() != null && !command.getGroupName().trim().isEmpty() 
-            ? command.getGroupName() 
-            : command.getDisplayName() + "'s Group";
-        
-        Group group = Group.create(groupName, "", userId);
+        String groupName = command.groupName() != null && !command.groupName().trim().isEmpty()
+                ? command.groupName()
+                : command.displayName() + "'s Group";
+
+        var group = Group.create(groupName, "", userId);
         groupRepository.save(group);
         
         return group.getId();

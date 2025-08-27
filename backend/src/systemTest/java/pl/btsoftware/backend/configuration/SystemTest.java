@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @ContextConfiguration(initializers = pl.btsoftware.backend.configuration.TestcontainersInitializer.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("system-test")
 public @interface SystemTest {
 }

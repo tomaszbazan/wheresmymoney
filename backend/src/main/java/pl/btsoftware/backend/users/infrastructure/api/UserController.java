@@ -5,32 +5,32 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
-import pl.btsoftware.backend.users.application.UserService;
 
 @RestController
 @RequestMapping("/api/users")
 @AllArgsConstructor
 @Slf4j
 public class UserController {
-    private final UserService userService;
+    private final UsersModuleFacade usersModuleFacade;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public UserView registerUser(@RequestBody @Validated RegisterUserRequest request,
                                  @RequestParam(required = false) String invitationToken) {
         log.info("Registering user with email: {}, invitationToken present: {}",
-                request.getEmail(), invitationToken != null);
+                request.email(), invitationToken != null);
 
         var command = new RegisterUserCommand(
-                request.getExternalAuthId(),
-                request.getEmail(),
-                request.getDisplayName(),
-                request.getGroupName(),
+                request.externalAuthId(),
+                request.email(),
+                request.displayName(),
+                request.groupName(),
                 invitationToken
         );
 
-        var user = userService.registerUser(command);
+        var user = usersModuleFacade.registerUser(command);
 
         log.info("User registered successfully with ID: {}", user.getId());
         return UserView.from(user);
@@ -40,7 +40,7 @@ public class UserController {
     public UserView getUserProfile(@PathVariable String externalAuthId) {
         log.info("Getting profile for external auth ID: {}", externalAuthId);
 
-        var user = userService.findByExternalAuthId(externalAuthId)
+        var user = usersModuleFacade.findUserByExternalAuthId(externalAuthId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         return UserView.from(user);

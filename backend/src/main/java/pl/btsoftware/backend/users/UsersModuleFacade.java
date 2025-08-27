@@ -1,10 +1,10 @@
 package pl.btsoftware.backend.users;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.btsoftware.backend.users.application.GroupService;
 import pl.btsoftware.backend.users.application.InviteToGroupCommand;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
-import pl.btsoftware.backend.users.application.UpdateGroupCommand;
 import pl.btsoftware.backend.users.application.UserService;
 import pl.btsoftware.backend.users.domain.*;
 
@@ -12,14 +12,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class UsersModuleFacade {
     private final UserService userService;
     private final GroupService groupService;
-
-    public UsersModuleFacade(UserService userService, GroupService groupService) {
-        this.userService = userService;
-        this.groupService = groupService;
-    }
 
     public User registerUser(RegisterUserCommand command) {
         return userService.registerUser(command);
@@ -55,10 +51,6 @@ public class UsersModuleFacade {
 
     public Optional<Group> findGroupById(GroupId groupId) {
         return groupService.findGroupById(groupId);
-    }
-
-    public Group updateGroup(GroupId groupId, UpdateGroupCommand command) {
-        return groupService.updateGroup(groupId, command);
     }
 
     public List<GroupInvitation> findPendingInvitationsForGroup(GroupId groupId) {

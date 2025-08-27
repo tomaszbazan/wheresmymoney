@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../config/api_config.dart';
 import '../models/user.dart' as app_user;
 
@@ -34,7 +36,7 @@ class AuthService {
     return session?.accessToken;
   }
 
-  Future<app_user.User> signUp({
+  Future<void> signUp({
     required String email,
     required String password,
     required String displayName,
@@ -44,20 +46,22 @@ class AuthService {
     final response = await _supabase.auth.signUp(
       email: email,
       password: password,
+      data: {
+        'display_name': displayName,
+      },
     );
 
     if (response.user == null) {
       throw Exception('Failed to create user account');
     }
 
-    final user = await _registerUserInBackend(
+    await _registerUserWithoutToken(
+      externalAuthId: response.user!.id,
+      email: email,
       displayName: displayName,
       groupName: groupName,
       invitationToken: invitationToken,
     );
-
-    await _saveUserLocally(user);
-    return user;
   }
 
   Future<app_user.User> signInWithEmail(String email, String password) async {
@@ -83,16 +87,17 @@ class AuthService {
     await prefs.remove(_userKey);
   }
 
-  Future<app_user.User> _registerUserInBackend({
+  Future<void> _registerUserWithoutToken({
+    required String externalAuthId,
+    required String email,
     required String displayName,
     required String groupName,
     String? invitationToken,
   }) async {
-    final token = await getAccessToken();
-    if (token == null) throw Exception('No access token available');
-
     final url = Uri.parse('${ApiConfig.backendUrl}/users/register');
     final body = {
+      'externalAuthId': externalAuthId,
+      'email': email,
       'displayName': displayName,
       'groupName': groupName,
       if (invitationToken != null) 'invitationToken': invitationToken,
@@ -102,7 +107,6 @@ class AuthService {
       url,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
       },
       body: jsonEncode(body),
     );
@@ -110,8 +114,6 @@ class AuthService {
     if (response.statusCode != 200) {
       throw Exception('Failed to register user: ${response.body}');
     }
-
-    return app_user.User.fromJson(jsonDecode(response.body));
   }
 
   Future<app_user.User> _fetchUserFromBackend() async {

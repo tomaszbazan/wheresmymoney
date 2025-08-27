@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -108,6 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
+                    onFieldSubmitted: (_) => _login(),
                     decoration: InputDecoration(
                       labelText: 'Password',
                       border: const OutlineInputBorder(),
