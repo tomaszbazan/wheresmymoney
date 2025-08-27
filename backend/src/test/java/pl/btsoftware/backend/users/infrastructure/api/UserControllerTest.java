@@ -7,8 +7,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
-import pl.btsoftware.backend.users.application.UserService;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -35,7 +35,7 @@ class UserControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private UserService userService;
+    private UsersModuleFacade usersModuleFacade;
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
@@ -47,7 +47,7 @@ class UserControllerTest {
         );
 
         User mockUser = createMockUser("ext-auth-123", "test@example.com", "John Doe");
-        when(userService.registerUser(any(RegisterUserCommand.class))).thenReturn(mockUser);
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenReturn(mockUser);
 
         mockMvc.perform(post("/api/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +74,7 @@ class UserControllerTest {
         );
 
         User mockUser = createMockUser("ext-auth-456", "invited@example.com", "Jane Doe");
-        when(userService.registerUser(any(RegisterUserCommand.class))).thenReturn(mockUser);
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenReturn(mockUser);
 
         mockMvc.perform(post("/api/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +91,7 @@ class UserControllerTest {
     void shouldGetUserProfileSuccessfully() throws Exception {
         String externalAuthId = "ext-auth-789";
         User mockUser = createMockUser(externalAuthId, "profile@example.com", "Profile User");
-        when(userService.findByExternalAuthId(externalAuthId)).thenReturn(Optional.of(mockUser));
+        when(usersModuleFacade.findUserByExternalAuthId(externalAuthId)).thenReturn(Optional.of(mockUser));
 
         mockMvc.perform(get("/api/users/profile/{externalAuthId}", externalAuthId))
                 .andExpect(status().isOk())
@@ -106,7 +106,7 @@ class UserControllerTest {
     @Test
     void shouldReturn400WhenUserNotFound() throws Exception {
         String externalAuthId = "non-existent";
-        when(userService.findByExternalAuthId(externalAuthId)).thenReturn(Optional.empty());
+        when(usersModuleFacade.findUserByExternalAuthId(externalAuthId)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/users/profile/{externalAuthId}", externalAuthId))
                 .andExpect(status().isBadRequest())
@@ -116,8 +116,8 @@ class UserControllerTest {
     @Test
     void shouldReturn500WhenRegisteringUserWithInvalidEmail() throws Exception {
         RegisterUserRequest request = new RegisterUserRequest("ext-auth-123", "", "John Doe", "Group");
-        
-        when(userService.registerUser(any(RegisterUserCommand.class)))
+
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
             .thenThrow(new UserEmailEmptyException());
 
         mockMvc.perform(post("/api/users/register")
@@ -130,8 +130,8 @@ class UserControllerTest {
     @Test
     void shouldReturn500WhenRegisteringUserWithInvalidDisplayName() throws Exception {
         RegisterUserRequest request = new RegisterUserRequest("ext-auth-123", "test@example.com", "", "Group");
-        
-        when(userService.registerUser(any(RegisterUserCommand.class)))
+
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
             .thenThrow(new DisplayNameEmptyException());
 
         mockMvc.perform(post("/api/users/register")
@@ -150,7 +150,7 @@ class UserControllerTest {
             "Test Group"
         );
 
-        when(userService.registerUser(any(RegisterUserCommand.class)))
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
             .thenThrow(new InvitationNotFoundException());
 
         mockMvc.perform(post("/api/users/register")
@@ -170,7 +170,7 @@ class UserControllerTest {
             "Test Group"
         );
 
-        when(userService.registerUser(any(RegisterUserCommand.class)))
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
             .thenThrow(new IllegalStateException("User with external auth ID already exists"));
 
         mockMvc.perform(post("/api/users/register")

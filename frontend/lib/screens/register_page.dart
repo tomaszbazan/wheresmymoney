@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../utils/password_validator.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -46,7 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
       
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/main');
+        _showEmailConfirmationDialog();
       }
     } catch (error) {
       if (mounted) {
@@ -63,7 +64,45 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  @override
+  void _showEmailConfirmationDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Check Your Email'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.email, size: 64, color: Colors.blue),
+              const SizedBox(height: 16),
+              Text(
+                'We\'ve sent a confirmation email to ${_emailController.text.trim()}',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Please check your email and click the confirmation link to activate your account.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushReplacementNamed('/login');
+              },
+              child: const Text('Go to Login'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @@override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
@@ -145,15 +184,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      if (value.length < 8) {
-                        return 'Password must be at least 8 characters';
-                      }
-                      return null;
-                    },
+                    validator: PasswordValidator.validate,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -185,6 +216,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _groupNameController,
+                    onFieldSubmitted: (_) => _register(),
                     decoration: const InputDecoration(
                       labelText: 'Group Name',
                       border: OutlineInputBorder(),

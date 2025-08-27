@@ -1,29 +1,16 @@
 package pl.btsoftware.backend.users.infrastructure.api;
 
-public class UpdateGroupRequest {
-    private String name;
-    private String description;
+import jakarta.validation.constraints.NotBlank;
 
-    public UpdateGroupRequest() {}
-
-    public UpdateGroupRequest(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
-
+public record UpdateGroupRequest(
+        @NotBlank String name,
+        String description
+) {
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

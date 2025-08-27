@@ -10,8 +10,8 @@ import java.util.Set;
 
 public class Group {
     private final GroupId id;
-    private String name;
-    private String description;
+    private final String name;
+    private final String description;
     private final Set<UserId> memberIds;
     private final UserId createdBy;
     private final Instant createdAt;
@@ -69,15 +69,6 @@ public class Group {
 
     public int getMemberCount() {
         return memberIds.size();
-    }
-
-    public void updateName(String newName) {
-        validateName(newName);
-        this.name = newName.trim();
-    }
-
-    public void updateDescription(String newDescription) {
-        this.description = newDescription != null ? newDescription.trim() : "";
     }
 
     private void validateName(String name) {

@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.btsoftware.backend.users.application.GroupService;
+import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.InviteToGroupCommand;
-import pl.btsoftware.backend.users.application.UpdateGroupCommand;
-import pl.btsoftware.backend.users.application.UserService;
 import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.GroupInvitation;
@@ -19,8 +17,7 @@ import pl.btsoftware.backend.users.domain.UserId;
 @AllArgsConstructor
 @Slf4j
 public class GroupController {
-    private final GroupService groupService;
-    private final UserService userService;
+    private final UsersModuleFacade usersModuleFacade;
 
     @PostMapping("/invite")
     @ResponseStatus(HttpStatus.CREATED)
@@ -30,8 +27,8 @@ public class GroupController {
         
         UserId inviterUserId = UserId.of(inviterId);
         InviteToGroupCommand command = new InviteToGroupCommand(request.email());
-        
-        GroupInvitation invitation = groupService.inviteToGroup(inviterUserId, command);
+
+        GroupInvitation invitation = usersModuleFacade.inviteToGroup(inviterUserId, command);
         
         log.info("Invitation created with token: {}", invitation.getInvitationToken());
         return GroupInvitationView.from(invitation);
@@ -40,8 +37,8 @@ public class GroupController {
     @GetMapping("/invitation/{token}")
     public GroupInvitationView getInvitationDetails(@PathVariable String token) {
         log.info("Getting invitation details for token: {}", token);
-        
-        GroupInvitation invitation = groupService.findInvitationByToken(token)
+
+        GroupInvitation invitation = usersModuleFacade.findInvitationByToken(token)
             .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
         
         return GroupInvitationView.from(invitation);
@@ -54,7 +51,7 @@ public class GroupController {
         log.info("Accepting invitation with token: {} by user: {}", token, userId);
         
         UserId userIdObj = UserId.of(userId);
-        groupService.acceptInvitation(token, userIdObj);
+        usersModuleFacade.acceptInvitation(token, userIdObj);
         
         log.info("Invitation accepted successfully");
     }
@@ -64,23 +61,9 @@ public class GroupController {
         log.info("Getting group details for ID: {}", groupId);
         
         GroupId groupIdObj = GroupId.of(groupId);
-        Group group = groupService.findGroupById(groupIdObj)
+        Group group = usersModuleFacade.findGroupById(groupIdObj)
             .orElseThrow(() -> new IllegalArgumentException("Group not found"));
         
-        return GroupView.from(group);
-    }
-
-    @PutMapping("/{groupId}")
-    public GroupView updateGroup(@PathVariable String groupId,
-                               @RequestBody @Validated UpdateGroupRequest request) {
-        log.info("Updating group: {}", groupId);
-        
-        GroupId groupIdObj = GroupId.of(groupId);
-        UpdateGroupCommand command = new UpdateGroupCommand(request.getName(), request.getDescription());
-        
-        Group group = groupService.updateGroup(groupIdObj, command);
-        
-        log.info("Group updated successfully: {}", groupId);
         return GroupView.from(group);
     }
 }

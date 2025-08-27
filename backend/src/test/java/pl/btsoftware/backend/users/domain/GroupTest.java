@@ -102,43 +102,6 @@ class GroupTest {
     }
 
     @Test
-    void shouldUpdateName() {
-        Group group = Group.create("Old Name", "Description", UserId.generate());
-        String newName = "New Name";
-
-        group.updateName(newName);
-
-        assertThat(group.getName()).isEqualTo(newName);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenUpdatingToEmptyName() {
-        Group group = Group.create("Old Name", "Description", UserId.generate());
-
-        assertThatThrownBy(() -> group.updateName(""))
-                .isInstanceOf(GroupNameEmptyException.class);
-    }
-
-    @Test
-    void shouldUpdateDescription() {
-        Group group = Group.create("Name", "Old Description", UserId.generate());
-        String newDescription = "New Description";
-
-        group.updateDescription(newDescription);
-
-        assertThat(group.getDescription()).isEqualTo(newDescription);
-    }
-
-    @Test
-    void shouldUpdateDescriptionToEmptyWhenNull() {
-        Group group = Group.create("Name", "Old Description", UserId.generate());
-
-        group.updateDescription(null);
-
-        assertThat(group.getDescription()).isEmpty();
-    }
-
-    @Test
     void shouldNotBeEmpty() {
         Group group = Group.create("Test Group", "Description", UserId.generate());
 

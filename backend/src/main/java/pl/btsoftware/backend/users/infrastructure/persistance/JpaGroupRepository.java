@@ -29,6 +29,12 @@ public class JpaGroupRepository implements GroupRepository {
     }
 
     @Override
+    public Optional<Group> findByName(String name) {
+        return jpaRepository.findByName(name)
+                .map(GroupEntity::toDomain);
+    }
+
+    @Override
     public void deleteById(GroupId groupId) {
         jpaRepository.deleteById(groupId.getValue());
     }

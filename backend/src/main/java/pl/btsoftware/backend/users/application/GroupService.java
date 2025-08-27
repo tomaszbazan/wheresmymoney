@@ -64,21 +64,6 @@ public class GroupService {
         return groupRepository.findById(groupId);
     }
 
-    public Group updateGroup(GroupId groupId, UpdateGroupCommand command) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
-
-        if (command.getName() != null) {
-            group.updateName(command.getName());
-        }
-
-        if (command.getDescription() != null) {
-            group.updateDescription(command.getDescription());
-        }
-
-        return groupRepository.save(group);
-    }
-
     public List<GroupInvitation> findPendingInvitationsForGroup(GroupId groupId) {
         return invitationRepository.findPendingByGroupId(groupId);
     }
