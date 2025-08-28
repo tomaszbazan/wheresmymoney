@@ -29,8 +29,8 @@ public class JpaUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByExternalAuthId(String externalAuthId) {
-        return jpaRepository.findByExternalAuthId(externalAuthId)
+    public Optional<User> findByExternalAuthId(ExternalAuthId externalAuthId) {
+        return jpaRepository.findByExternalAuthId(externalAuthId.value())
             .map(UserEntity::toDomain);
     }
 
@@ -54,7 +54,7 @@ public class JpaUserRepository implements UserRepository {
     }
 
     @Override
-    public boolean existsByExternalAuthId(String externalAuthId) {
-        return jpaRepository.existsByExternalAuthId(externalAuthId);
+    public boolean existsByExternalAuthId(ExternalAuthId externalAuthId) {
+        return jpaRepository.existsByExternalAuthId(externalAuthId.value());
     }
 }

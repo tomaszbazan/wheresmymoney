@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/auth_service.dart';
 import '../utils/password_validator.dart';
 
@@ -102,7 +103,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  @@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(

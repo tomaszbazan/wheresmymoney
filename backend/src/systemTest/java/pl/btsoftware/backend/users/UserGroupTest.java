@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.users.application.InviteToGroupCommand;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
+import pl.btsoftware.backend.users.domain.ExternalAuthId;
 
 import java.util.UUID;
 
@@ -19,9 +20,9 @@ public class UserGroupTest {
     @Test
     void shouldCompleteFullUserRegistrationAndGroupInvitationFlow() {
         // 1. Rejestracja użytkownika
-        var externalAuthId1 = "ext-auth-" + UUID.randomUUID();
+        var externalAuthId1 = new ExternalAuthId("ext-auth-" + UUID.randomUUID());
         var registerCommand = new RegisterUserCommand(
-                externalAuthId1,
+                externalAuthId1.value(),
                 "user1@example.com",
                 "John Doe",
                 "John's Family Group",
@@ -42,10 +43,10 @@ public class UserGroupTest {
                 .orElseThrow(() -> new AssertionError("Group should exist"));
 
         assertThat(createdGroup).isNotNull();
-        assertThat(createdGroup.getName()).isEqualTo("John's Family Group");
+        assertThat(createdGroup.name()).isEqualTo("John's Family Group");
         assertThat(createdGroup.getMemberCount()).isEqualTo(1);
-        assertThat(createdGroup.getMemberIds()).contains(registeredUser.getId());
-        assertThat(createdGroup.getCreatedBy()).isEqualTo(registeredUser.getId());
+        assertThat(createdGroup.memberIds()).contains(registeredUser.getId());
+        assertThat(createdGroup.createdBy()).isEqualTo(registeredUser.getId());
 
         // 3. Pobranie profilu użytkownika
         var userProfile = usersModuleFacade.findUserByExternalAuthId(externalAuthId1)
@@ -72,12 +73,12 @@ public class UserGroupTest {
         assertThat(invitation.isExpired()).isFalse();
 
         // 5. Utworzenie drugiego użytkownika w grupie (przez zaproszenie)
-        var externalAuthId2 = "ext-auth-" + UUID.randomUUID();
+        var externalAuthId2 = new ExternalAuthId("ext-auth-" + UUID.randomUUID());
         var registerCommand2 = new RegisterUserCommand(
-                externalAuthId2,
+                externalAuthId2.value(),
                 "user2@example.com",
                 "Jane Smith",
-                "Jane's Group",  // Ta nazwa będzie zignorowana bo użytkownik dołącza przez zaproszenie
+                "Jane's Group",
                 invitation.getInvitationToken()
         );
 
@@ -94,9 +95,9 @@ public class UserGroupTest {
                 .orElseThrow(() -> new AssertionError("Group should exist"));
 
         assertThat(finalGroup).isNotNull();
-        assertThat(finalGroup.getName()).isEqualTo("John's Family Group");  // Nazwa się nie zmieniła
-        assertThat(finalGroup.getMemberCount()).isEqualTo(2);  // Teraz 2 członków
-        assertThat(finalGroup.getMemberIds()).contains(registeredUser.getId(), secondUser.getId());
+        assertThat(finalGroup.name()).isEqualTo("John's Family Group");
+        assertThat(finalGroup.getMemberCount()).isEqualTo(2);
+        assertThat(finalGroup.memberIds()).contains(registeredUser.getId(), secondUser.getId());
 
         // Weryfikacja że zaproszenie zostało zaakceptowane
         var finalInvitation = usersModuleFacade.findInvitationByToken(invitation.getInvitationToken())

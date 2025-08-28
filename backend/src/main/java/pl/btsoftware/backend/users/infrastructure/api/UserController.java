@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
+import pl.btsoftware.backend.users.domain.ExternalAuthId;
 
 @RestController
 @RequestMapping("/api/users")
@@ -40,7 +41,7 @@ public class UserController {
     public UserView getUserProfile(@PathVariable String externalAuthId) {
         log.info("Getting profile for external auth ID: {}", externalAuthId);
 
-        var user = usersModuleFacade.findUserByExternalAuthId(externalAuthId)
+        var user = usersModuleFacade.findUserByExternalAuthId(new ExternalAuthId(externalAuthId))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         return UserView.from(user);

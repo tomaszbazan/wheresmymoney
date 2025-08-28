@@ -23,7 +23,7 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByExternalAuthId(String externalAuthId) {
+    public Optional<User> findByExternalAuthId(ExternalAuthId externalAuthId) {
         return users.values().stream()
             .filter(user -> user.getExternalAuthId().equals(externalAuthId))
             .findFirst();
@@ -49,7 +49,7 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public boolean existsByExternalAuthId(String externalAuthId) {
+    public boolean existsByExternalAuthId(ExternalAuthId externalAuthId) {
         return users.values().stream()
             .anyMatch(user -> user.getExternalAuthId().equals(externalAuthId));
     }

@@ -14,18 +14,12 @@ public class GroupService {
     private final UserRepository userRepository;
 
     public GroupInvitation inviteToGroup(UserId inviterId, InviteToGroupCommand command) {
-        var inviter = userRepository.findById(inviterId)
-                .orElseThrow(() -> new IllegalArgumentException("Inviter not found"));
-
-        var groupId = inviter.getGroupId();
-
-        if (!groupRepository.existsById(groupId)) {
-            throw new IllegalStateException("Inviter's group not found");
-        }
+        var group = groupRepository.findByUserId(inviterId)
+                .orElseThrow(() -> new IllegalArgumentException("Inviter's group not found"));
 
         var invitation = GroupInvitation.create(
-                groupId,
-                command.getInviteeEmail(),
+                group.id(),
+                command.inviteeEmail(),
                 inviterId
         );
 
@@ -54,8 +48,8 @@ public class GroupService {
 
         Group newGroup = groupRepository.findById(newGroupId)
                 .orElseThrow(() -> new IllegalStateException("Target group not found"));
-        newGroup.addMember(userId);
-        groupRepository.save(newGroup);
+        var updatedNewGroup = newGroup.addMember(userId);
+        groupRepository.save(updatedNewGroup);
 
         cleanupOldGroupIfEmpty(oldGroupId, userId);
     }
@@ -75,12 +69,12 @@ public class GroupService {
     private void cleanupOldGroupIfEmpty(GroupId oldGroupId, UserId removedUserId) {
         Group oldGroup = groupRepository.findById(oldGroupId).orElse(null);
         if (oldGroup != null) {
-            oldGroup.removeMember(removedUserId);
+            var updatedOldGroup = oldGroup.removeMember(removedUserId);
 
-            if (oldGroup.isEmpty()) {
+            if (updatedOldGroup.isEmpty()) {
                 groupRepository.deleteById(oldGroupId);
             } else {
-                groupRepository.save(oldGroup);
+                groupRepository.save(updatedOldGroup);
             }
         }
     }

@@ -1,28 +1,31 @@
 package pl.btsoftware.backend.users.domain;
 
+import lombok.Getter;
 import pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
 import java.time.Instant;
 import java.util.Objects;
 
+@Getter
 public class User {
     private final UserId id;
-    private final String externalAuthId;
+    private final ExternalAuthId externalAuthId;
     private final String email;
     private final String displayName;
-    private GroupId groupId;
     private final Instant createdAt;
     private final Instant lastLoginAt;
+    private GroupId groupId;
     private Instant joinedGroupAt;
 
-    public User(UserId id, String externalAuthId, String email, String displayName, 
+    public User(UserId id, ExternalAuthId externalAuthId, String email, String displayName,
                 GroupId groupId, Instant createdAt, Instant lastLoginAt, Instant joinedGroupAt) {
         validateEmail(email);
         validateDisplayName(displayName);
         
         this.id = Objects.requireNonNull(id, "UserId cannot be null");
         this.externalAuthId = Objects.requireNonNull(externalAuthId, "External auth ID cannot be null");
+        Objects.requireNonNull(externalAuthId.value(), "External auth ID value cannot be null");
         this.email = email.trim();
         this.displayName = displayName.trim();
         this.groupId = Objects.requireNonNull(groupId, "GroupId cannot be null");
@@ -31,7 +34,7 @@ public class User {
         this.joinedGroupAt = Objects.requireNonNull(joinedGroupAt, "JoinedGroupAt cannot be null");
     }
 
-    public static User create(String externalAuthId, String email, String displayName, GroupId groupId) {
+    public static User create(ExternalAuthId externalAuthId, String email, String displayName, GroupId groupId) {
         Instant now = Instant.now();
         return new User(
             UserId.generate(),
@@ -60,38 +63,6 @@ public class User {
         if (displayName == null || displayName.trim().isEmpty()) {
             throw new DisplayNameEmptyException();
         }
-    }
-
-    public UserId getId() {
-        return id;
-    }
-
-    public String getExternalAuthId() {
-        return externalAuthId;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public GroupId getGroupId() {
-        return groupId;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getLastLoginAt() {
-        return lastLoginAt;
-    }
-
-    public Instant getJoinedGroupAt() {
-        return joinedGroupAt;
     }
 
     @Override

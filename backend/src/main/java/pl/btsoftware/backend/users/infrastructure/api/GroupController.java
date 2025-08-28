@@ -7,9 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.InviteToGroupCommand;
-import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
-import pl.btsoftware.backend.users.domain.GroupInvitation;
 import pl.btsoftware.backend.users.domain.UserId;
 
 @RestController
@@ -24,11 +22,10 @@ public class GroupController {
     public GroupInvitationView inviteToGroup(@RequestBody @Validated InviteToGroupRequest request,
                                             @RequestParam String inviterId) {
         log.info("Creating invitation for email: {} by inviter: {}", request.email(), inviterId);
-        
-        UserId inviterUserId = UserId.of(inviterId);
-        InviteToGroupCommand command = new InviteToGroupCommand(request.email());
 
-        GroupInvitation invitation = usersModuleFacade.inviteToGroup(inviterUserId, command);
+        var command = new InviteToGroupCommand(request.email());
+
+        var invitation = usersModuleFacade.inviteToGroup(UserId.of(inviterId), command);
         
         log.info("Invitation created with token: {}", invitation.getInvitationToken());
         return GroupInvitationView.from(invitation);
@@ -38,7 +35,7 @@ public class GroupController {
     public GroupInvitationView getInvitationDetails(@PathVariable String token) {
         log.info("Getting invitation details for token: {}", token);
 
-        GroupInvitation invitation = usersModuleFacade.findInvitationByToken(token)
+        var invitation = usersModuleFacade.findInvitationByToken(token)
             .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
         
         return GroupInvitationView.from(invitation);
@@ -46,12 +43,10 @@ public class GroupController {
 
     @PostMapping("/invitation/{token}/accept")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void acceptInvitation(@PathVariable String token,
-                               @RequestParam String userId) {
+    public void acceptInvitation(@PathVariable String token, @RequestParam String userId) {
         log.info("Accepting invitation with token: {} by user: {}", token, userId);
-        
-        UserId userIdObj = UserId.of(userId);
-        usersModuleFacade.acceptInvitation(token, userIdObj);
+
+        usersModuleFacade.acceptInvitation(token, UserId.of(userId));
         
         log.info("Invitation accepted successfully");
     }
@@ -59,9 +54,8 @@ public class GroupController {
     @GetMapping("/{groupId}")
     public GroupView getGroup(@PathVariable String groupId) {
         log.info("Getting group details for ID: {}", groupId);
-        
-        GroupId groupIdObj = GroupId.of(groupId);
-        Group group = usersModuleFacade.findGroupById(groupIdObj)
+
+        var group = usersModuleFacade.findGroupById(GroupId.of(groupId))
             .orElseThrow(() -> new IllegalArgumentException("Group not found"));
         
         return GroupView.from(group);

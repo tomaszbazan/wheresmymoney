@@ -1,7 +1,8 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: false
   flyway:
     enabled: true
+    clean-disabled: false

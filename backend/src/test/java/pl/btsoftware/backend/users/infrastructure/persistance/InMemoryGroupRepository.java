@@ -3,6 +3,7 @@ package pl.btsoftware.backend.users.infrastructure.persistance;
 import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.GroupRepository;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +14,7 @@ public class InMemoryGroupRepository implements GroupRepository {
 
     @Override
     public Group save(Group group) {
-        groups.put(group.getId(), group);
+        groups.put(group.id(), group);
         return group;
     }
 
@@ -25,7 +26,7 @@ public class InMemoryGroupRepository implements GroupRepository {
     @Override
     public Optional<Group> findByName(String name) {
         return groups.values().stream()
-                .filter(group -> group.getName().equals(name))
+                .filter(group -> group.name().equals(name))
                 .findFirst();
     }
 
@@ -37,6 +38,13 @@ public class InMemoryGroupRepository implements GroupRepository {
     @Override
     public boolean existsById(GroupId groupId) {
         return groups.containsKey(groupId);
+    }
+
+    @Override
+    public Optional<Group> findByUserId(UserId inviterId) {
+        return groups.values().stream()
+                .filter(group -> group.memberIds().contains(inviterId))
+                .findFirst();
     }
 
     public void clear() {

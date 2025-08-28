@@ -1,6 +1,8 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -13,6 +15,8 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "groups")
+@Getter
+@Setter
 public class GroupEntity {
 
     @Id
@@ -50,75 +54,33 @@ public class GroupEntity {
 
     public static GroupEntity from(Group group) {
         return new GroupEntity(
-            group.getId().getValue(),
-            group.getName(),
-            group.getDescription(),
-            group.getMemberIds().stream()
+                group.id().getValue(),
+                group.name(),
+                group.description(),
+                group.memberIds().stream()
                 .map(UserId::getValue)
                 .collect(Collectors.toSet()),
-            group.getCreatedBy().getValue(),
-            group.getCreatedAt()
+                group.createdBy().getValue(),
+                group.createdAt()
         );
     }
 
     public Group toDomain() {
-        return new Group(
-            new GroupId(id),
-            name,
-            description,
-            memberIds.stream()
+        Set<UserId> domainMemberIds = memberIds.stream()
                 .map(UserId::new)
-                .collect(Collectors.toSet()),
-            new UserId(createdBy),
-            createdAt
-        );
-    }
+                .collect(Collectors.toSet());
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Set<UUID> getMemberIds() {
-        return memberIds;
-    }
-
-    public void setMemberIds(Set<UUID> memberIds) {
-        this.memberIds = memberIds;
-    }
-
-    public UUID getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(UUID createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
+        if (domainMemberIds.isEmpty()) {
+            return Group.createEmptyWithId(new GroupId(id), name, description, new UserId(createdBy), createdAt);
+        } else {
+            return new Group(
+                    new GroupId(id),
+                    name,
+                    description,
+                    domainMemberIds,
+                    new UserId(createdBy),
+                    createdAt
+            );
+        }
     }
 }

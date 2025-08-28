@@ -14,40 +14,18 @@ public class UserService {
     private final GroupInvitationRepository invitationRepository;
 
     public User registerUser(RegisterUserCommand command) {
-        if (userRepository.existsByExternalAuthId(command.externalAuthId())) {
+        if (userRepository.existsByExternalAuthId(new ExternalAuthId(command.externalAuthId()))) {
             throw new IllegalStateException("User with external auth ID already exists");
         }
 
-        var user = User.create(
-                command.externalAuthId(),
-                command.email(),
-                command.displayName(),
-                GroupId.generate()
-        );
-        
-        GroupId groupId;
-
         if (command.hasInvitationToken()) {
-            groupId = handleInvitationBasedRegistration(command);
-            user.changeGroup(groupId);
+            return registerUserToExistingGroup(command);
         } else {
-            groupId = createNewGroupForUser(command, user.getId());
-            user.changeGroup(groupId);
+            return registerUserInNewGroup(command);
         }
-
-        userRepository.save(user);
-        
-        if (command.hasInvitationToken()) {
-            Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalStateException("Group not found"));
-            group.addMember(user.getId());
-            groupRepository.save(group);
-        }
-
-        return user;
     }
 
-    public Optional<User> findByExternalAuthId(String externalAuthId) {
+    public Optional<User> findByExternalAuthId(ExternalAuthId externalAuthId) {
         return userRepository.findByExternalAuthId(externalAuthId);
     }
 
@@ -59,53 +37,57 @@ public class UserService {
         return userRepository.findByGroupId(groupId);
     }
 
-    public void transferUserToGroup(UserId userId, GroupId newGroupId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        
-        GroupId oldGroupId = user.getGroupId();
-        
-        user.changeGroup(newGroupId);
+    private User registerUserToExistingGroup(RegisterUserCommand command) {
+        var groupId = handleInvitationBasedRegistration(command);
+
+        var user = User.create(
+                new ExternalAuthId(command.externalAuthId()),
+                command.email(),
+                command.displayName(),
+                groupId
+        );
+
         userRepository.save(user);
-        
-        Group newGroup = groupRepository.findById(newGroupId)
-            .orElseThrow(() -> new IllegalArgumentException("Target group not found"));
-        newGroup.addMember(userId);
-        groupRepository.save(newGroup);
-        
-        cleanupOldGroupIfEmpty(oldGroupId, userId);
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalStateException("Group not found"));
+        var updatedGroup = group.addMember(user.getId());
+        groupRepository.save(updatedGroup);
+
+        return user;
+    }
+
+    private User registerUserInNewGroup(RegisterUserCommand command) {
+        String groupName = command.groupName() != null && !command.groupName().trim().isEmpty()
+                ? command.groupName()
+                : command.displayName() + "'s Group";
+
+        var user = User.create(
+                new ExternalAuthId(command.externalAuthId()),
+                command.email(),
+                command.displayName(),
+                GroupId.generate()
+        );
+
+        var group = Group.createEmpty(groupName, "", user.getId());
+        user.changeGroup(group.id());
+
+        groupRepository.save(group);
+        userRepository.save(user);
+
+        var updatedGroup = group.addMember(user.getId());
+        groupRepository.save(updatedGroup);
+
+        return user;
     }
 
     private GroupId handleInvitationBasedRegistration(RegisterUserCommand command) {
-        GroupInvitation invitation = invitationRepository.findByToken(command.invitationToken())
+        var invitation = invitationRepository.findByToken(command.invitationToken())
             .orElseThrow(InvitationNotFoundException::new);
         
         invitation.accept();
         invitationRepository.save(invitation);
         
         return invitation.getGroupId();
-    }
-
-    private GroupId createNewGroupForUser(RegisterUserCommand command, UserId userId) {
-        String groupName = command.groupName() != null && !command.groupName().trim().isEmpty()
-                ? command.groupName()
-                : command.displayName() + "'s Group";
-
-        var group = Group.create(groupName, "", userId);
-        groupRepository.save(group);
-        
-        return group.getId();
-    }
-
-    private void cleanupOldGroupIfEmpty(GroupId oldGroupId, UserId removedUserId) {
-        Group oldGroup = groupRepository.findById(oldGroupId).orElse(null);
-        if (oldGroup != null) {
-            if (oldGroup.getMemberCount() == 1) {
-                groupRepository.deleteById(oldGroupId);
-            } else {
-                oldGroup.removeMember(removedUserId);
-                groupRepository.save(oldGroup);
-            }
-        }
     }
 }

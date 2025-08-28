@@ -1,6 +1,10 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import pl.btsoftware.backend.users.domain.ExternalAuthId;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -54,7 +58,7 @@ public class UserEntity {
     public static UserEntity from(User user) {
         return new UserEntity(
             user.getId().getValue(),
-            user.getExternalAuthId(),
+                user.getExternalAuthId().value(),
             user.getEmail(),
             user.getDisplayName(),
             user.getGroupId().getValue(),
@@ -67,7 +71,7 @@ public class UserEntity {
     public User toDomain() {
         return new User(
             new UserId(id),
-            externalAuthId,
+                new ExternalAuthId(externalAuthId),
             email,
             displayName,
             new GroupId(groupId),
