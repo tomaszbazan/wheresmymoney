@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
+import pl.btsoftware.backend.users.domain.ExternalAuthId;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -39,14 +40,15 @@ class UserControllerTest {
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
-        RegisterUserRequest request = new RegisterUserRequest(
-            "ext-auth-123",
+        var externalAuthId = new ExternalAuthId("ext-auth-123");
+        var request = new RegisterUserRequest(
+                externalAuthId.value(),
             "test@example.com",
             "John Doe",
             "My Group"
         );
 
-        User mockUser = createMockUser("ext-auth-123", "test@example.com", "John Doe");
+        User mockUser = createMockUser(externalAuthId, "test@example.com", "John Doe");
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenReturn(mockUser);
 
         mockMvc.perform(post("/api/users/register")
@@ -66,14 +68,15 @@ class UserControllerTest {
 
     @Test
     void shouldRegisterUserWithInvitationToken() throws Exception {
+        var externalAuthId = new ExternalAuthId("ext-auth-456");
         RegisterUserRequest request = new RegisterUserRequest(
-            "ext-auth-456",
+                externalAuthId.value(),
             "invited@example.com",
             "Jane Doe",
             "Ignored Group"
         );
 
-        User mockUser = createMockUser("ext-auth-456", "invited@example.com", "Jane Doe");
+        User mockUser = createMockUser(externalAuthId, "invited@example.com", "Jane Doe");
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenReturn(mockUser);
 
         mockMvc.perform(post("/api/users/register")
@@ -89,14 +92,14 @@ class UserControllerTest {
 
     @Test
     void shouldGetUserProfileSuccessfully() throws Exception {
-        String externalAuthId = "ext-auth-789";
+        var externalAuthId = new ExternalAuthId("ext-auth-789");
         User mockUser = createMockUser(externalAuthId, "profile@example.com", "Profile User");
         when(usersModuleFacade.findUserByExternalAuthId(externalAuthId)).thenReturn(Optional.of(mockUser));
 
-        mockMvc.perform(get("/api/users/profile/{externalAuthId}", externalAuthId))
+        mockMvc.perform(get("/api/users/profile/{externalAuthId}", externalAuthId.value()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.externalAuthId").value(externalAuthId))
+                .andExpect(jsonPath("$.externalAuthId").value("ext-auth-789"))
                 .andExpect(jsonPath("$.email").value("profile@example.com"))
                 .andExpect(jsonPath("$.displayName").value("Profile User"))
                 .andExpect(jsonPath("$.groupId").exists())
@@ -105,10 +108,10 @@ class UserControllerTest {
 
     @Test
     void shouldReturn400WhenUserNotFound() throws Exception {
-        String externalAuthId = "non-existent";
+        var externalAuthId = new ExternalAuthId("non-existent");
         when(usersModuleFacade.findUserByExternalAuthId(externalAuthId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/users/profile/{externalAuthId}", externalAuthId))
+        mockMvc.perform(get("/api/users/profile/{externalAuthId}", externalAuthId.value()))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("User not found"));
     }
@@ -190,7 +193,7 @@ class UserControllerTest {
                 .andExpect(status().isInternalServerError());
     }
 
-    private User createMockUser(String externalAuthId, String email, String displayName) {
+    private User createMockUser(ExternalAuthId externalAuthId, String email, String displayName) {
         UserId userId = UserId.generate();
         GroupId groupId = GroupId.generate();
         Instant now = Instant.now();

@@ -13,7 +13,7 @@ class UserTest {
 
     @Test
     void shouldCreateUserWithValidData() {
-        String externalAuthId = "ext-auth-123";
+        ExternalAuthId externalAuthId = new ExternalAuthId("ext-auth-123");
         String email = "test@example.com";
         String displayName = "John Doe";
         GroupId groupId = GroupId.generate();
@@ -32,37 +32,37 @@ class UserTest {
 
     @Test
     void shouldThrowExceptionWhenEmailIsNull() {
-        assertThatThrownBy(() -> User.create("ext-auth-123", null, "John Doe", GroupId.generate()))
+        assertThatThrownBy(() -> User.create(new ExternalAuthId("ext-auth-123"), null, "John Doe", GroupId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsEmpty() {
-        assertThatThrownBy(() -> User.create("ext-auth-123", "", "John Doe", GroupId.generate()))
+        assertThatThrownBy(() -> User.create(new ExternalAuthId("ext-auth-123"), "", "John Doe", GroupId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsBlank() {
-        assertThatThrownBy(() -> User.create("ext-auth-123", "   ", "John Doe", GroupId.generate()))
+        assertThatThrownBy(() -> User.create(new ExternalAuthId("ext-auth-123"), "   ", "John Doe", GroupId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsNull() {
-        assertThatThrownBy(() -> User.create("ext-auth-123", "test@example.com", null, GroupId.generate()))
+        assertThatThrownBy(() -> User.create(new ExternalAuthId("ext-auth-123"), "test@example.com", null, GroupId.generate()))
                 .isInstanceOf(DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsEmpty() {
-        assertThatThrownBy(() -> User.create("ext-auth-123", "test@example.com", "", GroupId.generate()))
+        assertThatThrownBy(() -> User.create(new ExternalAuthId("ext-auth-123"), "test@example.com", "", GroupId.generate()))
                 .isInstanceOf(DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsBlank() {
-        assertThatThrownBy(() -> User.create("ext-auth-123", "test@example.com", "   ", GroupId.generate()))
+        assertThatThrownBy(() -> User.create(new ExternalAuthId("ext-auth-123"), "test@example.com", "   ", GroupId.generate()))
                 .isInstanceOf(DisplayNameEmptyException.class);
     }
 
@@ -71,7 +71,7 @@ class UserTest {
         String email = "  test@example.com  ";
         String displayName = "  John Doe  ";
 
-        User user = User.create("ext-auth-123", email, displayName, GroupId.generate());
+        User user = User.create(new ExternalAuthId("ext-auth-123"), email, displayName, GroupId.generate());
 
         assertThat(user.getEmail()).isEqualTo("test@example.com");
         assertThat(user.getDisplayName()).isEqualTo("John Doe");
@@ -79,7 +79,7 @@ class UserTest {
 
     @Test
     void shouldChangeGroup() {
-        User user = User.create("ext-auth-123", "test@example.com", "John Doe", GroupId.generate());
+        User user = User.create(new ExternalAuthId("ext-auth-123"), "test@example.com", "John Doe", GroupId.generate());
         GroupId newGroupId = GroupId.generate();
         Instant beforeChange = Instant.now();
 
@@ -91,7 +91,7 @@ class UserTest {
 
     @Test
     void shouldThrowExceptionWhenChangingToNullGroup() {
-        User user = User.create("ext-auth-123", "test@example.com", "John Doe", GroupId.generate());
+        User user = User.create(new ExternalAuthId("ext-auth-123"), "test@example.com", "John Doe", GroupId.generate());
 
         assertThatThrownBy(() -> user.changeGroup(null))
                 .isInstanceOf(NullPointerException.class);
@@ -103,8 +103,8 @@ class UserTest {
         GroupId groupId = GroupId.generate();
         Instant now = Instant.now();
 
-        User user1 = new User(userId, "ext-auth-123", "test@example.com", "John Doe", groupId, now, now, now);
-        User user2 = new User(userId, "ext-auth-456", "other@example.com", "Jane Doe", GroupId.generate(), now, now, now);
+        User user1 = new User(userId, new ExternalAuthId("ext-auth-123"), "test@example.com", "John Doe", groupId, now, now, now);
+        User user2 = new User(userId, new ExternalAuthId("ext-auth-456"), "other@example.com", "Jane Doe", GroupId.generate(), now, now, now);
 
         assertThat(user1).isEqualTo(user2);
         assertThat(user1.hashCode()).isEqualTo(user2.hashCode());
@@ -115,8 +115,8 @@ class UserTest {
         GroupId groupId = GroupId.generate();
         Instant now = Instant.now();
 
-        User user1 = new User(UserId.generate(), "ext-auth-123", "test@example.com", "John Doe", groupId, now, now, now);
-        User user2 = new User(UserId.generate(), "ext-auth-123", "test@example.com", "John Doe", groupId, now, now, now);
+        User user1 = new User(UserId.generate(), new ExternalAuthId("ext-auth-123"), "test@example.com", "John Doe", groupId, now, now, now);
+        User user2 = new User(UserId.generate(), new ExternalAuthId("ext-auth-123"), "test@example.com", "John Doe", groupId, now, now, now);
 
         assertThat(user1).isNotEqualTo(user2);
     }

@@ -8,12 +8,9 @@ import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryGroupInvit
 import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryGroupRepository;
 import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryUserRepository;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GroupServiceTest {
-
     private GroupService groupService;
     private InMemoryGroupRepository groupRepository;
     private InMemoryGroupInvitationRepository invitationRepository;
@@ -29,14 +26,17 @@ class GroupServiceTest {
 
     @Test
     void shouldFindGroupById() {
-        UserId creatorId = UserId.generate();
-        Group group = Group.create("Test Group", "Description", creatorId);
+        // given
+        var creatorId = UserId.generate();
+        var group = Group.create("Test Group", "Description", creatorId);
         groupRepository.save(group);
 
-        Optional<Group> found = groupService.findGroupById(group.getId());
+        // when
+        var found = groupService.findGroupById(group.id());
 
+        // then
         assertThat(found).isPresent();
-        assertThat(found.get().getName()).isEqualTo("Test Group");
-        assertThat(found.get().getId()).isEqualTo(group.getId());
+        assertThat(found.get().name()).isEqualTo("Test Group");
+        assertThat(found.get().id()).isEqualTo(group.id());
     }
 }

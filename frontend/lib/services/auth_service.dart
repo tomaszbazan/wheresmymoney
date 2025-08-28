@@ -111,7 +111,7 @@ class AuthService {
       body: jsonEncode(body),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 201) {
       throw Exception('Failed to register user: ${response.body}');
     }
   }

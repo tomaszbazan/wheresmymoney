@@ -10,7 +10,7 @@ public record UserView(String id, String externalAuthId, String email, String di
     public static UserView from(User user) {
         return new UserView(
                 user.getId().toString(),
-                user.getExternalAuthId(),
+                user.getExternalAuthId().value(),
                 user.getEmail(),
                 user.getDisplayName(),
                 user.getGroupId().toString(),

@@ -5,17 +5,11 @@
 # Build the application
 gradle clean build
 
-# Run locally (development)
-./gradlew bootRun
+# Run unit tests (skipping system tests)
+gradle clean test -x systemTest
 
-# Build Docker image
-docker build -t wheresmymoney:version .
-
-# Run with Docker Compose (production)
-docker compose up --no-deps --build
-
-# Run tests
-./gradlew test
+# Run system tests (skipping unit tests)
+gradle clean systemTest -x test
 ```
 
 ## Architecture
@@ -61,3 +55,13 @@ The application is organized around business modules.
 - Integration tests use `@IntegrationTest` annotation with Testcontainers
 - In-memory repository implementations for unit testing
 - Test fixtures in `infrastructure/persistance/` package
+
+## Development Requirements
+
+- Prefer record above classes for simple data carriers
+- Use `var` for local variables when the type is obvious
+- Avoid Lombok for domain objects; use it in infrastructure layer if needed
+- Write small, focused methods and classes
+- Use functional programming techniques where appropriate
+- Follow the project's coding standards and best practices
+- After each feature or bug fix, ensure all tests pass (unit and system) and code is cleaned up

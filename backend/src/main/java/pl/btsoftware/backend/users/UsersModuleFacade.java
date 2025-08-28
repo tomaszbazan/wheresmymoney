@@ -8,7 +8,6 @@ import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.application.UserService;
 import pl.btsoftware.backend.users.domain.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -21,20 +20,8 @@ public class UsersModuleFacade {
         return userService.registerUser(command);
     }
 
-    public Optional<User> findUserByExternalAuthId(String externalAuthId) {
+    public Optional<User> findUserByExternalAuthId(ExternalAuthId externalAuthId) {
         return userService.findByExternalAuthId(externalAuthId);
-    }
-
-    public Optional<User> findUserById(UserId userId) {
-        return userService.findById(userId);
-    }
-
-    public List<User> findGroupMembers(GroupId groupId) {
-        return userService.findGroupMembers(groupId);
-    }
-
-    public void transferUserToGroup(UserId userId, GroupId newGroupId) {
-        userService.transferUserToGroup(userId, newGroupId);
     }
 
     public GroupInvitation inviteToGroup(UserId inviterId, InviteToGroupCommand command) {
@@ -51,13 +38,5 @@ public class UsersModuleFacade {
 
     public Optional<Group> findGroupById(GroupId groupId) {
         return groupService.findGroupById(groupId);
-    }
-
-    public List<GroupInvitation> findPendingInvitationsForGroup(GroupId groupId) {
-        return groupService.findPendingInvitationsForGroup(groupId);
-    }
-
-    public void cleanupExpiredInvitations() {
-        groupService.cleanupExpiredInvitations();
     }
 }

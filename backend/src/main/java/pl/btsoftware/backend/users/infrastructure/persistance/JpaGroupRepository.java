@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.GroupRepository;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.Optional;
 
@@ -42,5 +43,11 @@ public class JpaGroupRepository implements GroupRepository {
     @Override
     public boolean existsById(GroupId groupId) {
         return jpaRepository.existsById(groupId.getValue());
+    }
+
+    @Override
+    public Optional<Group> findByUserId(UserId inviterId) {
+        return jpaRepository.findByMemberIdsContains(inviterId.getValue())
+                .map(GroupEntity::toDomain);
     }
 }

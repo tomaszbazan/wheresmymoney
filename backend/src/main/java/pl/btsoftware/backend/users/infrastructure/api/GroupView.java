@@ -28,14 +28,14 @@ public class GroupView {
 
     public static GroupView from(Group group) {
         return new GroupView(
-            group.getId().toString(),
-            group.getName(),
-            group.getDescription(),
-            group.getMemberIds().stream()
+                group.id().toString(),
+                group.name(),
+                group.description(),
+                group.memberIds().stream()
                 .map(Object::toString)
                 .collect(Collectors.toList()),
-            group.getCreatedBy().toString(),
-            group.getCreatedAt(),
+                group.createdBy().toString(),
+                group.createdAt(),
             group.getMemberCount()
         );
     }

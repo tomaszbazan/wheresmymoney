@@ -19,13 +19,13 @@ class GroupTest {
 
         Group group = Group.create(name, description, creatorId);
 
-        assertThat(group.getId()).isNotNull();
-        assertThat(group.getName()).isEqualTo(name);
-        assertThat(group.getDescription()).isEqualTo(description);
-        assertThat(group.getCreatedBy()).isEqualTo(creatorId);
+        assertThat(group.id()).isNotNull();
+        assertThat(group.name()).isEqualTo(name);
+        assertThat(group.description()).isEqualTo(description);
+        assertThat(group.createdBy()).isEqualTo(creatorId);
         assertThat(group.hasMember(creatorId)).isTrue();
         assertThat(group.getMemberCount()).isEqualTo(1);
-        assertThat(group.getCreatedAt()).isNotNull();
+        assertThat(group.createdAt()).isNotNull();
     }
 
     @Test
@@ -35,7 +35,7 @@ class GroupTest {
 
         Group group = Group.create(name, null, creatorId);
 
-        assertThat(group.getDescription()).isEmpty();
+        assertThat(group.description()).isEmpty();
     }
 
     @Test
@@ -64,8 +64,8 @@ class GroupTest {
 
         Group group = Group.create(name, description, creatorId);
 
-        assertThat(group.getName()).isEqualTo("Test Group");
-        assertThat(group.getDescription()).isEqualTo("Test Description");
+        assertThat(group.name()).isEqualTo("Test Group");
+        assertThat(group.description()).isEqualTo("Test Description");
     }
 
     @Test
@@ -73,7 +73,7 @@ class GroupTest {
         Group group = Group.create("Test Group", "Description", UserId.generate());
         UserId newMember = UserId.generate();
 
-        group.addMember(newMember);
+        group = group.addMember(newMember);
 
         assertThat(group.hasMember(newMember)).isTrue();
         assertThat(group.getMemberCount()).isEqualTo(2);
@@ -84,9 +84,9 @@ class GroupTest {
         UserId creator = UserId.generate();
         UserId member = UserId.generate();
         Group group = Group.create("Test Group", "Description", creator);
-        group.addMember(member);
+        group = group.addMember(member);
 
-        group.removeMember(member);
+        group = group.removeMember(member);
 
         assertThat(group.hasMember(member)).isFalse();
         assertThat(group.getMemberCount()).isEqualTo(1);
@@ -109,19 +109,23 @@ class GroupTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenCreatedWithEmptyMembers() {
-        assertThatThrownBy(() -> new Group(GroupId.generate(), "Name", "Description", Set.of(), UserId.generate(), Instant.now()))
-                .isInstanceOf(IllegalArgumentException.class);
+    void shouldAllowCreationWithEmptyMembers() {
+        // The canonical constructor allows empty members - only the private constructor with validation doesn't
+        Group group = new Group(GroupId.generate(), "Name", "Description", Set.of(), UserId.generate(), Instant.now());
+
+        assertThat(group.isEmpty()).isTrue();
+        assertThat(group.getMemberCount()).isEqualTo(0);
     }
 
     @Test
-    void shouldBeEqualWhenSameId() {
+    void shouldBeEqualWhenAllFieldsAreEqual() {
         GroupId groupId = GroupId.generate();
         UserId creatorId = UserId.generate();
+        Set<UserId> memberIds = Set.of(creatorId);
         Instant now = Instant.now();
 
-        Group group1 = new Group(groupId, "Name1", "Desc1", Set.of(creatorId), creatorId, now);
-        Group group2 = new Group(groupId, "Name2", "Desc2", Set.of(UserId.generate()), UserId.generate(), now);
+        Group group1 = new Group(groupId, "Name", "Description", memberIds, creatorId, now);
+        Group group2 = new Group(groupId, "Name", "Description", memberIds, creatorId, now);
 
         assertThat(group1).isEqualTo(group2);
         assertThat(group1.hashCode()).isEqualTo(group2.hashCode());

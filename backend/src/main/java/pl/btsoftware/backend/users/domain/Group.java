@@ -3,31 +3,30 @@ package pl.btsoftware.backend.users.domain;
 import pl.btsoftware.backend.users.domain.error.GroupNameEmptyException;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class Group {
-    private final GroupId id;
-    private final String name;
-    private final String description;
-    private final Set<UserId> memberIds;
-    private final UserId createdBy;
-    private final Instant createdAt;
+public record Group(GroupId id, String name, String description, Set<UserId> memberIds, UserId createdBy,
+                    Instant createdAt) {
 
-    public Group(GroupId id, String name, String description, Set<UserId> memberIds, 
-                 UserId createdBy, Instant createdAt) {
+    public Group {
         validateName(name);
-        
-        this.id = Objects.requireNonNull(id, "GroupId cannot be null");
-        this.name = name.trim();
-        this.description = description != null ? description.trim() : "";
-        this.memberIds = new HashSet<>(Objects.requireNonNull(memberIds, "Member IDs cannot be null"));
-        this.createdBy = Objects.requireNonNull(createdBy, "CreatedBy cannot be null");
-        this.createdAt = Objects.requireNonNull(createdAt, "CreatedAt cannot be null");
-        
-        if (this.memberIds.isEmpty()) {
+
+        Objects.requireNonNull(id, "GroupId cannot be null");
+        Objects.requireNonNull(memberIds, "Member IDs cannot be null");
+        Objects.requireNonNull(createdBy, "CreatedBy cannot be null");
+        Objects.requireNonNull(createdAt, "CreatedAt cannot be null");
+
+        name = name.trim();
+        description = description != null ? description.trim() : "";
+        memberIds = new HashSet<>(memberIds);
+    }
+
+    private Group(GroupId id, String name, String description, Set<UserId> memberIds, UserId createdBy, Instant createdAt, boolean validateMembers) {
+        this(id, name, description, memberIds, createdBy, createdAt);
+
+        if (validateMembers && memberIds.isEmpty()) {
             throw new IllegalArgumentException("Group must have at least one member");
         }
     }
@@ -44,19 +43,47 @@ public class Group {
         );
     }
 
-    public void addMember(UserId userId) {
-        Objects.requireNonNull(userId, "UserId cannot be null");
-        memberIds.add(userId);
+    public static Group createEmpty(String name, String description, UserId creatorId) {
+        return new Group(
+                GroupId.generate(),
+                name,
+                description,
+                new HashSet<>(),
+                creatorId,
+                Instant.now(),
+                false
+        );
     }
 
-    public void removeMember(UserId userId) {
+    public static Group createEmptyWithId(GroupId id, String name, String description, UserId creatorId, Instant createdAt) {
+        return new Group(
+                id,
+                name,
+                description,
+                new HashSet<>(),
+                creatorId,
+                createdAt,
+                false
+        );
+    }
+
+    public Group addMember(UserId userId) {
+        Objects.requireNonNull(userId, "UserId cannot be null");
+        var newMemberIds = new HashSet<>(memberIds);
+        newMemberIds.add(userId);
+        return new Group(id, name, description, newMemberIds, createdBy, createdAt);
+    }
+
+    public Group removeMember(UserId userId) {
         Objects.requireNonNull(userId, "UserId cannot be null");
         
         if (memberIds.size() <= 1) {
             throw new IllegalStateException("Cannot remove last member from group");
         }
-        
-        memberIds.remove(userId);
+
+        var newMemberIds = new HashSet<>(memberIds);
+        newMemberIds.remove(userId);
+        return new Group(id, name, description, newMemberIds, createdBy, createdAt);
     }
 
     public boolean hasMember(UserId userId) {
@@ -75,42 +102,5 @@ public class Group {
         if (name == null || name.trim().isEmpty()) {
             throw new GroupNameEmptyException();
         }
-    }
-
-    public GroupId getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Set<UserId> getMemberIds() {
-        return Collections.unmodifiableSet(memberIds);
-    }
-
-    public UserId getCreatedBy() {
-        return createdBy;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Group group = (Group) o;
-        return Objects.equals(id, group.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }

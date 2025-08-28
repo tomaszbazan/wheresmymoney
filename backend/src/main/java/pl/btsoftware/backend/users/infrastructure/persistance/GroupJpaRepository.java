@@ -9,4 +9,6 @@ import java.util.UUID;
 @Repository
 public interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
     Optional<GroupEntity> findByName(String name);
+
+    Optional<GroupEntity> findByMemberIdsContains(UUID userId);
 }
