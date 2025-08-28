@@ -38,7 +38,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static pl.btsoftware.backend.shared.Currency.EUR;
 import static pl.btsoftware.backend.shared.Currency.PLN;
 
-@WebMvcTest(AccountController.class)
+@WebMvcTest(controllers = AccountController.class, excludeAutoConfiguration = {
+    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+})
 public class AccountControllerTest {
 
     @Autowired

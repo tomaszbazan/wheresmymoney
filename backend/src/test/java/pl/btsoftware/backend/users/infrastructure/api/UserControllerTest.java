@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.domain.ExternalAuthId;
@@ -22,11 +24,13 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest({UserController.class, UserExceptionHandler.class})
+@Import(WebConfig.class)
 class UserControllerTest {
 
     @Autowired
@@ -92,11 +96,12 @@ class UserControllerTest {
 
     @Test
     void shouldGetUserProfileSuccessfully() throws Exception {
-        var externalAuthId = new ExternalAuthId("ext-auth-789");
-        User mockUser = createMockUser(externalAuthId, "profile@example.com", "Profile User");
-        when(usersModuleFacade.findUserByExternalAuthId(externalAuthId)).thenReturn(Optional.of(mockUser));
+        String externalAuthId = "ext-auth-789";
+        User mockUser = createMockUser(new ExternalAuthId(externalAuthId), "profile@example.com", "Profile User");
+        when(usersModuleFacade.findUserByExternalAuthId(new ExternalAuthId(externalAuthId))).thenReturn(Optional.of(mockUser));
 
-        mockMvc.perform(get("/api/users/profile/{externalAuthId}", externalAuthId.value()))
+        mockMvc.perform(get("/api/users/profile")
+                .with(jwt().jwt(jwt -> jwt.subject(externalAuthId))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.externalAuthId").value("ext-auth-789"))
@@ -108,10 +113,11 @@ class UserControllerTest {
 
     @Test
     void shouldReturn400WhenUserNotFound() throws Exception {
-        var externalAuthId = new ExternalAuthId("non-existent");
-        when(usersModuleFacade.findUserByExternalAuthId(externalAuthId)).thenReturn(Optional.empty());
+        String externalAuthId = "non-existent";
+        when(usersModuleFacade.findUserByExternalAuthId(new ExternalAuthId(externalAuthId))).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/users/profile/{externalAuthId}", externalAuthId.value()))
+        mockMvc.perform(get("/api/users/profile")
+                .with(jwt().jwt(jwt -> jwt.subject(externalAuthId))))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("User not found"));
     }
@@ -181,6 +187,29 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("User with external auth ID already exists"));
+    }
+
+    @Test
+    void shouldReturnUnauthorizedWhenAccessingProfileWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/users/profile"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldGetUserProfileFromJwtToken() throws Exception {
+        String externalAuthId = "df00a992-8653-475e-84b5-7f1ffd9170fb";
+        User mockUser = createMockUser(new ExternalAuthId(externalAuthId), "test@example.com", "Test User");
+        
+        when(usersModuleFacade.findUserByExternalAuthId(new ExternalAuthId(externalAuthId)))
+            .thenReturn(Optional.of(mockUser));
+
+        mockMvc.perform(get("/api/users/profile")
+                .with(jwt().jwt(jwt -> jwt.subject(externalAuthId))))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.externalAuthId").value(externalAuthId))
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.displayName").value("Test User"));
     }
 
     @Test

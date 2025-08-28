@@ -42,8 +42,9 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (error) {
       if (mounted) {
+        String errorMessage = _getErrorMessage(error);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: $error')),
+          SnackBar(content: Text(errorMessage)),
         );
       }
     } finally {
@@ -53,6 +54,29 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     }
+  }
+
+  String _getErrorMessage(dynamic error) {
+    String errorString = error.toString().toLowerCase();
+    
+    if (errorString.contains('invalid') && 
+        (errorString.contains('credential') || errorString.contains('password') || errorString.contains('email'))) {
+      return 'Nieprawidłowy email lub hasło';
+    }
+    
+    if (errorString.contains('invalid email or password')) {
+      return 'Nieprawidłowy email lub hasło';
+    }
+    
+    if (errorString.contains('too many requests')) {
+      return 'Zbyt wiele prób logowania. Spróbuj ponownie za chwilę';
+    }
+    
+    if (errorString.contains('network') || errorString.contains('connection')) {
+      return 'Błąd połączenia z serwerem. Sprawdź połączenie internetowe';
+    }
+    
+    return 'Błąd logowania. Spróbuj ponownie';
   }
 
   @override

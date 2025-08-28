@@ -10,6 +10,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/wheresmymoney
       - SPRING_DATASOURCE_USERNAME=wheresmymoney
       - SPRING_DATASOURCE_PASSWORD=mypassword
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET:-}
     ports:
       - "9080:9080"
     depends_on:

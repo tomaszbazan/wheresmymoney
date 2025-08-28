@@ -3,6 +3,8 @@ package pl.btsoftware.backend.users.infrastructure.api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.users.UsersModuleFacade;
@@ -37,9 +39,10 @@ public class UserController {
         return UserView.from(user);
     }
 
-    @GetMapping("/profile/{externalAuthId}")
-    public UserView getUserProfile(@PathVariable String externalAuthId) {
-        log.info("Getting profile for external auth ID: {}", externalAuthId);
+    @GetMapping("/profile")
+    public UserView getUserProfile(@AuthenticationPrincipal Jwt jwt) {
+        String externalAuthId = jwt.getSubject();
+        log.info("Getting profile for external auth ID from JWT: {}", externalAuthId);
 
         var user = usersModuleFacade.findUserByExternalAuthId(new ExternalAuthId(externalAuthId))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

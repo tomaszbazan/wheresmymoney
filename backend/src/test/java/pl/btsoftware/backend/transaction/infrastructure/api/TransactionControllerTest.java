@@ -29,7 +29,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static pl.btsoftware.backend.shared.Currency.PLN;
 
-@WebMvcTest(TransactionController.class)
+@WebMvcTest(controllers = TransactionController.class, excludeAutoConfiguration = {
+    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+})
 public class TransactionControllerTest {
 
     @Autowired
