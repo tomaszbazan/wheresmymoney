@@ -65,18 +65,24 @@ class AuthService {
   }
 
   Future<app_user.User> signInWithEmail(String email, String password) async {
-    final response = await _supabase.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
 
-    if (response.user == null) {
+      if (response.user == null) {
+        throw Exception('Invalid email or password');
+      }
+
+      final user = await _fetchUserFromBackend();
+      await _saveUserLocally(user);
+      return user;
+    } on AuthException {
+      throw Exception('Invalid email or password');
+    } catch (e) {
       throw Exception('Invalid email or password');
     }
-
-    final user = await _fetchUserFromBackend();
-    await _saveUserLocally(user);
-    return user;
   }
 
   Future<void> signOut() async {
