@@ -101,6 +101,7 @@ jobs:
             -e "SPRING_DATASOURCE_URL=${{ secrets.DATASOURCE_URL }}" \
             -e "SPRING_DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }}" \
             -e "SPRING_DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }}" \
+            -e "SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }}" \
             ${{ env.BACKEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
             
             # Start frontend container
