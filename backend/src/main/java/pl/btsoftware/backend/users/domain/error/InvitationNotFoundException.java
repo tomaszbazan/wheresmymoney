@@ -1,7 +1,9 @@
 package pl.btsoftware.backend.users.domain.error;
 
-public class InvitationNotFoundException extends UserBusinessException {
+import pl.btsoftware.backend.account.domain.error.BusinessException;
+
+public class InvitationNotFoundException extends BusinessException {
     public InvitationNotFoundException() {
-        super("Invitation not found");
+        super("INVITATION_NOT_FOUND", "Invitation not found");
     }
 }

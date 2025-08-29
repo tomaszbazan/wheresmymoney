@@ -4,36 +4,36 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountRepository;
+import pl.btsoftware.backend.account.domain.error.AccountAccessDeniedException;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.domain.error.CannotDeleteAccountWithTransactionsException;
-import pl.btsoftware.backend.shared.AccountId;
-import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionId;
-import pl.btsoftware.backend.shared.TransactionType;
+import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.users.UsersModuleFacade;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.List;
-
-import static pl.btsoftware.backend.shared.Currency.PLN;
 
 @Service
 @AllArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
+    private final UsersModuleFacade usersModuleFacade;
 
     public Account createAccount(CreateAccountCommand command) {
-        var currency = command.currency() == null ? PLN : command.currency();
-        if (accountRepository.findByNameAndCurrency(command.name(), currency).isPresent()) {
-            throw new AccountAlreadyExistsException();
-        }
-        
-        var account = command.toDomain();
+        var user = usersModuleFacade.findUserOrThrow(command.userId());
+        var currency = command.currency() == null ? Currency.DEFAULT : command.currency();
+        accountRepository.findByNameAndCurrency(command.name(), currency, new GroupId(user.groupId())).orElseThrow(AccountAlreadyExistsException::new);
+
+        var account = command.toDomain(user);
         accountRepository.store(account);
         return account;
     }
 
-    public List<Account> getAccounts() {
-        return accountRepository.findAll();
+    public List<Account> getAccounts(UserId userId) {
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        return accountRepository.findAllBy(new GroupId(user.groupId()));
     }
 
     public Account getById(AccountId id) {
@@ -45,7 +45,7 @@ public class AccountService {
         var account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
-        var existingAccount = accountRepository.findByNameAndCurrency(newName, account.balance().currency());
+        var existingAccount = accountRepository.findByNameAndCurrency(newName, account.balance().currency(), account.ownedBy());
         if (existingAccount.isPresent() && !existingAccount.get().id().equals(account.id())) {
             throw new AccountAlreadyExistsException();
         }
@@ -55,9 +55,14 @@ public class AccountService {
         return updatedAccount;
     }
 
-    public void deleteAccount(AccountId accountId) {
+    public void deleteAccount(AccountId accountId, UserId userId) {
         var account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
+
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        if (!account.ownedBy().equals(new GroupId(user.groupId()))) {
+            throw new AccountAccessDeniedException();
+        }
 
         if (account.hasAnyTransaction()) {
             throw new CannotDeleteAccountWithTransactionsException();

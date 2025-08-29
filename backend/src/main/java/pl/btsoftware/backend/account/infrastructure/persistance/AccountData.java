@@ -3,6 +3,7 @@ package pl.btsoftware.backend.account.infrastructure.persistance;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Value;
+import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.shared.TransactionId;
 
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ public class AccountData {
         this.transactionIds = transactionIds != null ? new ArrayList<>(transactionIds) : new ArrayList<>();
     }
 
-    public static AccountData from(List<TransactionId> transactionIds) {
-        List<UUID> uuids = transactionIds.stream()
+    public static AccountData from(Account account) {
+        List<UUID> uuids = account.transactionIds().stream()
                 .map(TransactionId::value)
                 .toList();
         return new AccountData(uuids);

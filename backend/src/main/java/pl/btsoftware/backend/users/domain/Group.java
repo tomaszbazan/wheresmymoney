@@ -78,7 +78,7 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
         Objects.requireNonNull(userId, "UserId cannot be null");
         
         if (memberIds.size() <= 1) {
-            throw new IllegalStateException("Cannot remove last member from group");
+            throw new IllegalStateException("Cannot remove last member fromGroup group");
         }
 
         var newMemberIds = new HashSet<>(memberIds);

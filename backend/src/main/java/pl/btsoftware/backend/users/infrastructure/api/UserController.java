@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
-import pl.btsoftware.backend.users.domain.ExternalAuthId;
+import pl.btsoftware.backend.users.domain.UserId;
 
 @RestController
 @RequestMapping("/api/users")
@@ -35,18 +35,15 @@ public class UserController {
 
         var user = usersModuleFacade.registerUser(command);
 
-        log.info("User registered successfully with ID: {}", user.getId());
+        log.info("User registered successfully with ID: {}", user.id());
         return UserView.from(user);
     }
 
     @GetMapping("/profile")
     public UserView getUserProfile(@AuthenticationPrincipal Jwt jwt) {
         String externalAuthId = jwt.getSubject();
-        log.info("Getting profile for external auth ID from JWT: {}", externalAuthId);
+        log.info("Getting profile for external auth ID fromGroup JWT: {}", externalAuthId);
 
-        var user = usersModuleFacade.findUserByExternalAuthId(new ExternalAuthId(externalAuthId))
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        return UserView.from(user);
+        return usersModuleFacade.findUserOrThrow(new UserId(externalAuthId));
     }
 }

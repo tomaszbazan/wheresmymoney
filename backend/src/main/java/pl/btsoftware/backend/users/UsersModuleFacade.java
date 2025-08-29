@@ -7,6 +7,8 @@ import pl.btsoftware.backend.users.application.InviteToGroupCommand;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.application.UserService;
 import pl.btsoftware.backend.users.domain.*;
+import pl.btsoftware.backend.users.domain.error.UserNotFoundException;
+import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
 import java.util.Optional;
 
@@ -18,10 +20,6 @@ public class UsersModuleFacade {
 
     public User registerUser(RegisterUserCommand command) {
         return userService.registerUser(command);
-    }
-
-    public Optional<User> findUserByExternalAuthId(ExternalAuthId externalAuthId) {
-        return userService.findByExternalAuthId(externalAuthId);
     }
 
     public GroupInvitation inviteToGroup(UserId inviterId, InviteToGroupCommand command) {
@@ -38,5 +36,9 @@ public class UsersModuleFacade {
 
     public Optional<Group> findGroupById(GroupId groupId) {
         return groupService.findGroupById(groupId);
+    }
+
+    public UserView findUserOrThrow(UserId userId) {
+        return userService.findById(userId).map(UserView::from).orElseThrow(UserNotFoundException::new);
     }
 }

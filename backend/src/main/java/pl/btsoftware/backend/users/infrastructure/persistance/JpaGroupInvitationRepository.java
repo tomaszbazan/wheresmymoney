@@ -38,7 +38,7 @@ public class JpaGroupInvitationRepository implements GroupInvitationRepository {
 
     @Override
     public List<GroupInvitation> findPendingByGroupId(GroupId groupId) {
-        return jpaRepository.findByGroupIdAndStatus(groupId.getValue(), InvitationStatus.PENDING)
+        return jpaRepository.findByGroupIdAndStatus(groupId.value(), InvitationStatus.PENDING)
             .stream()
             .map(GroupInvitationEntity::toDomain)
             .collect(Collectors.toList());

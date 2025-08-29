@@ -1,6 +1,9 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
-import pl.btsoftware.backend.users.domain.*;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.User;
+import pl.btsoftware.backend.users.domain.UserId;
+import pl.btsoftware.backend.users.domain.UserRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +16,7 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
-        users.put(user.getId(), user);
+        users.put(user.id(), user);
         return user;
     }
 
@@ -23,39 +26,15 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByExternalAuthId(ExternalAuthId externalAuthId) {
-        return users.values().stream()
-            .filter(user -> user.getExternalAuthId().equals(externalAuthId))
-            .findFirst();
-    }
-
-    @Override
-    public Optional<User> findByEmail(String email) {
-        return users.values().stream()
-            .filter(user -> user.getEmail().equals(email))
-            .findFirst();
-    }
-
-    @Override
     public List<User> findByGroupId(GroupId groupId) {
         return users.values().stream()
-            .filter(user -> user.getGroupId().equals(groupId))
+                .filter(user -> user.groupId().equals(groupId))
             .collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(UserId userId) {
         users.remove(userId);
-    }
-
-    @Override
-    public boolean existsByExternalAuthId(ExternalAuthId externalAuthId) {
-        return users.values().stream()
-            .anyMatch(user -> user.getExternalAuthId().equals(externalAuthId));
-    }
-
-    public void clear() {
-        users.clear();
     }
 
     public int size() {

@@ -52,3 +52,4 @@ You are an AI assistant specialized in developing the personal finance managemen
 - Remember to not write backward compatible code
 - Remember to always have failing tests before attempting any implementation
 - Remember to always run tests after making changes to ensure everything works as expected
+- Remember to use var for local variables

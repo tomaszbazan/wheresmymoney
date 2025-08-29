@@ -9,6 +9,7 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.shared.TransactionType;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.List;
 
@@ -20,8 +21,8 @@ public class AccountModuleFacade {
         return accountService.createAccount(command);
     }
 
-    public List<Account> getAccounts() {
-        return accountService.getAccounts();
+    public List<Account> getAccounts(UserId userId) {
+        return accountService.getAccounts(userId);
     }
 
     public Account getAccount(AccountId accountId) {
@@ -32,8 +33,8 @@ public class AccountModuleFacade {
         return accountService.updateAccount(command.accountId(), command.name());
     }
 
-    public void deleteAccount(AccountId accountId) {
-        accountService.deleteAccount(accountId);
+    public void deleteAccount(AccountId accountId, UserId userId) {
+        accountService.deleteAccount(accountId, userId);
     }
 
     public void addTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType) {

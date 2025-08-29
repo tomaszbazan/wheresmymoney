@@ -1,7 +1,9 @@
 package pl.btsoftware.backend.users.domain.error;
 
-public class DisplayNameEmptyException extends UserBusinessException {
+import pl.btsoftware.backend.account.domain.error.BusinessException;
+
+public class DisplayNameEmptyException extends BusinessException {
     public DisplayNameEmptyException() {
-        super("Display name cannot be empty");
+        super("DISPLAY_NAME_EMPTY", "Display name cannot be empty");
     }
 }

@@ -1,7 +1,9 @@
 package pl.btsoftware.backend.users.domain.error;
 
-public class InvitationTokenExpiredException extends UserBusinessException {
+import pl.btsoftware.backend.account.domain.error.BusinessException;
+
+public class InvitationTokenExpiredException extends BusinessException {
     public InvitationTokenExpiredException() {
-        super("Invitation token has expired");
+        super("INVITATION_TOKEN_EXPIRED", "Invitation token has expired");
     }
 }

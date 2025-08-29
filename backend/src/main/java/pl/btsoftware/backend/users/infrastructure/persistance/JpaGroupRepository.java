@@ -25,7 +25,7 @@ public class JpaGroupRepository implements GroupRepository {
 
     @Override
     public Optional<Group> findById(GroupId groupId) {
-        return jpaRepository.findById(groupId.getValue())
+        return jpaRepository.findById(groupId.value())
             .map(GroupEntity::toDomain);
     }
 
@@ -37,17 +37,17 @@ public class JpaGroupRepository implements GroupRepository {
 
     @Override
     public void deleteById(GroupId groupId) {
-        jpaRepository.deleteById(groupId.getValue());
+        jpaRepository.deleteById(groupId.value());
     }
 
     @Override
     public boolean existsById(GroupId groupId) {
-        return jpaRepository.existsById(groupId.getValue());
+        return jpaRepository.existsById(groupId.value());
     }
 
     @Override
     public Optional<Group> findByUserId(UserId inviterId) {
-        return jpaRepository.findByMemberIdsContains(inviterId.getValue())
+        return jpaRepository.findByMemberIdsContains(inviterId.value())
                 .map(GroupEntity::toDomain);
     }
 }

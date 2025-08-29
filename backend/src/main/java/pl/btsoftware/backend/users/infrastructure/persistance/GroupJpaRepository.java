@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
     Optional<GroupEntity> findByName(String name);
 
-    Optional<GroupEntity> findByMemberIdsContains(UUID userId);
+    Optional<GroupEntity> findByMemberIdsContains(String userId);
 }

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.users.domain.*;
 import pl.btsoftware.backend.users.domain.error.InvitationNotFoundException;
 
-import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -31,20 +30,20 @@ public class GroupService {
     }
 
     public void acceptInvitation(String token, UserId userId) {
-        GroupInvitation invitation = invitationRepository.findByToken(token)
+        var invitation = invitationRepository.findByToken(token)
                 .orElseThrow(InvitationNotFoundException::new);
 
-        User user = userRepository.findById(userId)
+        var user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         invitation.accept();
         invitationRepository.save(invitation);
 
-        GroupId oldGroupId = user.getGroupId();
-        GroupId newGroupId = invitation.getGroupId();
+        var oldGroupId = user.groupId();
+        var newGroupId = invitation.getGroupId();
 
-        user.changeGroup(newGroupId);
-        userRepository.save(user);
+        var updatedUser = user.changeGroup(newGroupId);
+        userRepository.save(updatedUser);
 
         Group newGroup = groupRepository.findById(newGroupId)
                 .orElseThrow(() -> new IllegalStateException("Target group not found"));
@@ -56,14 +55,6 @@ public class GroupService {
 
     public Optional<Group> findGroupById(GroupId groupId) {
         return groupRepository.findById(groupId);
-    }
-
-    public List<GroupInvitation> findPendingInvitationsForGroup(GroupId groupId) {
-        return invitationRepository.findPendingByGroupId(groupId);
-    }
-
-    public void cleanupExpiredInvitations() {
-        invitationRepository.deleteExpired();
     }
 
     private void cleanupOldGroupIfEmpty(GroupId oldGroupId, UserId removedUserId) {

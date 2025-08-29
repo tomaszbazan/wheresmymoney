@@ -3,20 +3,20 @@ package pl.btsoftware.backend.users.infrastructure.api;
 import pl.btsoftware.backend.users.domain.User;
 
 import java.time.Instant;
+import java.util.UUID;
 
-public record UserView(String id, String externalAuthId, String email, String displayName, String groupId,
+public record UserView(String id, String email, String displayName, UUID groupId,
                        Instant createdAt, Instant lastLoginAt, Instant joinedGroupAt) {
 
     public static UserView from(User user) {
         return new UserView(
-                user.getId().toString(),
-                user.getExternalAuthId().value(),
-                user.getEmail(),
-                user.getDisplayName(),
-                user.getGroupId().toString(),
-                user.getCreatedAt(),
-                user.getLastLoginAt(),
-                user.getJoinedGroupAt()
+                user.id().value(),
+                user.email(),
+                user.displayName(),
+                user.groupId().value(),
+                user.createdAt(),
+                user.lastLoginAt(),
+                user.joinedGroupAt()
         );
     }
 }
