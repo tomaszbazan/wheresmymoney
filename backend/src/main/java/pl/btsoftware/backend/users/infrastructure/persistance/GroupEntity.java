@@ -1,7 +1,9 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 @Table(name = "groups")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class GroupEntity {
 
     @Id
@@ -32,35 +36,23 @@ public class GroupEntity {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "group_members", joinColumns = @JoinColumn(name = "group_id"))
     @Column(name = "user_id")
-    private Set<UUID> memberIds = new HashSet<>();
+    private Set<String> memberIds = new HashSet<>();
 
     @Column(name = "created_by", nullable = false)
-    private UUID createdBy;
+    private String createdBy;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    public GroupEntity() {}
-
-    public GroupEntity(UUID id, String name, String description, Set<UUID> memberIds,
-                      UUID createdBy, Instant createdAt) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.memberIds = new HashSet<>(memberIds);
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-    }
-
     public static GroupEntity from(Group group) {
         return new GroupEntity(
-                group.id().getValue(),
+                group.id().value(),
                 group.name(),
                 group.description(),
                 group.memberIds().stream()
-                .map(UserId::getValue)
+                        .map(UserId::value)
                 .collect(Collectors.toSet()),
-                group.createdBy().getValue(),
+                group.createdBy().value(),
                 group.createdAt()
         );
     }

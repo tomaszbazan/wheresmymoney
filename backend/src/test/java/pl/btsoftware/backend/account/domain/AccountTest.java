@@ -1,8 +1,10 @@
 package pl.btsoftware.backend.account.domain;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 import pl.btsoftware.backend.account.domain.error.AccountNameInvalidCharactersException;
@@ -11,14 +13,15 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
+import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.stream.Stream;
 
 import static java.math.BigDecimal.TEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static pl.btsoftware.backend.shared.Currency.PLN;
 import static pl.btsoftware.backend.shared.TransactionType.EXPENSE;
@@ -40,7 +43,7 @@ class AccountTest {
     void shouldChangeName() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Original Name", PLN);
+        var account = new Account(accountId, "Original Name", PLN, Instancio.create(UserView.class));
 
         // when
         var updatedAccount = account.changeName("New Name");
@@ -56,7 +59,7 @@ class AccountTest {
     void shouldThrowExceptionWhenChangingNameToNull() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
 
         // when & then
         assertThatThrownBy(() -> account.changeName(null))
@@ -67,7 +70,7 @@ class AccountTest {
     void shouldThrowExceptionWhenChangingNameToBlank() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
 
         // when & then
         assertThatThrownBy(() -> account.changeName(""))
@@ -80,7 +83,7 @@ class AccountTest {
     void shouldThrowExceptionWhenNameIsTooLong() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var tooLongName = "a".repeat(101);
 
         // when & then
@@ -92,7 +95,7 @@ class AccountTest {
     void shouldAcceptNameWithMaximumLength() {
         // given
         var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var maxLengthName = "a".repeat(100);
 
         // when
@@ -105,8 +108,7 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenNameContainsInvalidCharacters() {
         // given
-        var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
 
         // when & then
         assertThatThrownBy(() -> account.changeName("Invalid\nName"))
@@ -120,8 +122,7 @@ class AccountTest {
     @Test
     void shouldAcceptNameWithValidSpecialCharacters() {
         // given
-        var accountId = AccountId.generate();
-        var account = new Account(accountId, "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var nameWithSpecialChars = "Valid Name 123 !@#$%^&*()_+-=[]{}|;:'\",.<>/?";
 
         // when
@@ -133,28 +134,22 @@ class AccountTest {
 
     @Test
     void shouldHaveZeroBalanceByDefault() {
-        // given
-        var accountId = AccountId.generate();
-
         // when
-        var account = new Account(accountId, "Test Account", PLN);
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
 
         // then
         assertThat(account.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(account.balance().currency()).isEqualTo(PLN);
     }
 
-    @Test
-    void shouldCreateAccountWithValidCurrency() {
-        // given
-        var accountId = AccountId.generate();
-        var validCurrencies = Currency.values();
+    @ParameterizedTest
+    @EnumSource(Currency.class)
+    void shouldCreateAccountWithValidCurrency(Currency currency) {
+        // when
+        var account = new Account(AccountId.generate(), "Test Account", currency, Instancio.create(UserView.class));
 
-        // when & then
-        for (Currency currency : validCurrencies) {
-            var account = new Account(accountId, "Test Account", currency);
-            assertThat(account.balance().currency()).isEqualTo(currency);
-        }
+        // then
+        assertThat(account.balance().currency()).isEqualTo(currency);
     }
 
 
@@ -164,17 +159,16 @@ class AccountTest {
         // given
         var accountId = AccountId.generate();
         var balance = Money.of(TEN, PLN);
-        var createdAt = OffsetDateTime.now();
 
         // when & then
-        assertThatThrownBy(() -> new Account(accountId, name, balance, createdAt))
+        assertThatThrownBy(() -> new Account(accountId, name, balance, Instancio.create(AuditInfo.class)))
                 .isInstanceOf(expectedException);
     }
 
     @Test
     void shouldAddIncomeTransactionAndUpdateBalance() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var transactionId = TransactionId.generate();
         var amount = Money.of(BigDecimal.valueOf(100), PLN);
 
@@ -190,7 +184,7 @@ class AccountTest {
     @Test
     void shouldAddExpenseTransactionAndUpdateBalance() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var transactionId = TransactionId.generate();
         var amount = Money.of(BigDecimal.valueOf(50), PLN);
 
@@ -206,7 +200,7 @@ class AccountTest {
     @Test
     void shouldAddMultipleTransactions() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var transactionId1 = TransactionId.generate();
         var transactionId2 = TransactionId.generate();
         var incomeAmount = Money.of(BigDecimal.valueOf(200), PLN);
@@ -225,7 +219,7 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenAddingTransactionWithMismatchedCurrency() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var transactionId = TransactionId.generate();
         var amount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
 
@@ -238,7 +232,7 @@ class AccountTest {
     @Test
     void shouldThrowExceptionForUnsupportedTransactionTypeInAddTransaction() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var transactionId = TransactionId.generate();
         var amount = Money.of(BigDecimal.valueOf(100), PLN);
 
@@ -250,7 +244,7 @@ class AccountTest {
     @Test
     void shouldRemoveIncomeTransactionAndUpdateBalance() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var transactionId = TransactionId.generate();
         var amount = Money.of(BigDecimal.valueOf(100), PLN);
         var accountWithTransaction = account.addTransaction(transactionId, amount, INCOME);
@@ -267,7 +261,7 @@ class AccountTest {
     @Test
     void shouldRemoveExpenseTransactionAndUpdateBalance() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var transactionId = TransactionId.generate();
         var amount = Money.of(BigDecimal.valueOf(50), PLN);
         var accountWithTransaction = account.addTransaction(transactionId, amount, EXPENSE);
@@ -284,7 +278,7 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenRemovingTransactionWithMismatchedCurrency() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var transactionId = TransactionId.generate();
         var amount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
 
@@ -297,7 +291,7 @@ class AccountTest {
     @Test
     void shouldThrowExceptionForUnsupportedTransactionTypeInRemoveTransaction() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var transactionId = TransactionId.generate();
         var amount = Money.of(BigDecimal.valueOf(100), PLN);
 
@@ -309,7 +303,7 @@ class AccountTest {
     @Test
     void shouldChangeIncomeTransactionAmount() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var transactionId = TransactionId.generate();
         var oldAmount = Money.of(BigDecimal.valueOf(100), PLN);
         var newAmount = Money.of(BigDecimal.valueOf(150), PLN);
@@ -327,7 +321,7 @@ class AccountTest {
     @Test
     void shouldChangeExpenseTransactionAmount() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var transactionId = TransactionId.generate();
         var oldAmount = Money.of(BigDecimal.valueOf(75), PLN);
         var newAmount = Money.of(BigDecimal.valueOf(100), PLN);
@@ -345,7 +339,7 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenChangingNonExistentTransaction() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var transactionId = TransactionId.generate();
         var oldAmount = Money.of(BigDecimal.valueOf(100), PLN);
         var newAmount = Money.of(BigDecimal.valueOf(150), PLN);
@@ -359,7 +353,7 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenChangingTransactionWithMismatchedCurrency() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var transactionId = TransactionId.generate();
         var oldAmount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
         var newAmount = Money.of(BigDecimal.valueOf(150), Currency.EUR);
@@ -373,7 +367,7 @@ class AccountTest {
     @Test
     void shouldThrowExceptionForUnsupportedTransactionTypeInChangeTransaction() {
         // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN);
+        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var transactionId = TransactionId.generate();
         var oldAmount = Money.of(BigDecimal.valueOf(100), PLN);
         var newAmount = Money.of(BigDecimal.valueOf(150), PLN);

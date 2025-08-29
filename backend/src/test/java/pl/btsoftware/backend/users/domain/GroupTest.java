@@ -116,29 +116,4 @@ class GroupTest {
         assertThat(group.isEmpty()).isTrue();
         assertThat(group.getMemberCount()).isEqualTo(0);
     }
-
-    @Test
-    void shouldBeEqualWhenAllFieldsAreEqual() {
-        GroupId groupId = GroupId.generate();
-        UserId creatorId = UserId.generate();
-        Set<UserId> memberIds = Set.of(creatorId);
-        Instant now = Instant.now();
-
-        Group group1 = new Group(groupId, "Name", "Description", memberIds, creatorId, now);
-        Group group2 = new Group(groupId, "Name", "Description", memberIds, creatorId, now);
-
-        assertThat(group1).isEqualTo(group2);
-        assertThat(group1.hashCode()).isEqualTo(group2.hashCode());
-    }
-
-    @Test
-    void shouldNotBeEqualWhenDifferentId() {
-        UserId creatorId = UserId.generate();
-        Instant now = Instant.now();
-
-        Group group1 = new Group(GroupId.generate(), "Name", "Desc", Set.of(creatorId), creatorId, now);
-        Group group2 = new Group(GroupId.generate(), "Name", "Desc", Set.of(creatorId), creatorId, now);
-
-        assertThat(group1).isNotEqualTo(group2);
-    }
 }

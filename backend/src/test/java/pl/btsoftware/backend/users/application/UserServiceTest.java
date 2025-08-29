@@ -36,16 +36,15 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        assertThat(user.getId()).isNotNull();
-        assertThat(user.getExternalAuthId()).isEqualTo(new ExternalAuthId("ext-auth-123"));
-        assertThat(user.getEmail()).isEqualTo("test@example.com");
-        assertThat(user.getDisplayName()).isEqualTo("John Doe");
-        assertThat(user.getGroupId()).isNotNull();
+        assertThat(user.id()).isNotNull();
+        assertThat(user.email()).isEqualTo("test@example.com");
+        assertThat(user.displayName()).isEqualTo("John Doe");
+        assertThat(user.groupId()).isNotNull();
 
-        assertThat(groupRepository.existsById(user.getGroupId())).isTrue();
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        assertThat(groupRepository.existsById(user.groupId())).isTrue();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("My Group");
-        assertThat(group.hasMember(user.getId())).isTrue();
+        assertThat(group.hasMember(user.id())).isTrue();
         assertThat(groupRepository.size()).isEqualTo(1);
         assertThat(userRepository.size()).isEqualTo(1);
     }
@@ -58,7 +57,7 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("John Doe's Group");
     }
 
@@ -70,7 +69,7 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("John Doe's Group");
     }
 
@@ -89,8 +88,8 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        assertThat(user.getGroupId()).isEqualTo(existingGroup.id());
-        assertThat(groupRepository.findById(existingGroup.id()).get().hasMember(user.getId())).isTrue();
+        assertThat(user.groupId()).isEqualTo(existingGroup.id());
+        assertThat(groupRepository.findById(existingGroup.id()).get().hasMember(user.id())).isTrue();
         assertThat(invitationRepository.findByToken(invitation.getInvitationToken()).get().getStatus()).isEqualTo(InvitationStatus.ACCEPTED);
         assertThat(groupRepository.size()).isEqualTo(1);
         assertThat(userRepository.size()).isEqualTo(1);
@@ -122,33 +121,6 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldFindUserByExternalAuthId() {
-        // given
-        var externalAuthId = new ExternalAuthId("ext-auth-123");
-        var command = new RegisterUserCommand(
-                externalAuthId.value(), "test@example.com", "John Doe", "My Group", null
-        );
-        var savedUser = userService.registerUser(command);
-
-        // when
-        var foundUser = userService.findByExternalAuthId(externalAuthId);
-
-        // then
-        assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getId()).isEqualTo(savedUser.getId());
-        assertThat(foundUser.get().getExternalAuthId()).isEqualTo(externalAuthId);
-    }
-
-    @Test
-    void shouldReturnEmptyWhenUserNotFoundByExternalAuthId() {
-        // given
-        var nonExistingExternalAuthId = new ExternalAuthId("ext-auth-123");
-
-        // when & then
-        assertThat(userService.findByExternalAuthId(nonExistingExternalAuthId)).isEmpty();
-    }
-
-    @Test
     void shouldFindGroupMembers() {
         RegisterUserCommand command1 = new RegisterUserCommand(
                 "ext-auth-1", "user1@example.com", "User 1", "Group One", null
@@ -160,8 +132,8 @@ class UserServiceTest {
         User user1 = userService.registerUser(command1);
         User user2 = userService.registerUser(command2);
 
-        List<User> members1 = userService.findGroupMembers(user1.getGroupId());
-        List<User> members2 = userService.findGroupMembers(user2.getGroupId());
+        List<User> members1 = userService.findGroupMembers(user1.groupId());
+        List<User> members2 = userService.findGroupMembers(user2.groupId());
 
         assertThat(members1).hasSize(1);
         assertThat(members2).hasSize(1);
@@ -184,7 +156,7 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        assertThat(user.getGroupId()).isEqualTo(existingGroup.id());
+        assertThat(user.groupId()).isEqualTo(existingGroup.id());
         assertThat(groupRepository.size()).isEqualTo(1);
     }
 
@@ -196,7 +168,7 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("John Doe's Group");
     }
 
@@ -208,7 +180,7 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("My Group");
     }
 
@@ -224,8 +196,8 @@ class UserServiceTest {
         User user1 = userService.registerUser(command1);
         User user2 = userService.registerUser(command2);
 
-        assertThat(user1.getExternalAuthId()).isEqualTo(new ExternalAuthId("ext-auth-123"));
-        assertThat(user2.getExternalAuthId()).isEqualTo(new ExternalAuthId("ext-auth-456"));
+        assertThat(user1.id()).isEqualTo(new UserId("ext-auth-123"));
+        assertThat(user2.id()).isEqualTo(new UserId("ext-auth-456"));
         assertThat(userRepository.size()).isEqualTo(2);
         assertThat(groupRepository.size()).isEqualTo(2);
     }
@@ -239,7 +211,7 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        assertThat(user.getDisplayName()).isEqualTo(longDisplayName);
+        assertThat(user.displayName()).isEqualTo(longDisplayName);
     }
 
     @Test
@@ -250,7 +222,7 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        assertThat(user.getDisplayName()).isEqualTo("Jöhn Döe-Smith");
+        assertThat(user.displayName()).isEqualTo("Jöhn Döe-Smith");
     }
 
     @Test
@@ -260,7 +232,7 @@ class UserServiceTest {
         );
 
         assertThatThrownBy(() -> userService.registerUser(command))
-                .isInstanceOf(NullPointerException.class);
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -359,7 +331,7 @@ class UserServiceTest {
 
         assertThat(user).isNotNull();
         assertThat(groupRepository.size()).isEqualTo(1);
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("My Group");
     }
 
@@ -373,7 +345,7 @@ class UserServiceTest {
 
         assertThat(user).isNotNull();
         assertThat(groupRepository.size()).isEqualTo(1);
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("My Group");
     }
 
@@ -385,7 +357,7 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("Jöhn Döe-Smith's Group");
     }
 
@@ -397,27 +369,29 @@ class UserServiceTest {
 
         User user = userService.registerUser(command);
 
-        Group group = groupRepository.findById(user.getGroupId()).get();
+        Group group = groupRepository.findById(user.groupId()).get();
         assertThat(group.name()).isEqualTo("John Doe");
     }
 
     @Test
     void shouldStoreUserDataCorrectlyAfterRegistration() {
-        RegisterUserCommand command = new RegisterUserCommand(
+        // given
+        var command = new RegisterUserCommand(
                 "ext-auth-123", "test@example.com", "John Doe", "My Group", null
         );
 
-        User user = userService.registerUser(command);
+        // when
+        var user = userService.registerUser(command);
 
-        User storedUser = userRepository.findById(user.getId()).get();
-        assertThat(storedUser.getId()).isEqualTo(user.getId());
-        assertThat(storedUser.getExternalAuthId()).isEqualTo(new ExternalAuthId("ext-auth-123"));
-        assertThat(storedUser.getEmail()).isEqualTo("test@example.com");
-        assertThat(storedUser.getDisplayName()).isEqualTo("John Doe");
-        assertThat(storedUser.getGroupId()).isEqualTo(user.getGroupId());
-        assertThat(storedUser.getCreatedAt()).isNotNull();
-        assertThat(storedUser.getLastLoginAt()).isNotNull();
-        assertThat(storedUser.getJoinedGroupAt()).isNotNull();
+        // then
+        var storedUser = userRepository.findById(user.id()).get();
+        assertThat(storedUser.id()).isEqualTo(user.id());
+        assertThat(storedUser.email()).isEqualTo("test@example.com");
+        assertThat(storedUser.displayName()).isEqualTo("John Doe");
+        assertThat(storedUser.groupId()).isEqualTo(user.groupId());
+        assertThat(storedUser.createdAt()).isNotNull();
+        assertThat(storedUser.lastLoginAt()).isNotNull();
+        assertThat(storedUser.joinedGroupAt()).isNotNull();
     }
 
     @Test
@@ -432,12 +406,12 @@ class UserServiceTest {
 
         java.time.Instant after = java.time.Instant.now();
 
-        assertThat(user.getCreatedAt()).isNotNull();
-        assertThat(user.getLastLoginAt()).isNotNull();
-        assertThat(user.getJoinedGroupAt()).isNotNull();
+        assertThat(user.createdAt()).isNotNull();
+        assertThat(user.lastLoginAt()).isNotNull();
+        assertThat(user.joinedGroupAt()).isNotNull();
 
-        assertThat(user.getCreatedAt()).isBetween(before, after);
-        assertThat(user.getLastLoginAt()).isBetween(before, after);
-        assertThat(user.getJoinedGroupAt()).isBetween(before, after);
+        assertThat(user.createdAt()).isBetween(before, after);
+        assertThat(user.lastLoginAt()).isBetween(before, after);
+        assertThat(user.joinedGroupAt()).isBetween(before, after);
     }
 }

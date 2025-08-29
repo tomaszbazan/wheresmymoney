@@ -1,7 +1,9 @@
 package pl.btsoftware.backend.users.domain.error;
 
-public class GroupNameEmptyException extends UserBusinessException {
+import pl.btsoftware.backend.account.domain.error.BusinessException;
+
+public class GroupNameEmptyException extends BusinessException {
     public GroupNameEmptyException() {
-        super("Group name cannot be empty");
+        super("GROUP_NAME_EMPTY", "Group name cannot be empty");
     }
 }

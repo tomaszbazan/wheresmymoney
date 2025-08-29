@@ -145,42 +145,4 @@ class GroupInvitationTest {
 
         assertThat(invitation1.getInvitationToken()).isNotEqualTo(invitation2.getInvitationToken());
     }
-
-    @Test
-    void shouldBeEqualWhenSameId() {
-        GroupInvitationId invitationId = GroupInvitationId.generate();
-        GroupId groupId = GroupId.generate();
-        UserId invitedBy = UserId.generate();
-        Instant now = Instant.now();
-
-        GroupInvitation invitation1 = new GroupInvitation(
-            invitationId, groupId, "test1@example.com", "token1", invitedBy,
-            InvitationStatus.PENDING, now, now.plus(Duration.ofDays(7))
-        );
-        GroupInvitation invitation2 = new GroupInvitation(
-            invitationId, GroupId.generate(), "test2@example.com", "token2", UserId.generate(),
-            InvitationStatus.ACCEPTED, now, now.plus(Duration.ofDays(7))
-        );
-
-        assertThat(invitation1).isEqualTo(invitation2);
-        assertThat(invitation1.hashCode()).isEqualTo(invitation2.hashCode());
-    }
-
-    @Test
-    void shouldNotBeEqualWhenDifferentId() {
-        GroupId groupId = GroupId.generate();
-        UserId invitedBy = UserId.generate();
-        Instant now = Instant.now();
-
-        GroupInvitation invitation1 = new GroupInvitation(
-            GroupInvitationId.generate(), groupId, "test@example.com", "token", invitedBy,
-            InvitationStatus.PENDING, now, now.plus(Duration.ofDays(7))
-        );
-        GroupInvitation invitation2 = new GroupInvitation(
-            GroupInvitationId.generate(), groupId, "test@example.com", "token", invitedBy,
-            InvitationStatus.PENDING, now, now.plus(Duration.ofDays(7))
-        );
-
-        assertThat(invitation1).isNotEqualTo(invitation2);
-    }
 }

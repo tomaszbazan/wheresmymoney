@@ -2,11 +2,14 @@ package pl.btsoftware.backend.account.infrastructure.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.account.application.UpdateAccountCommand;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.UUID;
 
@@ -22,9 +25,10 @@ public class AccountController {
     private final AccountModuleFacade accountModuleFacade;
 
     @GetMapping
-    public AccountsView getAccounts() {
-        log.info("Received request to get all accounts");
-        return AccountsView.from(accountModuleFacade.getAccounts());
+    public AccountsView getAccounts(@AuthenticationPrincipal Jwt jwt) {
+        var userId = new UserId(jwt.getSubject());
+        log.info("Received request to get all accounts for user: {}", userId);
+        return AccountsView.from(accountModuleFacade.getAccounts(userId));
     }
 
     @GetMapping("/{id}")
@@ -35,9 +39,10 @@ public class AccountController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public AccountView createAccount(@Validated @RequestBody CreateAccountRequest request) {
+    public AccountView createAccount(@Validated @RequestBody CreateAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
+        var userId = new UserId(jwt.getSubject());
         log.info("Received request to create account with name: {} and currency: {}", request.name(), request.currency());
-        return AccountView.from(accountModuleFacade.createAccount(new CreateAccountCommand(request.name(), request.currency())));
+        return AccountView.from(accountModuleFacade.createAccount(new CreateAccountCommand(request.name(), request.currency(), userId)));
     }
 
     @PutMapping("/{id}")
@@ -48,9 +53,10 @@ public class AccountController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(NO_CONTENT)
-    public void deleteAccount(@PathVariable UUID id) {
-        log.info("Received request to delete account with id: {}", id);
-        accountModuleFacade.deleteAccount(from(id));
+    public void deleteAccount(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        var userId = new UserId(jwt.getSubject());
+        log.info("Received request to delete account with id: {} by user: {}", id, userId);
+        accountModuleFacade.deleteAccount(from(id), userId);
     }
 
 }

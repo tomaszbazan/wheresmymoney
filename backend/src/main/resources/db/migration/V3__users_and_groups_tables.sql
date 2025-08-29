@@ -11,8 +11,7 @@ CREATE TABLE groups
 -- Create users table
 CREATE TABLE users
 (
-    id               UUID PRIMARY KEY,
-    external_auth_id VARCHAR(255)             NOT NULL UNIQUE,
+    id VARCHAR(100) PRIMARY KEY,
     email            VARCHAR(255)             NOT NULL UNIQUE,
     display_name     VARCHAR(100)             NOT NULL,
     group_id         UUID                     NOT NULL,
@@ -26,7 +25,7 @@ CREATE TABLE users
 CREATE TABLE group_members
 (
     group_id UUID NOT NULL,
-    user_id  UUID NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     PRIMARY KEY (group_id, user_id),
     FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
@@ -49,7 +48,6 @@ CREATE TABLE group_invitations
 );
 
 -- Create indexes for better performance
-CREATE INDEX idx_users_external_auth_id ON users (external_auth_id);
 CREATE INDEX idx_users_email ON users (email);
 CREATE INDEX idx_users_group_id ON users (group_id);
 CREATE INDEX idx_group_invitations_token ON group_invitations (invitation_token);

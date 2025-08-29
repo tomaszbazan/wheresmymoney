@@ -15,7 +15,7 @@
 **When** I provide only account name
 **Then** the account should be created with zero initial balance
 
-**Test Coverage:** `AccountServiceTest.CreateAccount.shouldCreateAccountWithMinimalData()`
+**Test Coverage:** `AccountServiceTest.CreateAccount.shouldCreateAccountWithoutCurrency()`
 
 ### Scenario: Reject account creation with empty name
 **When** I provide an empty or null account name  
@@ -173,3 +173,72 @@
 **And** the error message should indicate "Account not found"
 
 **Test Coverage:** `AccountServiceTest.AccountDeletion.shouldThrowExceptionWhenDeletingNonExistentAccount()`
+
+## Feature: Group-Based Access Control
+
+### Scenario: Users in same group can access each other's accounts
+
+**Given** user A and user B belong to group X  
+**And** user A has created account "Personal PLN"  
+**And** user B has created account "Savings USD"  
+**When** user A requests to view all accounts  
+**Then** user A should see both "Personal PLN" and "Savings USD" accounts  
+**And** user A should be able to view details of user B's account
+
+**Test Coverage:** `AccountServiceTest.GroupAccess.shouldAllowSameGroupUsersToAccessAccounts()`
+
+### Scenario: Users can modify accounts within their group
+
+**Given** user A and user B belong to group X  
+**And** user B has created account "Business Account"  
+**When** user A updates the name of user B's account to "Updated Business Account"  
+**Then** the account name should be updated successfully  
+**And** the updatedAt timestamp should be refreshed
+
+**Test Coverage:** `AccountServiceTest.GroupAccess.shouldAllowSameGroupUsersToModifyAccounts()`
+
+### Scenario: Users from different groups cannot access each other's accounts
+
+**Given** user A and user B belong to group X  
+**And** user C belongs to group Y  
+**And** user A has created account "Private Account"  
+**When** user C requests to view all accounts  
+**Then** user C should not see user A's "Private Account"  
+**And** user C should only see accounts created by users in group Y
+
+**Test Coverage:** `AccountServiceTest.GroupAccess.shouldRestrictAccessBetweenDifferentGroups()`
+
+### Scenario: Users cannot access accounts from different groups by ID
+
+**Given** user A belongs to group X  
+**And** user C belongs to group Y  
+**And** user A has created account with ID "123e4567-e89b-12d3-a456-426614174000"  
+**When** user C tries to access account by ID "123e4567-e89b-12d3-a456-426614174000"  
+**Then** user C should receive an exception
+**And** the error message should indicate "Access denied to account"
+
+**Test Coverage:** `AccountServiceTest.GroupAccess.shouldRejectCrossGroupAccountAccess()`
+
+### Scenario: Users cannot modify accounts from different groups
+
+**Given** user A belongs to group X  
+**And** user C belongs to group Y  
+**And** user A has created account "Group X Account"  
+**When** user C tries to update user A's account name  
+**Then** user C should receive an exception
+**And** the error message should indicate "Access denied to modify account"  
+**And** the account should remain unchanged
+
+**Test Coverage:** `AccountServiceTest.GroupAccess.shouldRejectCrossGroupAccountModification()`
+
+### Scenario: Users cannot delete accounts from different groups
+
+**Given** user A belongs to group X  
+**And** user C belongs to group Y  
+**And** user A has created account with zero balance  
+**When** user C tries to delete user A's account  
+**Then** user C should receive an exception  
+**And** the error message should indicate "Access denied to delete account"  
+**And** the account should remain active
+
+**Test Coverage:** `AccountServiceTest.GroupAccess.shouldRejectCrossGroupAccountDeletion()`

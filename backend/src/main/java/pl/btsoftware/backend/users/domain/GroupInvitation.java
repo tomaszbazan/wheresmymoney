@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.users.domain;
 
+import lombok.Getter;
 import pl.btsoftware.backend.users.domain.error.InvitationTokenExpiredException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
@@ -8,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
+@Getter
 public class GroupInvitation {
     private static final Duration DEFAULT_VALIDITY = Duration.ofDays(7);
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -90,50 +92,5 @@ public class GroupInvitation {
             token.append(TOKEN_CHARS.charAt(RANDOM.nextInt(TOKEN_CHARS.length())));
         }
         return token.toString();
-    }
-
-    public GroupInvitationId getId() {
-        return id;
-    }
-
-    public GroupId getGroupId() {
-        return groupId;
-    }
-
-    public String getInviteeEmail() {
-        return inviteeEmail;
-    }
-
-    public String getInvitationToken() {
-        return invitationToken;
-    }
-
-    public UserId getInvitedBy() {
-        return invitedBy;
-    }
-
-    public InvitationStatus getStatus() {
-        return status;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getExpiresAt() {
-        return expiresAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GroupInvitation that = (GroupInvitation) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }

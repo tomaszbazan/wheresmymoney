@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import pl.btsoftware.backend.users.domain.error.*;
+import pl.btsoftware.backend.account.domain.error.BusinessException;
+import pl.btsoftware.backend.users.domain.error.InvitationNotFoundException;
+import pl.btsoftware.backend.users.domain.error.InvitationTokenExpiredException;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -12,8 +14,8 @@ import static org.springframework.http.HttpStatus.*;
 @Slf4j
 public class UserExceptionHandler {
 
-    @ExceptionHandler(UserBusinessException.class)
-    public ResponseEntity<String> handleUserBusinessException(UserBusinessException ex) {
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<String> handleBusinessException(BusinessException ex) {
         log.error("User business exception: {}", ex.getMessage(), ex);
         return ResponseEntity.status(BAD_REQUEST).body(ex.getMessage());
     }

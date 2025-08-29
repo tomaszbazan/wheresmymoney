@@ -5,28 +5,30 @@ import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 import pl.btsoftware.backend.account.domain.error.AccountNameInvalidCharactersException;
 import pl.btsoftware.backend.account.domain.error.AccountNameTooLongException;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.UserId;
+import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.time.OffsetDateTime.now;
 import static pl.btsoftware.backend.shared.Currency.DEFAULT;
 import static pl.btsoftware.backend.shared.Money.zero;
 
 public record Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds,
-                      OffsetDateTime createdAt, OffsetDateTime updatedAt) {
+                      AuditInfo createdInfo, AuditInfo updatedInfo) {
     public Account {
         validateAccountName(name);
     }
 
-    public Account(AccountId id, String name, @Nullable Currency currency) {
-        this(id, name, zero(currency == null ? DEFAULT : currency), new ArrayList<>(), now(ZoneOffset.UTC), now(ZoneOffset.UTC));
+    public Account(AccountId id, String name, @Nullable Currency currency, UserView createdBy) {
+        this(id, name, zero(currency == null ? DEFAULT : currency), new ArrayList<>(),
+                AuditInfo.create(createdBy.id(), createdBy.groupId()), AuditInfo.create(createdBy.id(), createdBy.groupId()));
     }
 
-    public Account(AccountId id, String name, Money balance, OffsetDateTime createdAt) {
-        this(id, name, balance, new ArrayList<>(), createdAt, now(ZoneOffset.UTC));
+    public Account(AccountId id, String name, Money balance, AuditInfo createBy) {
+        this(id, name, balance, new ArrayList<>(), createBy, createBy.updateTimestamp());
     }
 
     private static void validateAccountName(String newName) {
@@ -43,11 +45,31 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
 
     public Account changeName(String newName) {
         validateAccountName(newName);
-        return new Account(id, newName, balance, transactionIds, createdAt, now(ZoneOffset.UTC));
+        return new Account(id, newName, balance, transactionIds, createdInfo, updatedInfo.updateTimestamp());
     }
 
     public boolean hasAnyTransaction() {
         return !transactionIds.isEmpty();
+    }
+
+    public UserId createdBy() {
+        return createdInfo.who();
+    }
+
+    public UserId lastUpdatedBy() {
+        return updatedInfo.who();
+    }
+
+    public GroupId ownedBy() {
+        return createdInfo.fromGroup();
+    }
+
+    public OffsetDateTime createdAt() {
+        return createdInfo.when();
+    }
+
+    public OffsetDateTime lastUpdatedAt() {
+        return updatedInfo.when();
     }
 
     public Account addTransaction(TransactionId transactionId, Money amount, TransactionType transactionType) {
@@ -102,17 +124,17 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
     private Account addTransactionId(TransactionId transactionId) {
         List<TransactionId> updatedTransactionIds = new ArrayList<>(transactionIds);
         updatedTransactionIds.add(transactionId);
-        return new Account(id, name, balance, updatedTransactionIds, createdAt, now(ZoneOffset.UTC));
+        return new Account(id, name, balance, updatedTransactionIds, createdInfo, updatedInfo.updateTimestamp());
     }
 
     private Account removeTransactionId(TransactionId transactionId) {
         List<TransactionId> updatedTransactionIds = new ArrayList<>(transactionIds);
         updatedTransactionIds.remove(transactionId);
-        return new Account(id, name, balance, updatedTransactionIds, createdAt, now(ZoneOffset.UTC));
+        return new Account(id, name, balance, updatedTransactionIds, createdInfo, updatedInfo.updateTimestamp());
     }
 
     private Account updateBalance(Money transactionAmount) {
         Money newBalance = balance.add(transactionAmount);
-        return new Account(id, name, newBalance, transactionIds, createdAt, now(ZoneOffset.UTC));
+        return new Account(id, name, newBalance, transactionIds, createdInfo, updatedInfo.updateTimestamp());
     }
 }

@@ -1,7 +1,10 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
 import org.springframework.stereotype.Repository;
-import pl.btsoftware.backend.users.domain.*;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.User;
+import pl.btsoftware.backend.users.domain.UserId;
+import pl.btsoftware.backend.users.domain.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,32 +20,20 @@ public class JpaUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
-        UserEntity entity = UserEntity.from(user);
-        UserEntity saved = jpaRepository.save(entity);
+        var entity = UserEntity.from(user);
+        var saved = jpaRepository.save(entity);
         return saved.toDomain();
     }
 
     @Override
     public Optional<User> findById(UserId userId) {
-        return jpaRepository.findById(userId.getValue())
-            .map(UserEntity::toDomain);
-    }
-
-    @Override
-    public Optional<User> findByExternalAuthId(ExternalAuthId externalAuthId) {
-        return jpaRepository.findByExternalAuthId(externalAuthId.value())
-            .map(UserEntity::toDomain);
-    }
-
-    @Override
-    public Optional<User> findByEmail(String email) {
-        return jpaRepository.findByEmail(email)
+        return jpaRepository.findById(userId.value())
             .map(UserEntity::toDomain);
     }
 
     @Override
     public List<User> findByGroupId(GroupId groupId) {
-        return jpaRepository.findByGroupId(groupId.getValue())
+        return jpaRepository.findByGroupId(groupId.value())
             .stream()
             .map(UserEntity::toDomain)
             .collect(Collectors.toList());
@@ -50,11 +41,6 @@ public class JpaUserRepository implements UserRepository {
 
     @Override
     public void deleteById(UserId userId) {
-        jpaRepository.deleteById(userId.getValue());
-    }
-
-    @Override
-    public boolean existsByExternalAuthId(ExternalAuthId externalAuthId) {
-        return jpaRepository.existsByExternalAuthId(externalAuthId.value());
+        jpaRepository.deleteById(userId.value());
     }
 }

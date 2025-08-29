@@ -11,6 +11,9 @@ import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
+import pl.btsoftware.backend.users.UsersModuleFacade;
+import pl.btsoftware.backend.users.application.RegisterUserCommand;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
 
@@ -30,6 +33,9 @@ public class AccountServiceTest {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private UsersModuleFacade usersModuleFacade;
+
     @BeforeEach
     void setUp() {
         accountRepository.findAll().forEach(
@@ -40,7 +46,8 @@ public class AccountServiceTest {
     @Test
     void shouldCreateAccountWithSpecificCurrency() {
         // given
-        var command = new CreateAccountCommand("EUR Account", EUR);
+        var userId = createTestUser();
+        var command = new CreateAccountCommand("EUR Account", EUR, userId);
 
         // when
         var account = accountService.createAccount(command);
@@ -54,22 +61,24 @@ public class AccountServiceTest {
     @Test
     void shouldThrowExceptionWhenCreatingDuplicateAccount() {
         // given
-        var command = new CreateAccountCommand("Duplicate Account", PLN);
+        var userId = createTestUser();
+        var command = new CreateAccountCommand("Duplicate Account", PLN, userId);
         accountService.createAccount(command);
 
         // when & then
-        assertThatThrownBy(() -> accountService.createAccount(command))
+        assertThatThrownBy(() -> accountService.createAccount(new CreateAccountCommand("Duplicate Account", PLN, userId)))
                 .isInstanceOf(AccountAlreadyExistsException.class);
     }
 
     @Test
     void shouldRetrieveAllAccounts() {
         // given
-        accountService.createAccount(new CreateAccountCommand("Account 1", PLN));
-        accountService.createAccount(new CreateAccountCommand("Account 2", EUR));
+        var userId = createTestUser();
+        accountService.createAccount(new CreateAccountCommand("Account 1", PLN, userId));
+        accountService.createAccount(new CreateAccountCommand("Account 2", EUR, userId));
 
         // when
-        var accounts = accountService.getAccounts();
+        var accounts = accountService.getAccounts(userId);
 
         // then
         assertThat(accounts).hasSize(2);
@@ -80,7 +89,8 @@ public class AccountServiceTest {
     @Test
     void shouldGetAccountById() {
         // given
-        var command = new CreateAccountCommand("Find Me", USD);
+        var userId = createTestUser();
+        var command = new CreateAccountCommand("Find Me", USD, userId);
         var createdAccount = accountService.createAccount(command);
 
         // when
@@ -95,7 +105,8 @@ public class AccountServiceTest {
     @Test
     void shouldUpdateAccountName() {
         // given
-        var command = new CreateAccountCommand("Original Name", PLN);
+        var userId = createTestUser();
+        var command = new CreateAccountCommand("Original Name", PLN, userId);
         var account = accountService.createAccount(command);
 
         // when
@@ -110,11 +121,12 @@ public class AccountServiceTest {
     @Test
     void shouldDeleteAccount() {
         // given
-        var command = new CreateAccountCommand("To Delete", PLN);
+        var userId = createTestUser();
+        var command = new CreateAccountCommand("To Delete", PLN, userId);
         var account = accountService.createAccount(command);
 
         // when
-        accountService.deleteAccount(account.id());
+        accountService.deleteAccount(account.id(), userId);
 
         // then
         assertThatThrownBy(() -> accountService.getById(account.id()))
@@ -124,7 +136,8 @@ public class AccountServiceTest {
     @Test
     void shouldAddIncomeTransaction() {
         // given
-        var command = new CreateAccountCommand("Income Account", PLN);
+        var userId = createTestUser();
+        var command = new CreateAccountCommand("Income Account", PLN, userId);
         var account = accountService.createAccount(command);
 
         // when
@@ -138,7 +151,8 @@ public class AccountServiceTest {
     @Test
     void shouldAddExpenseTransaction() {
         // given
-        var command = new CreateAccountCommand("Expense Account", PLN);
+        var userId = createTestUser();
+        var command = new CreateAccountCommand("Expense Account", PLN, userId);
         var account = accountService.createAccount(command);
 
         // when
@@ -147,5 +161,17 @@ public class AccountServiceTest {
         // then
         var updatedAccount = accountService.getById(account.id());
         assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("-500"));
+    }
+
+    private UserId createTestUser() {
+        var command = new RegisterUserCommand(
+                "test-auth-id-" + System.currentTimeMillis(),
+                "test@example.com",
+                "Test User",
+                "Test Group",
+                null
+        );
+        var user = usersModuleFacade.registerUser(command);
+        return user.id();
     }
 }

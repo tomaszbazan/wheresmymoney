@@ -6,6 +6,7 @@ import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountRepository;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.users.domain.GroupId;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,9 +38,18 @@ public class InMemoryAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findByNameAndCurrency(String name, Currency currency) {
+    public Optional<Account> findByNameAndCurrency(String name, Currency currency, GroupId groupId) {
         return database.values().stream()
-                .filter(account -> account.name().equals(name) && account.balance().currency().equals(currency))
+                .filter(account -> account.name().equals(name) &&
+                                   account.balance().currency().equals(currency) &&
+                                   account.ownedBy().equals(groupId))
                 .findFirst();
+    }
+
+    @Override
+    public List<Account> findAllBy(GroupId groupId) {
+        return database.values().stream()
+                .filter(account -> account.ownedBy().equals(groupId))
+                .toList();
     }
 }

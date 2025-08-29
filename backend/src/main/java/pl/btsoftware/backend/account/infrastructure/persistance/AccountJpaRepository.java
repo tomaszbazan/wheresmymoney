@@ -4,10 +4,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.shared.Currency;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface AccountJpaRepository extends JpaRepository<AccountEntity, UUID> {
-    Optional<AccountEntity> findByNameAndCurrency(String name, Currency currency);
+    Optional<AccountEntity> findByNameAndCurrencyAndOwnedByGroup(String name, Currency currency, UUID groupId);
+
+    List<AccountEntity> findAllByOwnedByGroup(UUID groupId);
 }

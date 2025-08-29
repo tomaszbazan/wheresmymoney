@@ -1,7 +1,9 @@
 package pl.btsoftware.backend.users.domain.error;
 
-public class UserEmailEmptyException extends UserBusinessException {
+import pl.btsoftware.backend.account.domain.error.BusinessException;
+
+public class UserEmailEmptyException extends BusinessException {
     public UserEmailEmptyException() {
-        super("User email cannot be empty");
+        super("USER_EMAIL_EMPTY", "User email cannot be empty");
     }
 }
