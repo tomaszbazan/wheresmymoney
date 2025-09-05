@@ -9,11 +9,8 @@ import java.util.Optional;
 
 public interface AccountRepository {
     void store(Account account);
-    Optional<Account> findById(AccountId id);
-    List<Account> findAll();
-    void deleteById(AccountId id);
-
-    Optional<Account> findByNameAndCurrency(String name, Currency currency, GroupId groupId);
-
+    Optional<Account> findById(AccountId id, GroupId groupId);
     List<Account> findAllBy(GroupId groupId);
+    Optional<Account> findByNameAndCurrency(String name, Currency currency, GroupId groupId);
+    void deleteById(AccountId id);
 }

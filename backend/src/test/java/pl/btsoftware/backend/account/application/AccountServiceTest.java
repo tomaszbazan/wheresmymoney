@@ -46,9 +46,10 @@ public class AccountServiceTest {
         when(usersModuleFacade.findUserOrThrow(userAId)).thenReturn(user);
     }
 
-    private void userExists(CreateAccountCommand command) {
-        when(usersModuleFacade.findUserOrThrow(command.userId()))
-                .thenReturn(Instancio.of(UserView.class).set(field(UserView::id), command.userId().value()).create());
+    private UserView userExists(CreateAccountCommand command) {
+        var user = Instancio.of(UserView.class).set(field(UserView::id), command.userId().value()).create();
+        when(usersModuleFacade.findUserOrThrow(command.userId())).thenReturn(user);
+        return user;
     }
 
     @Nested
@@ -90,36 +91,36 @@ public class AccountServiceTest {
         void shouldRejectAccountCreationWithEmptyName() {
             // given
             var command = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "").create();
-            userExists(command);
+            var user = userExists(command);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameEmptyException.class);
-            assertThat(accountRepository.findAll()).isEmpty();
+            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
         }
 
         @Test
         void shouldRejectAccountCreationWithNullName() {
             // given
             var command = Instancio.of(CreateAccountCommand.class).setBlank(field(CreateAccountCommand::name)).create();
-            userExists(command);
+            var user = userExists(command);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameEmptyException.class);
-            assertThat(accountRepository.findAll()).isEmpty();
+            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
         }
 
         @Test
         void shouldRejectAccountCreationWithBlankName() {
             // given
             var command = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "    ").create();
-            userExists(command);
+            var user = userExists(command);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameEmptyException.class);
-            assertThat(accountRepository.findAll()).isEmpty();
+            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
         }
 
         @Test
@@ -127,12 +128,12 @@ public class AccountServiceTest {
             // given
             var longName = "a".repeat(101);
             var command = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), longName).create();
-            userExists(command);
+            var user = userExists(command);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameTooLongException.class);
-            assertThat(accountRepository.findAll()).isEmpty();
+            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
         }
 
         @ParameterizedTest
@@ -140,12 +141,12 @@ public class AccountServiceTest {
         void shouldRejectAccountCreationWithInvalidCharacters(String invalidName) {
             // given
             var command = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), invalidName).create();
-            userExists(command);
+            var user = userExists(command);
 
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameInvalidCharactersException.class);
-            assertThat(accountRepository.findAll()).isEmpty();
+            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
         }
 
         @Test
@@ -153,14 +154,14 @@ public class AccountServiceTest {
             // given
             var validName = "Valid Name-123 O'Connor's";
             var command = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), validName).create();
-            userExists(command);
+            var user = userExists(command);
 
             // when
             var account = accountService.createAccount(command);
 
             // then
             assertThat(account.name()).isEqualTo(validName);
-            assertThat(accountRepository.findAll()).hasSize(1).containsOnly(account);
+            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).hasSize(1).containsOnly(account);
         }
 
         @Test
@@ -170,7 +171,7 @@ public class AccountServiceTest {
             var command = Instancio.of(CreateAccountCommand.class)
                     .set(field(CreateAccountCommand::name), accountName)
                     .set(field(CreateAccountCommand::currency), PLN).create();
-            userExists(command);
+            var user = userExists(command);
 
             // when
             accountService.createAccount(command);
@@ -179,7 +180,7 @@ public class AccountServiceTest {
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountAlreadyExistsException.class)
                     .hasMessageContaining("Account with provided name and currency already exists");
-            assertThat(accountRepository.findAll()).hasSize(1);
+            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).hasSize(1);
         }
 
         @Test
@@ -194,8 +195,8 @@ public class AccountServiceTest {
                     .set(field(CreateAccountCommand::name), accountName)
                     .set(field(CreateAccountCommand::currency), EUR)
                     .create();
-            userExists(command1);
-            userExists(command2);
+            var user1 = userExists(command1);
+            var user2 = userExists(command2);
 
             // when
             var account1 = accountService.createAccount(command1);
@@ -206,7 +207,8 @@ public class AccountServiceTest {
             assertThat(account1.balance().currency()).isEqualTo(PLN);
             assertThat(account2.name()).isEqualTo(accountName);
             assertThat(account2.balance().currency()).isEqualTo(EUR);
-            assertThat(accountRepository.findAll()).hasSize(2);
+            assertThat(accountRepository.findAllBy(new GroupId(user1.groupId()))).hasSize(1);
+            assertThat(accountRepository.findAllBy(new GroupId(user2.groupId()))).hasSize(1);
         }
     }
 
@@ -280,7 +282,7 @@ public class AccountServiceTest {
                     .create());
 
             // when
-            var result = accountService.getById(account.id());
+            var result = accountService.getById(account.id(), userId);
 
             // then
             assertThat(result).isEqualTo(account);
@@ -296,9 +298,12 @@ public class AccountServiceTest {
         void shouldThrowExceptionWhenAccountNotFound() {
             // given
             var nonExistentAccountId = AccountId.generate();
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
 
             // when & then
-            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId))
+            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, userId))
                     .isInstanceOf(AccountNotFoundException.class)
                     .hasMessageContaining("Account not found");
         }
@@ -316,7 +321,7 @@ public class AccountServiceTest {
                     .create());
 
             // when
-            var retrievedAccount = accountService.getById(account.id());
+            var retrievedAccount = accountService.getById(account.id(), userId);
 
             // then
             assertThat(retrievedAccount.id()).isNotNull();
@@ -325,6 +330,103 @@ public class AccountServiceTest {
             assertThat(retrievedAccount.balance().value()).isZero();
             assertThat(retrievedAccount.createdAt()).isNotNull();
             assertThat(retrievedAccount.lastUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        void shouldReturnAccountWhenUserBelongsToSameGroup() {
+            // given
+            var groupId = GroupId.generate();
+            var accountOwnerUserId = UserId.generate();
+            var requestingUserId = UserId.generate();
+            userExistsInGroup(accountOwnerUserId, groupId);
+            userExistsInGroup(requestingUserId, groupId);
+            
+            var account = accountService.createAccount(new CreateAccountCommand("Shared Account", PLN, accountOwnerUserId));
+
+            // when
+            var retrievedAccount = accountService.getById(account.id(), requestingUserId);
+
+            // then
+            assertThat(retrievedAccount).isEqualTo(account);
+            assertThat(retrievedAccount.id()).isEqualTo(account.id());
+            assertThat(retrievedAccount.name()).isEqualTo("Shared Account");
+        }
+
+        @Test
+        void shouldThrowExceptionWhenUserBelongsToDifferentGroup() {
+            // given
+            var accountOwnerUserId = UserId.generate();
+            var accountOwnerGroupId = GroupId.generate();
+            userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
+            
+            var requestingUserId = UserId.generate();
+            var requestingUserGroupId = GroupId.generate();
+            userExistsInGroup(requestingUserId, requestingUserGroupId);
+            
+            var account = accountService.createAccount(new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
+
+            // when & then
+            assertThatThrownBy(() -> accountService.getById(account.id(), requestingUserId))
+                    .isInstanceOf(AccountNotFoundException.class);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAccountNotFoundWithAuthorization() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var nonExistentAccountId = AccountId.generate();
+
+            // when & then
+            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, userId))
+                    .isInstanceOf(AccountNotFoundException.class)
+                    .hasMessageContaining("Account not found");
+        }
+
+        @Test
+        void shouldReturnAccountWhenGroupIdMatches() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("Group Account", PLN, userId));
+
+            // when
+            var retrievedAccount = accountService.getById(account.id(), groupId);
+
+            // then
+            assertThat(retrievedAccount).isEqualTo(account);
+            assertThat(retrievedAccount.id()).isEqualTo(account.id());
+            assertThat(retrievedAccount.name()).isEqualTo("Group Account");
+            assertThat(retrievedAccount.ownedBy()).isEqualTo(groupId);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAccountNotFoundWithGroupId() {
+            // given
+            var groupId = GroupId.generate();
+            var nonExistentAccountId = AccountId.generate();
+
+            // when & then
+            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, groupId))
+                    .isInstanceOf(AccountNotFoundException.class)
+                    .hasMessageContaining("Account not found");
+        }
+
+        @Test
+        void shouldThrowExceptionWhenGroupIdDoesNotMatchAccountGroup() {
+            // given
+            var accountOwnerUserId = UserId.generate();
+            var accountOwnerGroupId = GroupId.generate();
+            var differentGroupId = GroupId.generate();
+            userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
+            
+            var account = accountService.createAccount(new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
+
+            // when & then
+            assertThatThrownBy(() -> accountService.getById(account.id(), differentGroupId))
+                    .isInstanceOf(AccountNotFoundException.class);
         }
     }
 
@@ -344,11 +446,11 @@ public class AccountServiceTest {
             var newName = "Updated Name";
 
             // when
-            var updatedAccount = accountService.updateAccount(account.id(), newName);
+            var updatedAccount = accountService.updateAccount(account.id(), newName, groupId);
 
             // then
             assertThat(updatedAccount.name()).isEqualTo(newName);
-            var retrievedAccount = accountService.getById(account.id());
+            var retrievedAccount = accountService.getById(account.id(), userId);
             assertThat(retrievedAccount.name()).isEqualTo(newName);
         }
 
@@ -359,7 +461,7 @@ public class AccountServiceTest {
             var newName = "Updated Name";
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(nonExistentAccountId, newName))
+            assertThatThrownBy(() -> accountService.updateAccount(nonExistentAccountId, newName, GroupId.generate()))
                     .isInstanceOf(AccountNotFoundException.class);
         }
 
@@ -377,11 +479,11 @@ public class AccountServiceTest {
             var emptyName = "";
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(account.id(), emptyName))
+            assertThatThrownBy(() -> accountService.updateAccount(account.id(), emptyName, groupId))
                     .isInstanceOf(AccountNameEmptyException.class);
 
             // and
-            var retrievedAccount = accountService.getById(account.id());
+            var retrievedAccount = accountService.getById(account.id(), userId);
             assertThat(retrievedAccount.name()).isEqualTo("Original Name");
         }
 
@@ -403,12 +505,12 @@ public class AccountServiceTest {
                     .create());
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(account2.id(), "Account One"))
+            assertThatThrownBy(() -> accountService.updateAccount(account2.id(), "Account One", groupId))
                     .isInstanceOf(AccountAlreadyExistsException.class);
 
             // verify original names are preserved
-            var retrievedAccount1 = accountService.getById(account1.id());
-            var retrievedAccount2 = accountService.getById(account2.id());
+            var retrievedAccount1 = accountService.getById(account1.id(), userId);
+            var retrievedAccount2 = accountService.getById(account2.id(), userId);
             assertThat(retrievedAccount1.name()).isEqualTo("Account One");
             assertThat(retrievedAccount2.name()).isEqualTo("Account Two");
         }
@@ -449,7 +551,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             userExistsInGroup(userId, GroupId.generate());
             var account = accountService.createAccount(new CreateAccountCommand("Account With Transactions", PLN, userId));
-            accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("100.00"), PLN), EXPENSE);
+            accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("100.00"), PLN), EXPENSE, userId);
 
             // when & then
             assertThatThrownBy(() -> accountService.deleteAccount(account.id(), userId))
@@ -487,7 +589,7 @@ public class AccountServiceTest {
 
             // when & then
             assertThatThrownBy(() -> accountService.deleteAccount(account.id(), attemptingUserId))
-                    .isInstanceOf(AccountAccessDeniedException.class);
+                    .isInstanceOf(AccountNotFoundException.class);
 
             // verify account still exists
             assertThat(accountService.getAccounts(accountOwnerUserId)).hasSize(1);
@@ -518,26 +620,26 @@ public class AccountServiceTest {
             assertThat(accountsForUserB).hasSize(2).containsExactlyInAnyOrder(accountUserA, accountUserB);
         }
 
-//        @Test
-//        void shouldAllowSameGroupUsersToModifyAccounts() {
-//            // given
-//            var groupId = GroupId.generate();
-//            var userAId = UserId.generate();
-//            var userBId = UserId.generate();
-//            userExistsInGroup(userAId, groupId);
-//            userExistsInGroup(userBId, groupId);
-//
-//            var businessAccount = accountService.createAccount(new CreateAccountCommand("Business Account", EUR, userAId));
-//
-//            // when
-//            var updatedAccount = accountService.updateAccount(businessAccount.id(), "Updated Business Account");
-//
-//            // then
-//            assertThat(updatedAccount.name()).isEqualTo("Updated Business Account");
-//            var retrievedAccount = accountService.getById(businessAccount.id());
-//            assertThat(retrievedAccount.name()).isEqualTo("Updated Business Account");
-//            assertThat(retrievedAccount.updatedAt()).isAfter(businessAccount.updatedAt());
-//        }
+        @Test
+        void shouldAllowSameGroupUsersToModifyAccounts() {
+            // given
+            var groupId = GroupId.generate();
+            var user1Id = UserId.generate();
+            var user2Id = UserId.generate();
+            userExistsInGroup(user1Id, groupId);
+            userExistsInGroup(user2Id, groupId);
+
+            var businessAccount = accountService.createAccount(new CreateAccountCommand("Business Account", EUR, user1Id));
+
+            // when
+            var updatedAccount = accountService.updateAccount(businessAccount.id(), "Updated Business Account", groupId);
+
+            // then
+            assertThat(updatedAccount.name()).isEqualTo("Updated Business Account");
+            var retrievedAccount = accountService.getById(businessAccount.id(), user2Id);
+            assertThat(retrievedAccount.name()).isEqualTo("Updated Business Account");
+            assertThat(retrievedAccount.lastUpdatedAt()).isAfter(businessAccount.lastUpdatedAt());
+        }
 
         @Test
         void shouldRestrictAccessBetweenDifferentGroups() {
@@ -557,61 +659,58 @@ public class AccountServiceTest {
             assertThat(accountsForUserB).hasSize(1).containsOnly(accountUserB).doesNotContain(accountUserA);
         }
 
-//        @Test
-//        void shouldRejectCrossGroupAccountAccess() {
-//            // given
-//            var groupX = GroupId.generate();
-//            var groupY = GroupId.generate();
-//            var userA = User.create(new ExternalAuthId("userA"), "userA@example.com", "User A", groupX);
-//            var userC = User.create(new ExternalAuthId("userC"), "userC@example.com", "User C", groupY);
-//            userRepository.save(userA);
-//            userRepository.save(userC);
-//
-//            var privateAccount = accountService.createAccount(new CreateAccountCommand("Private Account", PLN, userA.getId()));
-//
-//            // when & then
-//            var userCAccounts = accountService.getAccounts(userC.getId());
-//            assertThat(userCAccounts).doesNotContain(privateAccount);
-//        }
-//
-//        @Test
-//        void shouldRejectCrossGroupAccountModification() {
-//            // given
-//            var groupX = GroupId.generate();
-//            var groupY = GroupId.generate();
-//            var userA = User.create(new ExternalAuthId("userA"), "userA@example.com", "User A", groupX);
-//            var userC = User.create(new ExternalAuthId("userC"), "userC@example.com", "User C", groupY);
-//            userRepository.save(userA);
-//            userRepository.save(userC);
-//
-//            var groupXAccount = accountService.createAccount(new CreateAccountCommand("Group X Account", PLN, userA.getId()));
-//
-//            // This test would require additional service methods that check user permissions
-//            // For now, we'll verify that users fromGroup different groups can't see each other's accounts
-//            var userCAccounts = accountService.getAccounts(userC.getId());
-//            assertThat(userCAccounts).doesNotContain(groupXAccount);
-//        }
-//
-//        @Test
-//        void shouldRejectCrossGroupAccountDeletion() {
-//            // given
-//            var groupX = GroupId.generate();
-//            var groupY = GroupId.generate();
-//            var userA = User.create(new ExternalAuthId("userA"), "userA@example.com", "User A", groupX);
-//            var userC = User.create(new ExternalAuthId("userC"), "userC@example.com", "User C", groupY);
-//            userRepository.save(userA);
-//            userRepository.save(userC);
-//
-//            var zeroBalanceAccount = accountService.createAccount(new CreateAccountCommand("Zero Balance Account", PLN, userA.getId()));
-//
-//            // This test verifies isolation - userC cannot see userA's accounts
-//            var userCAccounts = accountService.getAccounts(userC.getId());
-//            assertThat(userCAccounts).doesNotContain(zeroBalanceAccount);
-//
-//            // verify account remains active for userA
-//            var userAAccounts = accountService.getAccounts(userA.getId());
-//            assertThat(userAAccounts).hasSize(1);
-//            assertThat(userAAccounts.getFirst().name()).isEqualTo("Zero Balance Account");
-//        }
+        @Test
+        void shouldRejectCrossGroupAccountAccess() {
+            // given
+            var accountOwnerUserId = UserId.generate();
+            var accountOwnerGroupId = GroupId.generate();
+            userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
+            
+            var requestingUserId = UserId.generate();
+            var requestingUserGroupId = GroupId.generate();
+            userExistsInGroup(requestingUserId, requestingUserGroupId);
+            
+            var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+
+            // when & then
+            assertThatThrownBy(() -> accountService.getById(account.id(), requestingUserId))
+                    .isInstanceOf(AccountNotFoundException.class);
+        }
+
+        @Test
+        void shouldRejectCrossGroupAccountModification() {
+            // given
+            var accountOwnerUserId = UserId.generate();
+            var accountOwnerGroupId = GroupId.generate();
+            userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
+            
+            var attemptingGroupId = GroupId.generate();
+            var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+
+            // when & then
+            assertThatThrownBy(() -> accountService.updateAccount(account.id(), "New Name", attemptingGroupId))
+                    .isInstanceOf(AccountNotFoundException.class);
+        }
+
+        @Test
+        void shouldRejectCrossGroupAccountDeletion() {
+            // given
+            var accountOwnerUserId = UserId.generate();
+            var accountOwnerGroupId = GroupId.generate();
+            userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
+
+            var attemptingUserId = UserId.generate();
+            var attemptingUserGroupId = GroupId.generate();
+            userExistsInGroup(attemptingUserId, attemptingUserGroupId);
+
+            var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+
+            // when & then
+            assertThatThrownBy(() -> accountService.deleteAccount(account.id(), attemptingUserId))
+                    .isInstanceOf(AccountNotFoundException.class);
+
+            // verify account still exists
+            assertThat(accountService.getAccounts(accountOwnerUserId)).hasSize(1);
+        }
     }
 }

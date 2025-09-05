@@ -9,6 +9,7 @@ import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 import pl.btsoftware.backend.transaction.infrastructure.api.TransactionController;
 import pl.btsoftware.backend.transaction.infrastructure.persistance.JpaTransactionRepository;
 import pl.btsoftware.backend.transaction.infrastructure.persistance.TransactionJpaRepository;
+import pl.btsoftware.backend.users.UsersModuleFacade;
 
 @Configuration
 public class TransactionModuleConfiguration {
@@ -19,13 +20,13 @@ public class TransactionModuleConfiguration {
     }
 
     @Bean
-    public TransactionService transactionService(TransactionRepository transactionRepository, AccountModuleFacade accountModuleFacade) {
-        return new TransactionService(transactionRepository, accountModuleFacade);
+    public TransactionService transactionService(TransactionRepository transactionRepository, AccountModuleFacade accountModuleFacade, UsersModuleFacade usersModuleFacade) {
+        return new TransactionService(transactionRepository, accountModuleFacade, usersModuleFacade);
     }
 
     @Bean
-    public TransactionModuleFacade transactionModuleFacade(TransactionService transactionService) {
-        return new TransactionModuleFacade(transactionService);
+    public TransactionModuleFacade transactionModuleFacade(TransactionService transactionService, UsersModuleFacade usersModuleFacade) {
+        return new TransactionModuleFacade(transactionService, usersModuleFacade);
     }
 
     @Bean

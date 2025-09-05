@@ -12,6 +12,14 @@ import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
+import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
+import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
+import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
+import pl.btsoftware.backend.users.UsersModuleFacade;
+import pl.btsoftware.backend.users.application.RegisterUserCommand;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -35,21 +43,39 @@ public class TransactionServiceTest {
     @Autowired
     private AccountModuleFacade accountModuleFacade;
 
+    @Autowired
+    private UsersModuleFacade usersModuleFacade;
+
     private String uniqueAccountName() {
         return "Account-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private UserId createTestUser() {
+        var timestamp = System.currentTimeMillis();
+        var command = new RegisterUserCommand(
+                "test-auth-id-" + timestamp,
+                "test" + timestamp + "@example.com",
+                "Test User",
+                "Test Group " + timestamp,
+                null
+        );
+        var user = usersModuleFacade.registerUser(command);
+        return user.id();
     }
 
     @Test
     void shouldCreateIncomeTransactionAndUpdateAccountBalance() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Salary payment",
                 now(),
                 INCOME,
-                "Salary"
+                "Salary",
+                userId
         );
 
         // When
@@ -65,15 +91,16 @@ public class TransactionServiceTest {
         assertThat(transaction.amount().currency()).isEqualTo(PLN);
         assertThat(transaction.tombstone().isDeleted()).isFalse();
 
-        var account = accountModuleFacade.getAccount(accountId.id());
+        var account = accountModuleFacade.getAccount(accountId.id(), userId);
         assertThat(account.balance().value()).isEqualTo(new BigDecimal("100.00"));
     }
 
     @Test
     void shouldCreateExpenseTransactionAndUpdateAccountBalance() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
-        accountModuleFacade.addTransaction(accountId.id(), TransactionId.generate(), Money.of(new BigDecimal("200.00"), PLN), INCOME);
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        accountModuleFacade.addTransaction(accountId.id(), TransactionId.generate(), Money.of(new BigDecimal("200.00"), PLN), INCOME, userId);
 
         var command = new CreateTransactionCommand(
                 accountId.id(),
@@ -81,7 +108,8 @@ public class TransactionServiceTest {
                 "Grocery shopping",
                 now(),
                 TransactionType.EXPENSE,
-                "Food"
+                "Food",
+                userId
         );
 
         // When
@@ -92,21 +120,23 @@ public class TransactionServiceTest {
         assertThat(transaction.type()).isEqualTo(TransactionType.EXPENSE);
         assertThat(transaction.description()).isEqualTo("Grocery shopping");
 
-        var account = accountModuleFacade.getAccount(accountId.id());
+        var account = accountModuleFacade.getAccount(accountId.id(), userId);
         assertThat(account.balance().value()).isEqualTo(new BigDecimal("150.00"));
     }
 
     @Test
     void shouldAllowTransactionWithEmptyDescription() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "",
                 now(),
                 INCOME,
-                "Category"
+                "Category",
+                userId
         );
 
         // When
@@ -119,14 +149,16 @@ public class TransactionServiceTest {
     @Test
     void shouldAllowTransactionWithNullDescription() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 null,
                 now(),
                 INCOME,
-                "Category"
+                "Category",
+                userId
         );
 
         // When
@@ -139,7 +171,8 @@ public class TransactionServiceTest {
     @Test
     void shouldThrowExceptionWhenDescriptionIsTooLong() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var longDescription = "A".repeat(201);
         var command = new CreateTransactionCommand(
                 accountId.id(),
@@ -147,50 +180,56 @@ public class TransactionServiceTest {
                 longDescription,
                 now(),
                 INCOME,
-                "Category"
+                "Category",
+                userId
         );
 
         // When & Then
         assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(TransactionDescriptionTooLongException.class)
                 .hasMessage("Description cannot exceed 200 characters");
     }
 
     @Test
     void shouldThrowExceptionWhenCurrenciesDontMatch() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), EUR),
                 "Payment",
                 now(),
                 INCOME,
-                "Category"
+                "Category",
+                userId
         );
 
         // When & Then
         assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction currency must match account currency");
+                .isInstanceOf(TransactionCurrencyMismatchException.class)
+                .hasMessage("Transaction currency (EUR) must match account currency (PLN)");
     }
 
     @Test
     void shouldRetrieveTransactionById() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
                 now(),
                 INCOME,
-                "Test"
+                "Test",
+                userId
         );
         var createdTransaction = transactionService.createTransaction(command);
 
         // When
-        var retrievedTransaction = transactionService.getTransactionById(createdTransaction.id());
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var retrievedTransaction = transactionService.getTransactionById(createdTransaction.id(), new GroupId(user.groupId()));
 
         // Then
         assertThat(retrievedTransaction.id()).isEqualTo(createdTransaction.id());
@@ -203,22 +242,26 @@ public class TransactionServiceTest {
         var nonExistentId = TransactionId.generate();
 
         // When & Then
-        assertThatThrownBy(() -> transactionService.getTransactionById(nonExistentId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction not found");
+        var userId = createTestUser();
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        assertThatThrownBy(() -> transactionService.getTransactionById(nonExistentId, new GroupId(user.groupId())))
+                .isInstanceOf(TransactionNotFoundException.class)
+                .hasMessage("Transaction not found with id: " + nonExistentId.value());
     }
 
     @Test
     void shouldRetrieveAllTransactions() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command1 = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction 1",
                 now(),
                 INCOME,
-                "Test"
+                "Test",
+                userId
         );
         var command2 = new CreateTransactionCommand(
                 accountId.id(),
@@ -226,14 +269,16 @@ public class TransactionServiceTest {
                 "Transaction 2",
                 now(),
                 TransactionType.EXPENSE,
-                "Test"
+                "Test",
+                userId
         );
 
         var transaction1 = transactionService.createTransaction(command1);
         var transaction2 = transactionService.createTransaction(command2);
 
         // When
-        var allTransactions = transactionService.getAllTransactions();
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var allTransactions = transactionService.getAllTransactions(new GroupId(user.groupId()));
 
         // Then
         assertThat(allTransactions).hasSizeGreaterThanOrEqualTo(2);
@@ -244,8 +289,9 @@ public class TransactionServiceTest {
     @Test
     void shouldRetrieveTransactionsByAccountId() {
         // Given
-        var account1Id = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
-        var account2Id = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var account1Id = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var account2Id = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
 
         var command1 = new CreateTransactionCommand(
                 account1Id.id(),
@@ -253,7 +299,8 @@ public class TransactionServiceTest {
                 "Transaction for account 1",
                 now(),
                 INCOME,
-                "Test"
+                "Test",
+                userId
         );
         var command2 = new CreateTransactionCommand(
                 account2Id.id(),
@@ -261,14 +308,16 @@ public class TransactionServiceTest {
                 "Transaction for account 2",
                 now(),
                 TransactionType.EXPENSE,
-                "Test"
+                "Test",
+                userId
         );
 
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
 
         // When
-        var account1Transactions = transactionService.getTransactionsByAccountId(account1Id.id());
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var account1Transactions = transactionService.getTransactionsByAccountId(account1Id.id(), new GroupId(user.groupId()));
 
         // Then
         assertThat(account1Transactions).hasSize(1);
@@ -278,14 +327,16 @@ public class TransactionServiceTest {
     @Test
     void shouldUpdateTransactionAmountAndAdjustAccountBalance() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Original transaction",
                 now(),
                 INCOME,
-                "Original"
+                "Original",
+                userId
         );
         var transaction = transactionService.createTransaction(createCommand);
 
@@ -297,28 +348,30 @@ public class TransactionServiceTest {
         );
 
         // When
-        var updatedTransaction = transactionService.updateTransaction(updateCommand);
+        var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
 
         // Then
         assertThat(updatedTransaction.amount().value()).isEqualTo(new BigDecimal("150.00"));
         assertThat(updatedTransaction.description()).isEqualTo("Original transaction");
         assertThat(updatedTransaction.category()).isEqualTo("Original");
 
-        var account = accountModuleFacade.getAccount(accountId.id());
+        var account = accountModuleFacade.getAccount(accountId.id(), userId);
         assertThat(account.balance().value()).isEqualTo(new BigDecimal("150.00"));
     }
 
     @Test
     void shouldUpdateTransactionDescription() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Original description",
                 now(),
                 INCOME,
-                "Original"
+                "Original",
+                userId
         );
         var transaction = transactionService.createTransaction(createCommand);
 
@@ -330,7 +383,7 @@ public class TransactionServiceTest {
         );
 
         // When
-        var updatedTransaction = transactionService.updateTransaction(updateCommand);
+        var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
 
         // Then
         assertThat(updatedTransaction.description()).isEqualTo("Updated description");
@@ -340,14 +393,16 @@ public class TransactionServiceTest {
     @Test
     void shouldUpdateTransactionCategory() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
                 now(),
                 INCOME,
-                "Original Category"
+                "Original Category",
+                userId
         );
         var transaction = transactionService.createTransaction(createCommand);
 
@@ -359,7 +414,7 @@ public class TransactionServiceTest {
         );
 
         // When
-        var updatedTransaction = transactionService.updateTransaction(updateCommand);
+        var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
 
         // Then
         assertThat(updatedTransaction.category()).isEqualTo("Updated Category");
@@ -370,6 +425,8 @@ public class TransactionServiceTest {
     void shouldThrowExceptionWhenUpdatingNonExistentTransaction() {
         // Given
         var nonExistentId = TransactionId.generate();
+        var userId = createTestUser();
+        accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var updateCommand = new UpdateTransactionCommand(
                 nonExistentId,
                 Money.of(new BigDecimal("100.00"), PLN),
@@ -378,41 +435,45 @@ public class TransactionServiceTest {
         );
 
         // When & Then
-        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction not found");
+        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
+                .isInstanceOf(TransactionNotFoundException.class)
+                .hasMessage("Transaction not found with id: " + nonExistentId.value());
     }
 
     @Test
     void shouldDeleteTransactionAndAdjustAccountBalance() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction to delete",
                 now(),
                 INCOME,
-                "Test"
+                "Test",
+                userId
         );
         var transaction = transactionService.createTransaction(createCommand);
 
         // When
-        transactionService.deleteTransaction(transaction.id());
+        transactionService.deleteTransaction(transaction.id(), userId);
 
         // Then
-        var deletedTransaction = transactionRepository.findByIdIncludingDeleted(transaction.id()).orElseThrow();
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var deletedTransaction = transactionRepository.findByIdIncludingDeleted(transaction.id(), new GroupId(user.groupId())).orElseThrow();
         assertThat(deletedTransaction.tombstone().isDeleted()).isTrue();
 
-        var account = accountModuleFacade.getAccount(accountId.id());
+        var account = accountModuleFacade.getAccount(accountId.id(), userId);
         assertThat(account.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     @Test
     void shouldDeleteExpenseTransactionAndAdjustAccountBalance() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
-        accountModuleFacade.addTransaction(accountId.id(), TransactionId.generate(), new Money(new BigDecimal("200.00"), PLN), INCOME);
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        accountModuleFacade.addTransaction(accountId.id(), TransactionId.generate(), new Money(new BigDecimal("200.00"), PLN), INCOME, userId);
 
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
@@ -420,15 +481,16 @@ public class TransactionServiceTest {
                 "Expense to delete",
                 now(),
                 TransactionType.EXPENSE,
-                "Test"
+                "Test",
+                userId
         );
         var transaction = transactionService.createTransaction(createCommand);
 
         // When
-        transactionService.deleteTransaction(transaction.id());
+        transactionService.deleteTransaction(transaction.id(), userId);
 
         // Then
-        var account = accountModuleFacade.getAccount(accountId.id());
+        var account = accountModuleFacade.getAccount(accountId.id(), userId);
         assertThat(account.balance().value()).isEqualTo(new BigDecimal("200.00"));
     }
 
@@ -436,31 +498,35 @@ public class TransactionServiceTest {
     void shouldThrowExceptionWhenDeletingNonExistentTransaction() {
         // Given
         var nonExistentId = TransactionId.generate();
+        var userId = createTestUser();
+        accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
 
         // When & Then
-        assertThatThrownBy(() -> transactionService.deleteTransaction(nonExistentId))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction not found");
+        assertThatThrownBy(() -> transactionService.deleteTransaction(nonExistentId, userId))
+                .isInstanceOf(TransactionNotFoundException.class)
+                .hasMessage("Transaction not found with id: " + nonExistentId.value());
     }
 
     @Test
     void shouldThrowExceptionWhenDeletingAlreadyDeletedTransaction() {
         // Given
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN));
+        var userId = createTestUser();
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction to delete twice",
                 now(),
                 INCOME,
-                "Test"
+                "Test",
+                userId
         );
         var transaction = transactionService.createTransaction(createCommand);
-        transactionService.deleteTransaction(transaction.id());
+        transactionService.deleteTransaction(transaction.id(), userId);
 
         // When & Then
-        assertThatThrownBy(() -> transactionService.deleteTransaction(transaction.id()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Transaction not found");
+        assertThatThrownBy(() -> transactionService.deleteTransaction(transaction.id(), userId))
+                .isInstanceOf(TransactionAlreadyDeletedException.class)
+                .hasMessage("Transaction with id " + transaction.id().value() + " is already deleted");
     }
 }

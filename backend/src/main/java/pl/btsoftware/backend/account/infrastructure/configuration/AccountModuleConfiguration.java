@@ -24,8 +24,8 @@ public class AccountModuleConfiguration {
     }
 
     @Bean
-    public AccountModuleFacade accountModuleFacade(AccountService accountService) {
-        return new AccountModuleFacade(accountService);
+    public AccountModuleFacade accountModuleFacade(AccountService accountService, UsersModuleFacade usersModuleFacade) {
+        return new AccountModuleFacade(accountService, usersModuleFacade);
     }
 
     @Bean

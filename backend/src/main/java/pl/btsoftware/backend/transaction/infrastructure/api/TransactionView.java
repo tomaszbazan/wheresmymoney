@@ -25,7 +25,7 @@ public record TransactionView(
                 transaction.description(),
                 transaction.category(),
                 transaction.createdAt(),
-                transaction.updatedAt()
+                transaction.lastUpdatedAt()
         );
     }
 }

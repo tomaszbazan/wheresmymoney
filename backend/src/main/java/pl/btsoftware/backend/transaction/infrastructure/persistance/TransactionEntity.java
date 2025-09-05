@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 
@@ -30,8 +31,16 @@ public class TransactionEntity {
     private String category;
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
+    @Column(name = "created_by")
+    private String createdBy;
+    @Column(name = "created_by_group")
+    private UUID createdByGroup;
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+    @Column(name = "updated_by")
+    private String updatedBy;
+    @Column(name = "updated_by_group")
+    private UUID updatedByGroup;
     @Column(name = "is_deleted")
     private boolean isDeleted;
     @Column(name = "deleted_at")
@@ -47,13 +56,19 @@ public class TransactionEntity {
                 transaction.description(),
                 transaction.category(),
                 transaction.createdAt(),
-                transaction.updatedAt(),
+                transaction.createdBy().value(),
+                transaction.ownedBy().value(),
+                transaction.lastUpdatedAt(),
+                transaction.lastUpdatedBy().value(),
+                transaction.ownedBy().value(),
                 transaction.tombstone().isDeleted(),
                 transaction.tombstone().deletedAt()
         );
     }
 
     public Transaction toDomain() {
+        var createdAuditInfo = AuditInfo.create(createdBy, createdByGroup, createdAt);
+        var updatedAuditInfo = AuditInfo.create(updatedBy, updatedByGroup, updatedAt);
         return new Transaction(
                 TransactionId.of(id),
                 AccountId.from(accountId),
@@ -61,8 +76,8 @@ public class TransactionEntity {
                 type,
                 description,
                 category,
-                createdAt,
-                updatedAt,
+                createdAuditInfo,
+                updatedAuditInfo,
                 new Tombstone(isDeleted, deletedAt)
         );
     }

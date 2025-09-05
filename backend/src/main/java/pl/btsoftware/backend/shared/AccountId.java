@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.shared;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.UUID;
 
 public record AccountId(UUID value) {
@@ -12,5 +14,11 @@ public record AccountId(UUID value) {
             throw new IllegalArgumentException("Account id cannot be null");
         }
         return new AccountId(id);
+    }
+
+    @NotNull
+    @Override
+    public String toString() {
+        return value.toString();
     }
 }

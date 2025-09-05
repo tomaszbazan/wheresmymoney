@@ -80,7 +80,7 @@ class GroupInvitationTest {
             InvitationStatus.PENDING, pastTime, pastTime.plus(Duration.ofDays(7))
         );
 
-        assertThatThrownBy(() -> expiredInvitation.accept())
+        assertThatThrownBy(expiredInvitation::accept)
                 .isInstanceOf(InvitationTokenExpiredException.class);
     }
 
@@ -96,7 +96,7 @@ class GroupInvitationTest {
             InvitationStatus.ACCEPTED, now, now.plus(Duration.ofDays(7))
         );
 
-        assertThatThrownBy(() -> acceptedInvitation.accept())
+        assertThatThrownBy(acceptedInvitation::accept)
                 .isInstanceOf(IllegalStateException.class);
     }
 

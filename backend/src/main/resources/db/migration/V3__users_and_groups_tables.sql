@@ -4,7 +4,7 @@ CREATE TABLE groups
     id          UUID PRIMARY KEY,
     name        VARCHAR(100)             NOT NULL,
     description TEXT,
-    created_by  UUID                     NOT NULL,
+    created_by  VARCHAR(100)             NOT NULL,
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -38,7 +38,7 @@ CREATE TABLE group_invitations
     group_id         UUID                     NOT NULL,
     invitee_email    VARCHAR(255)             NOT NULL,
     invitation_token VARCHAR(255)             NOT NULL UNIQUE,
-    invited_by       UUID                     NOT NULL,
+    invited_by       VARCHAR(100)             NOT NULL,
     status           VARCHAR(20)              NOT NULL DEFAULT 'PENDING',
     created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at       TIMESTAMP WITH TIME ZONE NOT NULL,
