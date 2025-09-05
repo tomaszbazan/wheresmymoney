@@ -7,10 +7,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.context.annotation.Import;
+import pl.btsoftware.backend.account.domain.AuditInfo;
+import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -28,10 +32,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static pl.btsoftware.backend.shared.Currency.PLN;
+import static pl.btsoftware.backend.shared.JwtTokenFixture.createTokenFor;
 
-@WebMvcTest(controllers = TransactionController.class, excludeAutoConfiguration = {
-    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
-})
+@WebMvcTest(controllers = TransactionController.class)
+@Import(WebConfig.class)
 public class TransactionControllerTest {
 
     @Autowired
@@ -48,13 +52,15 @@ public class TransactionControllerTest {
         // given
         var transactionId = randomUUID();
         var accountId = randomUUID();
+        var userId = new UserId("user123");
         var transaction = createTransaction(transactionId, accountId, new BigDecimal("100.50"), "Test transaction", TransactionType.INCOME);
 
-        when(transactionModuleFacade.getTransactionById(transactionId)).thenReturn(transaction);
+        when(transactionModuleFacade.getTransactionById(transactionId, userId)).thenReturn(transaction);
 
         // when & then
         mockMvc.perform(get("/api/transactions/" + transactionId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(transactionId.toString()))
@@ -71,13 +77,15 @@ public class TransactionControllerTest {
     void shouldReturnNotFoundWhenGettingNonExistentTransaction() throws Exception {
         // given
         var nonExistentId = randomUUID();
+        var userId = new UserId("user123");
 
-        when(transactionModuleFacade.getTransactionById(nonExistentId))
+        when(transactionModuleFacade.getTransactionById(nonExistentId, userId))
                 .thenThrow(new IllegalArgumentException("Transaction not found"));
 
         // when & then
         mockMvc.perform(get("/api/transactions/" + nonExistentId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Transaction not found")));
     }
@@ -85,14 +93,16 @@ public class TransactionControllerTest {
     @Test
     void shouldReturnListOfAllTransactions() throws Exception {
         // given
+        var userId = new UserId("user123");
         var transaction1 = createTransaction(randomUUID(), randomUUID(), new BigDecimal("100.00"), "Transaction 1", TransactionType.INCOME);
         var transaction2 = createTransaction(randomUUID(), randomUUID(), new BigDecimal("50.00"), "Transaction 2", TransactionType.EXPENSE);
 
-        when(transactionModuleFacade.getAllTransactions()).thenReturn(List.of(transaction1, transaction2));
+        when(transactionModuleFacade.getAllTransactions(userId)).thenReturn(List.of(transaction1, transaction2));
 
         // when & then
         mockMvc.perform(get("/api/transactions")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.transactions", hasSize(2)))
@@ -103,11 +113,13 @@ public class TransactionControllerTest {
     @Test
     void shouldReturnEmptyListWhenNoTransactionsExist() throws Exception {
         // given
-        when(transactionModuleFacade.getAllTransactions()).thenReturn(emptyList());
+        var userId = new UserId("user123");
+        when(transactionModuleFacade.getAllTransactions(userId)).thenReturn(emptyList());
 
         // when & then
         mockMvc.perform(get("/api/transactions")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.transactions", hasSize(0)));
@@ -117,14 +129,16 @@ public class TransactionControllerTest {
     void shouldReturnAccountTransactions() throws Exception {
         // given
         var accountId = randomUUID();
+        var userId = new UserId("user123");
         var transaction1 = createTransaction(randomUUID(), accountId, new BigDecimal("200.00"), "Account Transaction 1", TransactionType.INCOME);
         var transaction2 = createTransaction(randomUUID(), accountId, new BigDecimal("75.00"), "Account Transaction 2", TransactionType.EXPENSE);
 
-        when(transactionModuleFacade.getTransactionsByAccountId(accountId)).thenReturn(List.of(transaction1, transaction2));
+        when(transactionModuleFacade.getTransactionsByAccountId(accountId, userId)).thenReturn(List.of(transaction1, transaction2));
 
         // when & then
         mockMvc.perform(get("/api/accounts/" + accountId + "/transactions")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.transactions", hasSize(2)))
@@ -137,9 +151,10 @@ public class TransactionControllerTest {
         // given
         var transactionId = randomUUID();
         var accountId = randomUUID();
+        var userId = new UserId("user123");
         var updatedTransaction = createTransaction(transactionId, accountId, new BigDecimal("150.00"), "Updated transaction", TransactionType.INCOME);
 
-        when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class))).thenReturn(updatedTransaction);
+        when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class), any(UserId.class))).thenReturn(updatedTransaction);
 
         var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("150.00"), PLN), "Updated transaction", "Updated Category");
         String json = objectMapper.writeValueAsString(updateRequest);
@@ -147,7 +162,8 @@ public class TransactionControllerTest {
         // when & then
         mockMvc.perform(put("/api/transactions/" + transactionId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(json)
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(transactionId.toString()))
@@ -160,14 +176,15 @@ public class TransactionControllerTest {
         // given
         var nonExistentId = randomUUID();
 
-        when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class))).thenThrow(new IllegalArgumentException("Transaction not found"));
+        when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class), any(UserId.class))).thenThrow(new IllegalArgumentException("Transaction not found"));
 
         var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("100.00"), PLN), "Test", "Test");
 
         // when & then
         mockMvc.perform(put("/api/transactions/" + nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(objectMapper.writeValueAsString(updateRequest))
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Transaction not found")));
     }
@@ -193,7 +210,8 @@ public class TransactionControllerTest {
         // when & then
         mockMvc.perform(post("/api/transactions")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest)))
+                        .content(objectMapper.writeValueAsString(createRequest))
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(transactionId.toString()))
@@ -211,7 +229,8 @@ public class TransactionControllerTest {
 
         // when & then
         mockMvc.perform(delete("/api/transactions/" + transactionId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isOk());
     }
 
@@ -219,18 +238,21 @@ public class TransactionControllerTest {
     void shouldReturnNotFoundWhenDeletingNonExistentTransaction() throws Exception {
         // given
         var nonExistentId = randomUUID();
+        var userId = new UserId("user123");
 
         doThrow(new IllegalArgumentException("Transaction not found"))
-                .when(transactionModuleFacade).deleteTransaction(nonExistentId);
+                .when(transactionModuleFacade).deleteTransaction(nonExistentId, userId);
 
         // when & then
         mockMvc.perform(delete("/api/transactions/" + nonExistentId)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(createTokenFor("user123")))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Transaction not found")));
     }
 
     private Transaction createTransaction(UUID transactionId, UUID accountId, BigDecimal amount, String description, TransactionType type) {
+        var auditInfo = AuditInfo.create("user123", randomUUID());
         return new Transaction(
                 new TransactionId(transactionId),
                 new AccountId(accountId),
@@ -238,8 +260,8 @@ public class TransactionControllerTest {
                 type,
                 description,
                 "Salary",
-                OffsetDateTime.now(ZoneOffset.UTC),
-                OffsetDateTime.now(ZoneOffset.UTC),
+                auditInfo,
+                auditInfo,
                 Tombstone.active()
         );
     }

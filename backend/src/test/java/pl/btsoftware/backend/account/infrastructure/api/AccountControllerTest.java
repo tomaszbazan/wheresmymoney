@@ -21,6 +21,7 @@ import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
@@ -123,10 +124,11 @@ public class AccountControllerTest {
     @Test
     void shouldUpdateAccount() throws Exception {
         // given
+        var userId = UserId.generate();
         var accountId = AccountId.generate();
         var updatedAccount = createAccount(accountId, "Updated Account", PLN);
 
-        when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class)))
+        when(accountModuleFacade.updateAccount(new UpdateAccountCommand(accountId, "Updated Account"), userId))
                 .thenReturn(updatedAccount);
 
         UpdateAccountRequest request = new UpdateAccountRequest("Updated Account");
@@ -135,7 +137,8 @@ public class AccountControllerTest {
         // when & then
         mockMvc.perform(put("/api/accounts/" + accountId.value())
                         .contentType(APPLICATION_JSON)
-                        .content(json))
+                        .content(json)
+                        .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(accountId.value().toString()))
@@ -222,14 +225,16 @@ public class AccountControllerTest {
     @Test
     void shouldGetAccountById() throws Exception {
         // given
+        var userId = UserId.generate();
         var accountId = AccountId.generate();
         var account = createAccount(accountId, "Test Account", PLN);
 
-        when(accountModuleFacade.getAccount(accountId)).thenReturn(account);
+        when(accountModuleFacade.getAccount(accountId, userId)).thenReturn(account);
 
         // when & then
         mockMvc.perform(get("/api/accounts/" + accountId.value())
-                        .contentType(APPLICATION_JSON))
+                        .contentType(APPLICATION_JSON)
+                        .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(accountId.value().toString()))
@@ -243,24 +248,44 @@ public class AccountControllerTest {
     @Test
     void shouldReturnNotFoundWhenGettingNonExistentAccount() throws Exception {
         // given
+        var userId = UserId.generate();
         var nonExistentId = AccountId.generate();
 
-        when(accountModuleFacade.getAccount(nonExistentId))
+        when(accountModuleFacade.getAccount(nonExistentId, userId))
                 .thenThrow(new AccountNotFoundException(nonExistentId));
 
         // when & then
         mockMvc.perform(get("/api/accounts/" + nonExistentId.value())
-                        .contentType(APPLICATION_JSON))
+                        .contentType(APPLICATION_JSON)
+                        .with(createTokenFor(userId.value())))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString("Account not found with id: " + nonExistentId.value())));
     }
 
     @Test
+    void shouldReturnNotFoundWhenUserTriesToAccessAccountFromDifferentGroup() throws Exception {
+        // given
+        var userId = new UserId("other-user");
+        var accountId = AccountId.generate();
+
+        when(accountModuleFacade.getAccount(accountId, userId))
+                .thenThrow(new AccountNotFoundException(accountId));
+
+        // when & then
+        mockMvc.perform(get("/api/accounts/" + accountId.value())
+                        .contentType(APPLICATION_JSON)
+                        .with(createTokenFor("other-user")))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("Account not found with id: " + accountId)));
+    }
+
+    @Test
     void shouldReturnNotFoundWhenUpdatingNonExistentAccount() throws Exception {
         // given
+        var userId = UserId.generate();
         var nonExistentId = AccountId.generate();
 
-        when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class)))
+        when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class), eq(userId)))
                 .thenThrow(new AccountNotFoundException(nonExistentId));
         
         var updateRequest = new UpdateAccountRequest("Updated Name");
@@ -268,7 +293,8 @@ public class AccountControllerTest {
         // when & then
         mockMvc.perform(put("/api/accounts/" + nonExistentId.value())
                         .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                        .content(objectMapper.writeValueAsString(updateRequest))
+                        .with(createTokenFor(userId.value())))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString("Account not found with id: " + nonExistentId.value())));
     }
@@ -321,7 +347,8 @@ public class AccountControllerTest {
                 Money.of(BigDecimal.ZERO, currency),
                 new ArrayList<>(),
                 Instancio.create(AuditInfo.class),
-                Instancio.create(AuditInfo.class)
+                Instancio.create(AuditInfo.class),
+                Tombstone.active()
         );
     }
 
@@ -332,7 +359,8 @@ public class AccountControllerTest {
                 Money.of(BigDecimal.ZERO, currency),
                 new ArrayList<>(),
                 Instancio.of(AuditInfo.class).set(field(AuditInfo::who), userId).create(),
-                Instancio.create(AuditInfo.class)
+                Instancio.create(AuditInfo.class),
+                Tombstone.active()
         );
     }
 }

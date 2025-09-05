@@ -32,9 +32,10 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public AccountView getAccount(@PathVariable UUID id) {
-        log.info("Received request to get account with id: {}", id);
-        return AccountView.from(accountModuleFacade.getAccount(from(id)));
+    public AccountView getAccount(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        var userId = new UserId(jwt.getSubject());
+        log.info("Received request to get account with id: {} by user: {}", id, userId);
+        return AccountView.from(accountModuleFacade.getAccount(from(id), userId));
     }
 
     @PostMapping
@@ -46,9 +47,10 @@ public class AccountController {
     }
 
     @PutMapping("/{id}")
-    public AccountView updateAccount(@PathVariable UUID id, @Validated @RequestBody UpdateAccountRequest request) {
-        log.info("Received request to update account with id: {} and new name: {}", id, request.name());
-        return AccountView.from(accountModuleFacade.updateAccount(new UpdateAccountCommand(from(id), request.name())));
+    public AccountView updateAccount(@PathVariable UUID id, @Validated @RequestBody UpdateAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
+        var userId = new UserId(jwt.getSubject());
+        log.info("Received request to update account with id: {} and new name: {} by user: {}", id, request.name(), userId);
+        return AccountView.from(accountModuleFacade.updateAccount(new UpdateAccountCommand(from(id), request.name()), userId));
     }
 
     @DeleteMapping("/{id}")

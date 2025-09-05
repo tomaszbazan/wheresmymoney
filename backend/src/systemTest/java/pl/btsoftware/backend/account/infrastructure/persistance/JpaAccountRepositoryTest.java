@@ -1,6 +1,5 @@
 package pl.btsoftware.backend.account.infrastructure.persistance;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.account.domain.Account;
@@ -9,6 +8,7 @@ import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
@@ -24,13 +24,6 @@ public class JpaAccountRepositoryTest {
     @Autowired
     private AccountRepository accountRepository;
 
-    @BeforeEach
-    void setUp() {
-        accountRepository.findAll().forEach(
-                account -> accountRepository.deleteById(account.id())
-        );
-    }
-
     @Test
     void shouldStoreAndRetrieveAccount() {
         // given
@@ -44,12 +37,13 @@ public class JpaAccountRepositoryTest {
                 balance,
                 new ArrayList<>(),
                 auditInfo,
-                auditInfo
+                auditInfo,
+                Tombstone.active()
         );
 
         // when
         accountRepository.store(account);
-        var retrievedAccount = accountRepository.findById(account.id());
+        var retrievedAccount = accountRepository.findById(account.id(), groupId);
 
         // then
         assertThat(retrievedAccount).isPresent();
@@ -63,10 +57,11 @@ public class JpaAccountRepositoryTest {
     @Test
     void shouldReturnEmptyWhenAccountNotFound() {
         // given
-        var nonExistentId = AccountId.generate();
+        var nonExistingId = AccountId.generate();
+        var nonExistingGroup = GroupId.generate();
 
         // when
-        var result = accountRepository.findById(nonExistentId);
+        var result = accountRepository.findById(nonExistingId, nonExistingGroup);
 
         // then
         assertThat(result).isEmpty();
@@ -79,14 +74,14 @@ public class JpaAccountRepositoryTest {
         var groupId = GroupId.generate();
         var auditInfo = AuditInfo.create(userId.value(), groupId.value());
 
-        var account1 = new Account(AccountId.generate(), "Account 1", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfo, auditInfo);
-        var account2 = new Account(AccountId.generate(), "Account 2", Money.of(BigDecimal.ZERO, USD), new ArrayList<>(), auditInfo, auditInfo);
+        var account1 = new Account(AccountId.generate(), "Account 1", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
+        var account2 = new Account(AccountId.generate(), "Account 2", Money.of(BigDecimal.ZERO, USD), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
 
         accountRepository.store(account1);
         accountRepository.store(account2);
 
         // when
-        var accounts = accountRepository.findAll();
+        var accounts = accountRepository.findAllBy(groupId);
 
         // then
         assertThat(accounts).hasSize(2);
@@ -99,14 +94,14 @@ public class JpaAccountRepositoryTest {
         var userId = UserId.generate();
         var groupId = GroupId.generate();
         var auditInfo = AuditInfo.create(userId.value(), groupId.value());
-        var account = new Account(AccountId.generate(), "To Delete", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfo, auditInfo);
+        var account = new Account(AccountId.generate(), "To Delete", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
         accountRepository.store(account);
 
         // when
         accountRepository.deleteById(account.id());
 
         // then
-        var retrievedAccount = accountRepository.findById(account.id());
+        var retrievedAccount = accountRepository.findById(account.id(), groupId);
         assertThat(retrievedAccount).isEmpty();
     }
 
@@ -116,7 +111,7 @@ public class JpaAccountRepositoryTest {
         var userId = UserId.generate();
         var groupId = GroupId.generate();
         var auditInfo = AuditInfo.create(userId.value(), groupId.value());
-        var account = new Account(AccountId.generate(), "Unique Account", Money.of(BigDecimal.ZERO, GBP), new ArrayList<>(), auditInfo, auditInfo);
+        var account = new Account(AccountId.generate(), "Unique Account", Money.of(BigDecimal.ZERO, GBP), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
         accountRepository.store(account);
 
         // when
@@ -148,9 +143,9 @@ public class JpaAccountRepositoryTest {
         var auditInfoGroupX = AuditInfo.create(userA.value(), groupX.value());
         var auditInfoGroupY = AuditInfo.create(userC.value(), groupY.value());
 
-        var accountGroupX1 = new Account(AccountId.generate(), "Group X Account 1", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfoGroupX, auditInfoGroupX);
-        var accountGroupX2 = new Account(AccountId.generate(), "Group X Account 2", Money.of(BigDecimal.ZERO, EUR), new ArrayList<>(), auditInfoGroupX, auditInfoGroupX);
-        var accountGroupY = new Account(AccountId.generate(), "Group Y Account", Money.of(BigDecimal.ZERO, USD), new ArrayList<>(), auditInfoGroupY, auditInfoGroupY);
+        var accountGroupX1 = new Account(AccountId.generate(), "Group X Account 1", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfoGroupX, auditInfoGroupX, Tombstone.active());
+        var accountGroupX2 = new Account(AccountId.generate(), "Group X Account 2", Money.of(BigDecimal.ZERO, EUR), new ArrayList<>(), auditInfoGroupX, auditInfoGroupX, Tombstone.active());
+        var accountGroupY = new Account(AccountId.generate(), "Group Y Account", Money.of(BigDecimal.ZERO, USD), new ArrayList<>(), auditInfoGroupY, auditInfoGroupY, Tombstone.active());
 
         accountRepository.store(accountGroupX1);
         accountRepository.store(accountGroupX2);
@@ -188,7 +183,7 @@ public class JpaAccountRepositoryTest {
         var userId = UserId.generate();
         var groupId = GroupId.generate();
         var auditInfo = AuditInfo.create(userId.value(), groupId.value());
-        var originalAccount = new Account(AccountId.generate(), "Original Name", Money.of(new BigDecimal("50.00"), PLN), new ArrayList<>(), auditInfo, auditInfo);
+        var originalAccount = new Account(AccountId.generate(), "Original Name", Money.of(new BigDecimal("50.00"), PLN), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
         accountRepository.store(originalAccount);
 
         // when
@@ -196,7 +191,7 @@ public class JpaAccountRepositoryTest {
         accountRepository.store(updatedAccount);
 
         // then
-        var retrievedAccount = accountRepository.findById(originalAccount.id());
+        var retrievedAccount = accountRepository.findById(originalAccount.id(), groupId);
         assertThat(retrievedAccount).isPresent();
         assertThat(retrievedAccount.get().name()).isEqualTo("Updated Name");
         assertThat(retrievedAccount.get().balance().value()).isEqualByComparingTo(new BigDecimal("50.00"));

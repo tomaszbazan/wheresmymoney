@@ -11,6 +11,6 @@ import java.util.UUID;
 @Repository
 public interface AccountJpaRepository extends JpaRepository<AccountEntity, UUID> {
     Optional<AccountEntity> findByNameAndCurrencyAndOwnedByGroup(String name, Currency currency, UUID groupId);
-
+    Optional<AccountEntity> findByIdAndOwnedByGroup(UUID id, UUID groupId);
     List<AccountEntity> findAllByOwnedByGroup(UUID groupId);
 }

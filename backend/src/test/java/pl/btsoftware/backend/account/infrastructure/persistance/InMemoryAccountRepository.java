@@ -23,13 +23,8 @@ public class InMemoryAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findById(AccountId id) {
-        return Optional.ofNullable(database.get(id));
-    }
-
-    @Override
-    public List<Account> findAll() {
-        return database.values().stream().toList();
+    public Optional<Account> findById(AccountId id, GroupId groupId) {
+        return Optional.ofNullable(database.get(id)).filter(account -> account.ownedBy().equals(groupId));
     }
 
     @Override

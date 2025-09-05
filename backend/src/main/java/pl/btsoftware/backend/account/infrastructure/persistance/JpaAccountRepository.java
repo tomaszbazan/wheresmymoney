@@ -27,16 +27,9 @@ public class JpaAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findById(AccountId id) {
-        return repository.findById(id.value())
+    public Optional<Account> findById(AccountId id, GroupId groupId) {
+        return repository.findByIdAndOwnedByGroup(id.value(), groupId.value())
                 .map(AccountEntity::toDomain);
-    }
-
-    @Override
-    public List<Account> findAll() {
-        return repository.findAll().stream()
-                .map(AccountEntity::toDomain)
-                .collect(Collectors.toList());
     }
 
     @Override

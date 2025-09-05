@@ -26,7 +26,7 @@ public class JpaGroupInvitationRepository implements GroupInvitationRepository {
 
     @Override
     public Optional<GroupInvitation> findById(GroupInvitationId invitationId) {
-        return jpaRepository.findById(invitationId.getValue())
+        return jpaRepository.findById(invitationId.value())
             .map(GroupInvitationEntity::toDomain);
     }
 
@@ -54,7 +54,7 @@ public class JpaGroupInvitationRepository implements GroupInvitationRepository {
 
     @Override
     public void deleteById(GroupInvitationId invitationId) {
-        jpaRepository.deleteById(invitationId.getValue());
+        jpaRepository.deleteById(invitationId.value());
     }
 
     @Override

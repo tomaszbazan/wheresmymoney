@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountRepository;
-import pl.btsoftware.backend.account.domain.error.AccountAccessDeniedException;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.domain.error.CannotDeleteAccountWithTransactionsException;
@@ -24,7 +23,9 @@ public class AccountService {
     public Account createAccount(CreateAccountCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
         var currency = command.currency() == null ? Currency.DEFAULT : command.currency();
-        accountRepository.findByNameAndCurrency(command.name(), currency, new GroupId(user.groupId())).orElseThrow(AccountAlreadyExistsException::new);
+        accountRepository.findByNameAndCurrency(command.name(), currency, new GroupId(user.groupId())).ifPresent(account -> {
+            throw new AccountAlreadyExistsException();
+        });
 
         var account = command.toDomain(user);
         accountRepository.store(account);
@@ -36,13 +37,19 @@ public class AccountService {
         return accountRepository.findAllBy(new GroupId(user.groupId()));
     }
 
-    public Account getById(AccountId id) {
-        return accountRepository.findById(id)
+    public Account getById(AccountId id, UserId userId) {
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        return accountRepository.findById(id, new GroupId(user.groupId()))
                 .orElseThrow(() -> new AccountNotFoundException(id));
     }
 
-    public Account updateAccount(AccountId accountId, String newName) {
-        var account = accountRepository.findById(accountId)
+    public Account getById(AccountId id, GroupId groupId) {
+        return accountRepository.findById(id, groupId)
+                .orElseThrow(() -> new AccountNotFoundException(id));
+    }
+
+    public Account updateAccount(AccountId accountId, String newName, GroupId groupId) {
+        var account = accountRepository.findById(accountId, groupId)
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var existingAccount = accountRepository.findByNameAndCurrency(newName, account.balance().currency(), account.ownedBy());
@@ -56,13 +63,9 @@ public class AccountService {
     }
 
     public void deleteAccount(AccountId accountId, UserId userId) {
-        var account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new AccountNotFoundException(accountId));
-
         var user = usersModuleFacade.findUserOrThrow(userId);
-        if (!account.ownedBy().equals(new GroupId(user.groupId()))) {
-            throw new AccountAccessDeniedException();
-        }
+        var account = accountRepository.findById(accountId, new GroupId(user.groupId()))
+                .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         if (account.hasAnyTransaction()) {
             throw new CannotDeleteAccountWithTransactionsException();
@@ -71,24 +74,27 @@ public class AccountService {
         accountRepository.deleteById(accountId);
     }
 
-    public void addTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType) {
-        var account = accountRepository.findById(accountId)
+    public void addTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType, UserId userId) {
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var account = accountRepository.findById(accountId, new GroupId(user.groupId()))
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var updatedAccount = account.addTransaction(transactionId, amount, transactionType);
         accountRepository.store(updatedAccount);
     }
 
-    public void removeTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType) {
-        var account = accountRepository.findById(accountId)
+    public void removeTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType, UserId userId) {
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var account = accountRepository.findById(accountId, new GroupId(user.groupId()))
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var updatedAccount = account.removeTransaction(transactionId, amount, transactionType);
         accountRepository.store(updatedAccount);
     }
 
-    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount, TransactionType transactionType) {
-        var account = accountRepository.findById(accountId)
+    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount, TransactionType transactionType, UserId userId) {
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var account = accountRepository.findById(accountId, new GroupId(user.groupId()))
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var updatedAccount = account.changeTransaction(transactionId, oldAmount, newAmount, transactionType);

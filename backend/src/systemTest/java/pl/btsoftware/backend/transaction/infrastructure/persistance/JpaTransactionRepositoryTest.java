@@ -3,17 +3,19 @@ package pl.btsoftware.backend.transaction.infrastructure.persistance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
+import java.util.UUID;
 
-import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static pl.btsoftware.backend.shared.Currency.*;
 import static pl.btsoftware.backend.shared.TransactionType.EXPENSE;
@@ -25,9 +27,12 @@ public class JpaTransactionRepositoryTest {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    private final UserId testUserId = new UserId("test-user");
+    private final GroupId testGroupId = new GroupId(UUID.randomUUID());
+
     @BeforeEach
     void setUp() {
-        transactionRepository.findAll().forEach(
+        transactionRepository.findAll(testGroupId).forEach(
                 transaction -> transactionRepository.store(transaction.delete())
         );
     }
@@ -37,19 +42,19 @@ public class JpaTransactionRepositoryTest {
         // given
         var accountId = AccountId.generate();
         var amount = Money.of(new BigDecimal("150.75"), EUR);
-        var createdAt = OffsetDateTime.now(UTC);
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
         var transaction = Transaction.create(
                 accountId,
                 amount,
                 "Grocery shopping",
-                createdAt,
                 EXPENSE,
-                "Food"
+                "Food",
+                auditInfo
         );
 
         // when
         transactionRepository.store(transaction);
-        var retrievedTransaction = transactionRepository.findById(transaction.id());
+        var retrievedTransaction = transactionRepository.findById(transaction.id(), testGroupId);
 
         // then
         assertThat(retrievedTransaction).isPresent();
@@ -60,6 +65,8 @@ public class JpaTransactionRepositoryTest {
         assertThat(retrievedTransaction.get().type()).isEqualTo(EXPENSE);
         assertThat(retrievedTransaction.get().category()).isEqualTo("Food");
         assertThat(retrievedTransaction.get().tombstone().isDeleted()).isFalse();
+        assertThat(retrievedTransaction.get().createdBy()).isEqualTo(testUserId);
+        assertThat(retrievedTransaction.get().ownedBy()).isEqualTo(testGroupId);
     }
 
     @Test
@@ -68,7 +75,7 @@ public class JpaTransactionRepositoryTest {
         var nonExistentId = TransactionId.generate();
 
         // when
-        var result = transactionRepository.findById(nonExistentId);
+        var result = transactionRepository.findById(nonExistentId, testGroupId);
 
         // then
         assertThat(result).isEmpty();
@@ -78,20 +85,21 @@ public class JpaTransactionRepositoryTest {
     void shouldNotFindDeletedTransactionById() {
         // given
         var accountId = AccountId.generate();
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
         var transaction = Transaction.create(
                 accountId,
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
-                OffsetDateTime.now(UTC),
                 INCOME,
-                "Salary"
+                "Salary",
+                auditInfo
         );
         transactionRepository.store(transaction);
 
         // when
         var deletedTransaction = transaction.delete();
         transactionRepository.store(deletedTransaction);
-        var result = transactionRepository.findById(transaction.id());
+        var result = transactionRepository.findById(transaction.id(), testGroupId);
 
         // then
         assertThat(result).isEmpty();
@@ -101,20 +109,21 @@ public class JpaTransactionRepositoryTest {
     void shouldFindDeletedTransactionByIdIncludingDeleted() {
         // given
         var accountId = AccountId.generate();
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
         var transaction = Transaction.create(
                 accountId,
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
-                OffsetDateTime.now(UTC),
                 INCOME,
-                "Salary"
+                "Salary",
+                auditInfo
         );
         transactionRepository.store(transaction);
 
         // when
         var deletedTransaction = transaction.delete();
         transactionRepository.store(deletedTransaction);
-        var result = transactionRepository.findByIdIncludingDeleted(transaction.id());
+        var result = transactionRepository.findByIdIncludingDeleted(transaction.id(), testGroupId);
 
         // then
         assertThat(result).isPresent();
@@ -127,9 +136,10 @@ public class JpaTransactionRepositoryTest {
         var accountId1 = AccountId.generate();
         var accountId2 = AccountId.generate();
 
-        var transaction1 = Transaction.create(accountId1, Money.of(new BigDecimal("50.00"), USD), "Transaction 1", OffsetDateTime.now(UTC), EXPENSE, "Shopping");
-        var transaction2 = Transaction.create(accountId2, Money.of(new BigDecimal("200.00"), GBP), "Transaction 2", OffsetDateTime.now(UTC), INCOME, "Work");
-        var transaction3 = Transaction.create(accountId1, Money.of(new BigDecimal("75.00"), EUR), "Transaction 3", OffsetDateTime.now(UTC), EXPENSE, "Food");
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var transaction1 = Transaction.create(accountId1, Money.of(new BigDecimal("50.00"), USD), "Transaction 1", EXPENSE, "Shopping", auditInfo);
+        var transaction2 = Transaction.create(accountId2, Money.of(new BigDecimal("200.00"), GBP), "Transaction 2", INCOME, "Work", auditInfo);
+        var transaction3 = Transaction.create(accountId1, Money.of(new BigDecimal("75.00"), EUR), "Transaction 3", EXPENSE, "Food", auditInfo);
 
         transactionRepository.store(transaction1);
         transactionRepository.store(transaction2);
@@ -139,7 +149,7 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(transaction3.delete());
 
         // when
-        var allTransactions = transactionRepository.findAll();
+        var allTransactions = transactionRepository.findAll(testGroupId);
 
         // then
         assertThat(allTransactions).hasSize(2);
@@ -153,16 +163,17 @@ public class JpaTransactionRepositoryTest {
         var targetAccountId = AccountId.generate();
         var otherAccountId = AccountId.generate();
 
-        var transaction1 = Transaction.create(targetAccountId, Money.of(new BigDecimal("100.00"), PLN), "Target account tx 1", OffsetDateTime.now(UTC), INCOME, "Work");
-        var transaction2 = Transaction.create(otherAccountId, Money.of(new BigDecimal("50.00"), PLN), "Other account tx", OffsetDateTime.now(UTC), EXPENSE, "Shopping");
-        var transaction3 = Transaction.create(targetAccountId, Money.of(new BigDecimal("25.00"), PLN), "Target account tx 2", OffsetDateTime.now(UTC), EXPENSE, "Food");
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var transaction1 = Transaction.create(targetAccountId, Money.of(new BigDecimal("100.00"), PLN), "Target account tx 1", INCOME, "Work", auditInfo);
+        var transaction2 = Transaction.create(otherAccountId, Money.of(new BigDecimal("50.00"), PLN), "Other account tx", EXPENSE, "Shopping", auditInfo);
+        var transaction3 = Transaction.create(targetAccountId, Money.of(new BigDecimal("25.00"), PLN), "Target account tx 2", EXPENSE, "Food", auditInfo);
 
         transactionRepository.store(transaction1);
         transactionRepository.store(transaction2);
         transactionRepository.store(transaction3);
 
         // when
-        var accountTransactions = transactionRepository.findByAccountId(targetAccountId);
+        var accountTransactions = transactionRepository.findByAccountId(targetAccountId, testGroupId);
 
         // then
         assertThat(accountTransactions).hasSize(2);
@@ -175,8 +186,9 @@ public class JpaTransactionRepositoryTest {
         // given
         var accountId = AccountId.generate();
 
-        var activeTransaction = Transaction.create(accountId, Money.of(new BigDecimal("100.00"), PLN), "Active transaction", OffsetDateTime.now(UTC), INCOME, "Work");
-        var toDeleteTransaction = Transaction.create(accountId, Money.of(new BigDecimal("50.00"), PLN), "To delete transaction", OffsetDateTime.now(UTC), EXPENSE, "Shopping");
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var activeTransaction = Transaction.create(accountId, Money.of(new BigDecimal("100.00"), PLN), "Active transaction", INCOME, "Work", auditInfo);
+        var toDeleteTransaction = Transaction.create(accountId, Money.of(new BigDecimal("50.00"), PLN), "To delete transaction", EXPENSE, "Shopping", auditInfo);
 
         transactionRepository.store(activeTransaction);
         transactionRepository.store(toDeleteTransaction);
@@ -185,12 +197,12 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(toDeleteTransaction.delete());
 
         // when
-        var accountTransactions = transactionRepository.findByAccountId(accountId);
+        var accountTransactions = transactionRepository.findByAccountId(accountId, testGroupId);
 
         // then
         assertThat(accountTransactions).hasSize(1);
-        assertThat(accountTransactions.get(0).description()).isEqualTo("Active transaction");
-        assertThat(accountTransactions.get(0).tombstone().isDeleted()).isFalse();
+        assertThat(accountTransactions.getFirst().description()).isEqualTo("Active transaction");
+        assertThat(accountTransactions.getFirst().tombstone().isDeleted()).isFalse();
     }
 
     @Test
@@ -199,7 +211,7 @@ public class JpaTransactionRepositoryTest {
         var nonExistentAccountId = AccountId.generate();
 
         // when
-        var transactions = transactionRepository.findByAccountId(nonExistentAccountId);
+        var transactions = transactionRepository.findByAccountId(nonExistentAccountId, testGroupId);
 
         // then
         assertThat(transactions).isEmpty();
@@ -209,40 +221,43 @@ public class JpaTransactionRepositoryTest {
     void shouldUpdateTransaction() {
         // given
         var accountId = AccountId.generate();
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
         var originalTransaction = Transaction.create(
                 accountId,
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Original description",
-                OffsetDateTime.now(UTC),
                 EXPENSE,
-                "Original category"
+                "Original category",
+                auditInfo
         );
         transactionRepository.store(originalTransaction);
 
         // when
         var updatedTransaction = originalTransaction
-                .updateAmount(Money.of(new BigDecimal("150.00"), PLN))
-                .updateDescription("Updated description")
-                .updateCategory("Updated category");
+                .updateAmount(Money.of(new BigDecimal("150.00"), PLN), testUserId)
+                .updateDescription("Updated description", testUserId)
+                .updateCategory("Updated category", testUserId);
         transactionRepository.store(updatedTransaction);
 
         // then
-        var retrievedTransaction = transactionRepository.findById(originalTransaction.id());
+        var retrievedTransaction = transactionRepository.findById(originalTransaction.id(), testGroupId);
         assertThat(retrievedTransaction).isPresent();
         assertThat(retrievedTransaction.get().amount().value()).isEqualByComparingTo(new BigDecimal("150.00"));
         assertThat(retrievedTransaction.get().description()).isEqualTo("Updated description");
         assertThat(retrievedTransaction.get().category()).isEqualTo("Updated category");
-        assertThat(retrievedTransaction.get().updatedAt()).isAfter(retrievedTransaction.get().createdAt());
+        assertThat(retrievedTransaction.get().lastUpdatedAt()).isAfter(retrievedTransaction.get().createdAt());
+        assertThat(retrievedTransaction.get().lastUpdatedBy()).isEqualTo(testUserId);
     }
 
     @Test
     void shouldHandleDifferentCurrencies() {
         // given
         var accountId = AccountId.generate();
-        var plnTransaction = Transaction.create(accountId, Money.of(new BigDecimal("100.00"), PLN), "PLN transaction", OffsetDateTime.now(UTC), INCOME, "Work");
-        var eurTransaction = Transaction.create(accountId, Money.of(new BigDecimal("50.00"), EUR), "EUR transaction", OffsetDateTime.now(UTC), EXPENSE, "Shopping");
-        var usdTransaction = Transaction.create(accountId, Money.of(new BigDecimal("75.00"), USD), "USD transaction", OffsetDateTime.now(UTC), INCOME, "Bonus");
-        var gbpTransaction = Transaction.create(accountId, Money.of(new BigDecimal("25.00"), GBP), "GBP transaction", OffsetDateTime.now(UTC), EXPENSE, "Travel");
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var plnTransaction = Transaction.create(accountId, Money.of(new BigDecimal("100.00"), PLN), "PLN transaction", INCOME, "Work", auditInfo);
+        var eurTransaction = Transaction.create(accountId, Money.of(new BigDecimal("50.00"), EUR), "EUR transaction", EXPENSE, "Shopping", auditInfo);
+        var usdTransaction = Transaction.create(accountId, Money.of(new BigDecimal("75.00"), USD), "USD transaction", INCOME, "Bonus", auditInfo);
+        var gbpTransaction = Transaction.create(accountId, Money.of(new BigDecimal("25.00"), GBP), "GBP transaction", EXPENSE, "Travel", auditInfo);
 
         // when
         transactionRepository.store(plnTransaction);
@@ -250,7 +265,7 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(usdTransaction);
         transactionRepository.store(gbpTransaction);
 
-        var accountTransactions = transactionRepository.findByAccountId(accountId);
+        var accountTransactions = transactionRepository.findByAccountId(accountId, testGroupId);
 
         // then
         assertThat(accountTransactions).hasSize(4);
@@ -262,14 +277,15 @@ public class JpaTransactionRepositoryTest {
     void shouldHandleDifferentTransactionTypes() {
         // given
         var accountId = AccountId.generate();
-        var incomeTransaction = Transaction.create(accountId, Money.of(new BigDecimal("1000.00"), PLN), "Salary", OffsetDateTime.now(UTC), INCOME, "Work");
-        var expenseTransaction = Transaction.create(accountId, Money.of(new BigDecimal("200.00"), PLN), "Grocery", OffsetDateTime.now(UTC), EXPENSE, "Food");
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var incomeTransaction = Transaction.create(accountId, Money.of(new BigDecimal("1000.00"), PLN), "Salary", INCOME, "Work", auditInfo);
+        var expenseTransaction = Transaction.create(accountId, Money.of(new BigDecimal("200.00"), PLN), "Grocery", EXPENSE, "Food", auditInfo);
 
         // when
         transactionRepository.store(incomeTransaction);
         transactionRepository.store(expenseTransaction);
 
-        var accountTransactions = transactionRepository.findByAccountId(accountId);
+        var accountTransactions = transactionRepository.findByAccountId(accountId, testGroupId);
 
         // then
         assertThat(accountTransactions).hasSize(2);

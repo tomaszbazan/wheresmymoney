@@ -4,6 +4,7 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -16,14 +17,15 @@ public record CreateTransactionRequest(
         String type,
         String category
 ) {
-    public CreateTransactionCommand toCommand() {
+    public CreateTransactionCommand toCommand(UserId userId) {
         return new CreateTransactionCommand(
                 AccountId.from(accountId),
                 amount,
                 description,
                 date,
                 TransactionType.valueOf(type.toUpperCase()),
-                category
+                category,
+                userId
         );
     }
 }

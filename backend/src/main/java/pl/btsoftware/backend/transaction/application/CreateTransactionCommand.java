@@ -1,9 +1,11 @@
 package pl.btsoftware.backend.transaction.application;
 
+import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.time.OffsetDateTime;
 
@@ -13,9 +15,10 @@ public record CreateTransactionCommand(
         String description,
         OffsetDateTime date,
         TransactionType type,
-        String category
+        String category,
+        UserId userId
 ) {
-    public Transaction toDomain() {
-        return Transaction.create(accountId, amount, description, date, type, category);
+    public Transaction toDomain(AuditInfo auditInfo) {
+        return Transaction.create(accountId, amount, description, type, category, auditInfo);
     }
 }

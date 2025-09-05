@@ -1,6 +1,5 @@
 package pl.btsoftware.backend.account;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.account.application.AccountService;
@@ -13,6 +12,7 @@ import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
+import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
@@ -35,13 +35,6 @@ public class AccountServiceTest {
 
     @Autowired
     private UsersModuleFacade usersModuleFacade;
-
-    @BeforeEach
-    void setUp() {
-        accountRepository.findAll().forEach(
-                account -> accountRepository.deleteById(account.id())
-        );
-    }
 
     @Test
     void shouldCreateAccountWithSpecificCurrency() {
@@ -94,7 +87,7 @@ public class AccountServiceTest {
         var createdAccount = accountService.createAccount(command);
 
         // when
-        var foundAccount = accountService.getById(createdAccount.id());
+        var foundAccount = accountService.getById(createdAccount.id(), userId);
 
         // then
         assertThat(foundAccount.id()).isEqualTo(createdAccount.id());
@@ -110,7 +103,8 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        var updatedAccount = accountService.updateAccount(account.id(), "New Name");
+        var groupId = usersModuleFacade.findUserOrThrow(userId).groupId();
+        var updatedAccount = accountService.updateAccount(account.id(), "New Name", new GroupId(groupId));
 
         // then
         assertThat(updatedAccount.name()).isEqualTo("New Name");
@@ -129,7 +123,7 @@ public class AccountServiceTest {
         accountService.deleteAccount(account.id(), userId);
 
         // then
-        assertThatThrownBy(() -> accountService.getById(account.id()))
+        assertThatThrownBy(() -> accountService.getById(account.id(), userId))
                 .isInstanceOf(AccountNotFoundException.class);
     }
 
@@ -141,10 +135,10 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), INCOME);
+        accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), INCOME, userId);
 
         // then
-        var updatedAccount = accountService.getById(account.id());
+        var updatedAccount = accountService.getById(account.id(), userId);
         assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("500"));
     }
 
@@ -156,19 +150,20 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), EXPENSE);
+        accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), EXPENSE, userId);
 
         // then
-        var updatedAccount = accountService.getById(account.id());
+        var updatedAccount = accountService.getById(account.id(), userId);
         assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("-500"));
     }
 
     private UserId createTestUser() {
+        var timestamp = System.currentTimeMillis();
         var command = new RegisterUserCommand(
-                "test-auth-id-" + System.currentTimeMillis(),
-                "test@example.com",
+                "test-auth-id-" + timestamp,
+                "test" + timestamp + "@example.com",
                 "Test User",
-                "Test Group",
+                "Test Group " + timestamp,
                 null
         );
         var user = usersModuleFacade.registerUser(command);

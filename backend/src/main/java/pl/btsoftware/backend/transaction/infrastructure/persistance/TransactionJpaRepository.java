@@ -12,8 +12,12 @@ public interface TransactionJpaRepository extends JpaRepository<TransactionEntit
     List<TransactionEntity> findByAccountId(UUID accountId);
     
     Optional<TransactionEntity> findByIdAndIsDeletedFalse(UUID id);
+    Optional<TransactionEntity> findByIdAndCreatedByGroupAndIsDeletedFalse(UUID id, UUID createdByGroup);
+    Optional<TransactionEntity> findByIdAndCreatedByGroup(UUID id, UUID createdByGroup);
     
     List<TransactionEntity> findByIsDeletedFalse();
+    List<TransactionEntity> findByCreatedByGroupAndIsDeletedFalse(UUID createdByGroup);
     
     List<TransactionEntity> findByAccountIdAndIsDeletedFalse(UUID accountId);
+    List<TransactionEntity> findByAccountIdAndCreatedByGroupAndIsDeletedFalse(UUID accountId, UUID createdByGroup);
 }

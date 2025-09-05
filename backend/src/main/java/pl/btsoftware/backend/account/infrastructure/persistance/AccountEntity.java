@@ -11,6 +11,7 @@ import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.shared.TransactionId;
 
 import java.math.BigDecimal;
@@ -68,6 +69,6 @@ public class AccountEntity {
                 : new ArrayList<>();
         var createdAuditInfo = AuditInfo.create(createdBy, ownedByGroup, createdAt);
         var updatedAuditInfo = AuditInfo.create(updatedBy, ownedByGroup, updatedAt);
-        return new Account(accountId, name, Money.of(balance, currency), domainTransactionIds, createdAuditInfo, updatedAuditInfo);
+        return new Account(accountId, name, Money.of(balance, currency), domainTransactionIds, createdAuditInfo, updatedAuditInfo, Tombstone.active());
     }
 }

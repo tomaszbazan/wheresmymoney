@@ -17,18 +17,18 @@ import static pl.btsoftware.backend.shared.Currency.DEFAULT;
 import static pl.btsoftware.backend.shared.Money.zero;
 
 public record Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds,
-                      AuditInfo createdInfo, AuditInfo updatedInfo) {
+                      AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
     public Account {
         validateAccountName(name);
     }
 
     public Account(AccountId id, String name, @Nullable Currency currency, UserView createdBy) {
         this(id, name, zero(currency == null ? DEFAULT : currency), new ArrayList<>(),
-                AuditInfo.create(createdBy.id(), createdBy.groupId()), AuditInfo.create(createdBy.id(), createdBy.groupId()));
+                AuditInfo.create(createdBy.id(), createdBy.groupId()), AuditInfo.create(createdBy.id(), createdBy.groupId()), Tombstone.active());
     }
 
     public Account(AccountId id, String name, Money balance, AuditInfo createBy) {
-        this(id, name, balance, new ArrayList<>(), createBy, createBy.updateTimestamp());
+        this(id, name, balance, new ArrayList<>(), createBy, createBy.updateTimestamp(), Tombstone.active());
     }
 
     private static void validateAccountName(String newName) {
@@ -45,7 +45,7 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
 
     public Account changeName(String newName) {
         validateAccountName(newName);
-        return new Account(id, newName, balance, transactionIds, createdInfo, updatedInfo.updateTimestamp());
+        return new Account(id, newName, balance, transactionIds, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     public boolean hasAnyTransaction() {
@@ -124,17 +124,25 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
     private Account addTransactionId(TransactionId transactionId) {
         List<TransactionId> updatedTransactionIds = new ArrayList<>(transactionIds);
         updatedTransactionIds.add(transactionId);
-        return new Account(id, name, balance, updatedTransactionIds, createdInfo, updatedInfo.updateTimestamp());
+        return new Account(id, name, balance, updatedTransactionIds, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     private Account removeTransactionId(TransactionId transactionId) {
         List<TransactionId> updatedTransactionIds = new ArrayList<>(transactionIds);
         updatedTransactionIds.remove(transactionId);
-        return new Account(id, name, balance, updatedTransactionIds, createdInfo, updatedInfo.updateTimestamp());
+        return new Account(id, name, balance, updatedTransactionIds, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     private Account updateBalance(Money transactionAmount) {
         Money newBalance = balance.add(transactionAmount);
-        return new Account(id, name, newBalance, transactionIds, createdInfo, updatedInfo.updateTimestamp());
+        return new Account(id, name, newBalance, transactionIds, createdInfo, updatedInfo.updateTimestamp(), tombstone);
+    }
+
+    public Account delete() {
+        return new Account(id, name, balance, transactionIds, createdInfo, updatedInfo, Tombstone.deleted());
+    }
+
+    public boolean isDeleted() {
+        return tombstone.isDeleted();
     }
 }

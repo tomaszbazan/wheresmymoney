@@ -1,11 +1,11 @@
 package pl.btsoftware.backend.transaction.domain;
 
+import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.UserId;
 
 import java.time.OffsetDateTime;
-
-import static java.time.OffsetDateTime.now;
-import static java.time.ZoneOffset.UTC;
 
 public record Transaction(
         TransactionId id,
@@ -14,17 +14,17 @@ public record Transaction(
         TransactionType type,
         String description,
         String category,
-        OffsetDateTime createdAt,
-        OffsetDateTime updatedAt,
+        AuditInfo createdInfo,
+        AuditInfo updatedInfo,
         Tombstone tombstone
 ) {
     public static Transaction create(
             AccountId accountId,
             Money amount,
             String description,
-            OffsetDateTime createdAt,
             TransactionType type,
-            String category
+            String category,
+            AuditInfo createdInfo
     ) {
         return new Transaction(
                 TransactionId.generate(),
@@ -33,25 +33,49 @@ public record Transaction(
                 type,
                 description,
                 category,
-                createdAt,
-                now(),
+                createdInfo,
+                createdInfo,
                 Tombstone.active()
         );
     }
 
-    public Transaction updateAmount(Money newAmount) {
-        return new Transaction(id, accountId, newAmount, type, description, category, createdAt, now(UTC), tombstone);
+    public UserId createdBy() {
+        return createdInfo.who();
     }
 
-    public Transaction updateDescription(String newDescription) {
-        return new Transaction(id, accountId, amount, type, newDescription, category, createdAt, now(UTC), tombstone);
+    public UserId lastUpdatedBy() {
+        return updatedInfo.who();
     }
 
-    public Transaction updateCategory(String newCategory) {
-        return new Transaction(id, accountId, amount, type, description, newCategory, createdAt, now(UTC), tombstone);
+    public GroupId ownedBy() {
+        return createdInfo.fromGroup();
+    }
+
+    public OffsetDateTime createdAt() {
+        return createdInfo.when();
+    }
+
+    public OffsetDateTime lastUpdatedAt() {
+        return updatedInfo.when();
+    }
+
+    public Transaction updateAmount(Money newAmount, UserId updatedBy) {
+        return new Transaction(id, accountId, newAmount, type, description, category, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+    }
+
+    public Transaction updateDescription(String newDescription, UserId updatedBy) {
+        return new Transaction(id, accountId, amount, type, newDescription, category, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+    }
+
+    public Transaction updateCategory(String newCategory, UserId updatedBy) {
+        return new Transaction(id, accountId, amount, type, description, newCategory, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
     }
 
     public Transaction delete() {
-        return new Transaction(id, accountId, amount, type, description, category, createdAt, updatedAt, Tombstone.deleted());
+        return new Transaction(id, accountId, amount, type, description, category, createdInfo, updatedInfo, Tombstone.deleted());
+    }
+
+    public boolean isDeleted() {
+        return tombstone.isDeleted();
     }
 }
