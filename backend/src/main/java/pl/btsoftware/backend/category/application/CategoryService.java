@@ -44,10 +44,6 @@ public class CategoryService {
                 .orElseThrow(() -> new CategoryNotFoundException(categoryId));
     }
 
-    public List<Category> getAllCategories(GroupId groupId) {
-        return categoryRepository.findAll(groupId);
-    }
-
     public List<Category> getCategoriesByType(CategoryType type, GroupId groupId) {
         return categoryRepository.findByType(type, groupId);
     }

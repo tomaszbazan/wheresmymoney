@@ -27,11 +27,6 @@ public class CategoryModuleFacade {
         return categoryService.getCategoryById(id, user.groupId());
     }
 
-    public List<Category> getAllCategories(UserId userId) {
-        var user = usersModuleFacade.findUserOrThrow(userId);
-        return categoryService.getAllCategories(user.groupId());
-    }
-
     public List<Category> getCategoriesByType(CategoryType type, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         return categoryService.getCategoriesByType(type, user.groupId());

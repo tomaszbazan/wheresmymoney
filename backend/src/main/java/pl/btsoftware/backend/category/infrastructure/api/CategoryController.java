@@ -36,18 +36,12 @@ public class CategoryController {
     }
 
     @GetMapping
-    public CategoriesView getAllCategories(@RequestParam(required = false) String type, @AuthenticationPrincipal Jwt jwt) {
+    public CategoriesView getAllCategories(@RequestParam CategoryType type, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received request to get categories by user: {} with type filter: {}", userId, type);
 
-        if (type != null) {
-            var categoryType = CategoryType.valueOf(type.toUpperCase());
-            var categories = categoryModuleFacade.getCategoriesByType(categoryType, userId);
-            return CategoriesView.from(categories);
-        } else {
-            var categories = categoryModuleFacade.getAllCategories(userId);
-            return CategoriesView.from(categories);
-        }
+        var categories = categoryModuleFacade.getCategoriesByType(type, userId);
+        return CategoriesView.from(categories);
     }
 
     @PutMapping("/{id}")

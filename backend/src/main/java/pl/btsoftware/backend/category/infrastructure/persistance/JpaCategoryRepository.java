@@ -38,13 +38,6 @@ public class JpaCategoryRepository implements CategoryRepository {
     }
 
     @Override
-    public List<Category> findAll(GroupId groupId) {
-        return repository.findByCreatedByGroupAndIsDeletedFalse(groupId.value()).stream()
-                .map(CategoryEntity::toDomain)
-                .toList();
-    }
-
-    @Override
     public List<Category> findByType(CategoryType type, GroupId groupId) {
         return repository.findByTypeAndCreatedByGroupAndIsDeletedFalse(type, groupId.value()).stream()
                 .map(CategoryEntity::toDomain)
