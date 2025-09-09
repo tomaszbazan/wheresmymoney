@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
 import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
@@ -15,7 +16,7 @@ public record CreateTransactionRequest(
         String description,
         OffsetDateTime date,
         String type,
-        String category
+        UUID categoryId
 ) {
     public CreateTransactionCommand toCommand(UserId userId) {
         return new CreateTransactionCommand(
@@ -24,7 +25,7 @@ public record CreateTransactionRequest(
                 description,
                 date,
                 TransactionType.valueOf(type.toUpperCase()),
-                category,
+                new CategoryId(categoryId),
                 userId
         );
     }

@@ -41,9 +41,9 @@ public class UserController {
 
     @GetMapping("/profile")
     public UserView getUserProfile(@AuthenticationPrincipal Jwt jwt) {
-        String externalAuthId = jwt.getSubject();
+        var externalAuthId = jwt.getSubject();
         log.info("Getting profile for external auth ID fromGroup JWT: {}", externalAuthId);
 
-        return usersModuleFacade.findUserOrThrow(new UserId(externalAuthId));
+        return UserView.from(usersModuleFacade.findUserOrThrow(new UserId(externalAuthId)));
     }
 }

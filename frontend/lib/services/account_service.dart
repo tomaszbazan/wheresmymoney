@@ -1,6 +1,6 @@
 import '../models/account.dart';
-import 'http_client.dart';
 import 'auth_service.dart';
+import 'http_client.dart';
 
 abstract class AccountServiceInterface {
   Future<List<Account>> getAccounts();
@@ -11,7 +11,7 @@ abstract class AccountServiceInterface {
 class AccountService implements AccountServiceInterface {
   final ApiClient _apiClient;
 
-  AccountService({AuthService? authService}) 
+  AccountService({AuthService? authService})
     : _apiClient = ApiClient(authService ?? AuthService());
 
   @override
@@ -24,15 +24,17 @@ class AccountService implements AccountServiceInterface {
   }
 
   @override
-  Future<Account> createAccount(String name, {String? type, String? currency}) async {
-    final Map<String, dynamic> accountData = {
-      'name': name,
-    };
-    
+  Future<Account> createAccount(
+    String name, {
+    String? type,
+    String? currency,
+  }) async {
+    final Map<String, dynamic> accountData = {'name': name};
+
     if (type != null) {
       accountData['type'] = type;
     }
-    
+
     if (currency != null) {
       accountData['currency'] = currency;
     }

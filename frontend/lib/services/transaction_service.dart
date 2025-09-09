@@ -1,6 +1,6 @@
 import '../models/transaction.dart';
-import 'http_client.dart';
 import 'auth_service.dart';
+import 'http_client.dart';
 
 abstract class TransactionServiceInterface {
   Future<List<Transaction>> getTransactions();
@@ -13,7 +13,7 @@ abstract class TransactionServiceInterface {
     required String description,
     required DateTime date,
     required String type,
-    required String category,
+    required String categoryId,
     required String currency,
   });
 
@@ -21,7 +21,7 @@ abstract class TransactionServiceInterface {
     required String id,
     required double amount,
     required String description,
-    required String category,
+    required String categoryId,
     required String currency,
   });
 
@@ -32,7 +32,7 @@ class TransactionService implements TransactionServiceInterface {
   final ApiClient _apiClient;
 
   TransactionService({AuthService? authService})
-      : _apiClient = ApiClient(authService ?? AuthService());
+    : _apiClient = ApiClient(authService ?? AuthService());
   @override
   Future<List<Transaction>> getTransactions() async {
     return await _apiClient.getList<Transaction>(
@@ -58,19 +58,16 @@ class TransactionService implements TransactionServiceInterface {
     required String description,
     required DateTime date,
     required String type,
-    required String category,
+    required String categoryId,
     required String currency,
   }) async {
     final Map<String, dynamic> transactionData = {
       'accountId': accountId,
-      'amount': {
-        'value': amount,
-        'currency': currency.toUpperCase(),
-      },
+      'amount': {'value': amount, 'currency': currency.toUpperCase()},
       'description': description,
       'date': date.toUtc().toIso8601String(),
       'type': type.toUpperCase(),
-      'category': category,
+      'categoryId': categoryId,
     };
 
     return await _apiClient.post<Transaction>(
@@ -85,16 +82,13 @@ class TransactionService implements TransactionServiceInterface {
     required String id,
     required double amount,
     required String description,
-    required String category,
+    required String categoryId,
     required String currency,
   }) async {
     final Map<String, dynamic> transactionData = {
-      'amount': {
-        'value': amount,
-        'currency': currency.toUpperCase(),
-      },
+      'amount': {'value': amount, 'currency': currency.toUpperCase()},
       'description': description,
-      'category': category,
+      'categoryId': categoryId,
     };
 
     return await _apiClient.put<Transaction>(

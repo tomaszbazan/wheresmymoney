@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
 import 'package:frontend/widgets/transaction_form.dart';
 
+import '../mocks/mock_transaction_service.dart';
+
 void main() {
   group('TransactionForm Amount Normalization', () {
     test('should normalize amount 100 to 100.00', () {
@@ -32,76 +34,78 @@ void main() {
 
   group('TransactionForm Currency Change', () {
     late List<Account> testAccounts;
+    late MockTransactionServiceInterface mockTransactionService;
 
     setUp(() {
+      mockTransactionService = MockTransactionServiceInterface();
       testAccounts = [
-        Account(
-          id: '1',
-          name: 'PLN Account',
-          balance: 1000.0,
-          currency: 'PLN',
-        ),
-        Account(
-          id: '2', 
-          name: 'USD Account',
-          balance: 500.0,
-          currency: 'USD',
-        ),
-        Account(
-          id: '3',
-          name: 'EUR Account', 
-          balance: 200.0,
-          currency: 'EUR',
-        ),
+        Account(id: '1', name: 'PLN Account', balance: 1000.0, currency: 'PLN'),
+        Account(id: '2', name: 'USD Account', balance: 500.0, currency: 'USD'),
+        Account(id: '3', name: 'EUR Account', balance: 200.0, currency: 'EUR'),
       ];
     });
 
-    testWidgets('should show PLN currency by default for first account', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: TransactionForm(
-            accounts: testAccounts,
-            onSaved: (_) {},
+    testWidgets('should show PLN currency by default for first account', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TransactionForm(
+              accounts: testAccounts,
+              onSaved: (_) {},
+              transactionService: mockTransactionService,
+            ),
           ),
         ),
-      ));
+      );
 
       expect(find.text('PLN '), findsOneWidget);
     });
 
-    testWidgets('should change currency when different account is selected', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: TransactionForm(
-            accounts: testAccounts,
-            onSaved: (_) {},
+    testWidgets('should change currency when different account is selected', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TransactionForm(
+              accounts: testAccounts,
+              onSaved: (_) {},
+              transactionService: mockTransactionService,
+            ),
           ),
         ),
-      ));
+      );
 
-      await tester.tap(find.text('PLN Account'));
+      await tester.tap(find.text('PLN Account (PLN)'));
       await tester.pumpAndSettle();
-      
-      await tester.tap(find.text('USD Account'));
+
+      await tester.tap(find.text('USD Account (USD)'));
       await tester.pumpAndSettle();
 
       expect(find.text('USD '), findsOneWidget);
     });
 
-    testWidgets('should show EUR currency when EUR account is selected', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: TransactionForm(
-            accounts: testAccounts,
-            onSaved: (_) {},
+    testWidgets('should show EUR currency when EUR account is selected', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TransactionForm(
+              accounts: testAccounts,
+              onSaved: (_) {},
+              transactionService: mockTransactionService,
+            ),
           ),
         ),
-      ));
+      );
 
-      await tester.tap(find.text('PLN Account'));
+      await tester.tap(find.text('PLN Account (PLN)'));
       await tester.pumpAndSettle();
-      
-      await tester.tap(find.text('EUR Account'));
+
+      await tester.tap(find.text('EUR Account (EUR)'));
       await tester.pumpAndSettle();
 
       expect(find.text('EUR '), findsOneWidget);

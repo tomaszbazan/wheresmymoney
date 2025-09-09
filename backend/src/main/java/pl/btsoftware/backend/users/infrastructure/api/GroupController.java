@@ -10,6 +10,8 @@ import pl.btsoftware.backend.users.application.InviteToGroupCommand;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/groups")
 @AllArgsConstructor
@@ -25,7 +27,7 @@ public class GroupController {
 
         var command = new InviteToGroupCommand(request.email());
 
-        var invitation = usersModuleFacade.inviteToGroup(UserId.of(inviterId), command);
+        var invitation = usersModuleFacade.inviteToGroup(new UserId(inviterId), command);
         
         log.info("Invitation created with token: {}", invitation.getInvitationToken());
         return GroupInvitationView.from(invitation);
@@ -46,16 +48,16 @@ public class GroupController {
     public void acceptInvitation(@PathVariable String token, @RequestParam String userId) {
         log.info("Accepting invitation with token: {} by user: {}", token, userId);
 
-        usersModuleFacade.acceptInvitation(token, UserId.of(userId));
+        usersModuleFacade.acceptInvitation(token, new UserId(userId));
         
         log.info("Invitation accepted successfully");
     }
 
     @GetMapping("/{groupId}")
-    public GroupView getGroup(@PathVariable String groupId) {
+    public GroupView getGroup(@PathVariable UUID groupId) {
         log.info("Getting group details for ID: {}", groupId);
 
-        var group = usersModuleFacade.findGroupById(GroupId.of(groupId))
+        var group = usersModuleFacade.findGroupById(new GroupId(groupId))
             .orElseThrow(() -> new IllegalArgumentException("Group not found"));
         
         return GroupView.from(group);

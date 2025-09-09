@@ -1,14 +1,17 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.context.annotation.Import;
 import pl.btsoftware.backend.account.domain.AuditInfo;
+import pl.btsoftware.backend.category.CategoryModuleFacade;
+import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
@@ -47,6 +50,19 @@ public class TransactionControllerTest {
     @MockBean
     private TransactionModuleFacade transactionModuleFacade;
 
+    @MockBean
+    private CategoryModuleFacade categoryModuleFacade;
+
+    @BeforeEach
+    void setUp() {
+        when(categoryModuleFacade.getCategoryById(any(CategoryId.class), any(UserId.class)))
+                .thenAnswer(invocation -> {
+                    var categoryId = invocation.getArgument(0, CategoryId.class);
+                    var userId = invocation.getArgument(1, UserId.class);
+                    return new Category(categoryId, "Sample Category", null, CategoryType.INCOME, "blue", AuditInfo.create(userId.value(), randomUUID()), AuditInfo.create(userId.value(), randomUUID()), Tombstone.active());
+                });
+    }
+
     @Test
     void shouldReturnTransactionById() throws Exception {
         // given
@@ -68,7 +84,8 @@ public class TransactionControllerTest {
                 .andExpect(jsonPath("$.amount").value(100.50))
                 .andExpect(jsonPath("$.type").value("INCOME"))
                 .andExpect(jsonPath("$.description").value("Test transaction"))
-                .andExpect(jsonPath("$.category").value("Salary"))
+                .andExpect(jsonPath("$.category.id").value(transaction.categoryId().value().toString()))
+                .andExpect(jsonPath("$.category.name").value("Sample Category"))
                 .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.updatedAt").exists());
     }
@@ -156,7 +173,7 @@ public class TransactionControllerTest {
 
         when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class), any(UserId.class))).thenReturn(updatedTransaction);
 
-        var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("150.00"), PLN), "Updated transaction", "Updated Category");
+        var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("150.00"), PLN), "Updated transaction", randomUUID());
         String json = objectMapper.writeValueAsString(updateRequest);
 
         // when & then
@@ -178,7 +195,7 @@ public class TransactionControllerTest {
 
         when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class), any(UserId.class))).thenThrow(new IllegalArgumentException("Transaction not found"));
 
-        var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("100.00"), PLN), "Test", "Test");
+        var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("100.00"), PLN), "Test", randomUUID());
 
         // when & then
         mockMvc.perform(put("/api/transactions/" + nonExistentId)
@@ -204,7 +221,7 @@ public class TransactionControllerTest {
                 "Test transaction",
                 OffsetDateTime.now(ZoneOffset.UTC),
                 "INCOME",
-                "Salary"
+                randomUUID()
         );
 
         // when & then
@@ -219,7 +236,8 @@ public class TransactionControllerTest {
                 .andExpect(jsonPath("$.amount").value(100.50))
                 .andExpect(jsonPath("$.type").value("INCOME"))
                 .andExpect(jsonPath("$.description").value("Test transaction"))
-                .andExpect(jsonPath("$.category").value("Salary"));
+                .andExpect(jsonPath("$.category.id").value(transaction.categoryId().value().toString()))
+                .andExpect(jsonPath("$.category.name").value("Sample Category"));
     }
 
     @Test
@@ -259,7 +277,7 @@ public class TransactionControllerTest {
                 Money.of(amount, PLN),
                 type,
                 description,
-                "Salary",
+                CategoryId.generate(),
                 auditInfo,
                 auditInfo,
                 Tombstone.active()

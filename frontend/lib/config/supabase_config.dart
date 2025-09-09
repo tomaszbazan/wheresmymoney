@@ -1,13 +1,8 @@
-
-
 class SupabaseConfig {
   final String url;
   final String anonKey;
 
-  const SupabaseConfig({
-    required this.url,
-    required this.anonKey,
-  });
+  const SupabaseConfig({required this.url, required this.anonKey});
 
   static Future<SupabaseConfig> load() async {
     final envUrl = const String.fromEnvironment('SUPABASE_URL');

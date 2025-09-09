@@ -46,15 +46,15 @@ class _RegisterPageState extends State<RegisterPage> {
         displayName: _displayNameController.text.trim(),
         groupName: _groupNameController.text.trim(),
       );
-      
+
       if (mounted) {
         _showEmailConfirmationDialog();
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Registration failed: $error')));
       }
     } finally {
       if (mounted) {
@@ -119,19 +119,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   const Text(
                     'Where\'s My Money',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'Create your account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
@@ -177,7 +171,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         onPressed: () {
                           setState(() {
                             _obscurePassword = !_obscurePassword;
@@ -196,7 +194,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         onPressed: () {
                           setState(() {
                             _obscureConfirmPassword = !_obscureConfirmPassword;
@@ -222,7 +224,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       labelText: 'Group Name',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.group),
-                      helperText: 'Name for your financial group (e.g., "Smith Family")',
+                      helperText:
+                          'Name for your financial group (e.g., "Smith Family")',
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -237,9 +240,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                     ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator()
-                        : const Text('Sign Up', style: TextStyle(fontSize: 16)),
+                    child:
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : const Text(
+                              'Sign Up',
+                              style: TextStyle(fontSize: 16),
+                            ),
                   ),
                   const SizedBox(height: 16),
                   Row(

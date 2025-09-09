@@ -15,10 +15,6 @@ public record GroupInvitationId(UUID value) {
         return new GroupInvitationId(UUID.randomUUID());
     }
 
-    public static GroupInvitationId of(String value) {
-        return new GroupInvitationId(UUID.fromString(value));
-    }
-
     @NotNull
     @Override
     public String toString() {

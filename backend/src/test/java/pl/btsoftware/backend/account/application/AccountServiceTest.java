@@ -17,8 +17,8 @@ import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
-import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
 import java.math.BigDecimal;
 
@@ -42,12 +42,12 @@ public class AccountServiceTest {
     }
 
     private void userExistsInGroup(UserId userAId, GroupId groupId) {
-        var user = Instancio.of(UserView.class).set(field(UserView::id), userAId.value()).set(field(UserView::groupId), groupId.value()).create();
+        var user = Instancio.of(User.class).set(field(User::id), userAId).set(field(User::groupId), groupId).create();
         when(usersModuleFacade.findUserOrThrow(userAId)).thenReturn(user);
     }
 
-    private UserView userExists(CreateAccountCommand command) {
-        var user = Instancio.of(UserView.class).set(field(UserView::id), command.userId().value()).create();
+    private User userExists(CreateAccountCommand command) {
+        var user = Instancio.of(User.class).set(field(User::id), command.userId()).create();
         when(usersModuleFacade.findUserOrThrow(command.userId())).thenReturn(user);
         return user;
     }
@@ -96,7 +96,7 @@ public class AccountServiceTest {
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameEmptyException.class);
-            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
+            assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
         @Test
@@ -108,7 +108,7 @@ public class AccountServiceTest {
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameEmptyException.class);
-            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
+            assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
         @Test
@@ -120,7 +120,7 @@ public class AccountServiceTest {
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameEmptyException.class);
-            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
+            assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
         @Test
@@ -133,7 +133,7 @@ public class AccountServiceTest {
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameTooLongException.class);
-            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
+            assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
         @ParameterizedTest
@@ -146,7 +146,7 @@ public class AccountServiceTest {
             // when & then
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountNameInvalidCharactersException.class);
-            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).isEmpty();
+            assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
         @Test
@@ -161,7 +161,7 @@ public class AccountServiceTest {
 
             // then
             assertThat(account.name()).isEqualTo(validName);
-            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).hasSize(1).containsOnly(account);
+            assertThat(accountRepository.findAllBy(user.groupId())).hasSize(1).containsOnly(account);
         }
 
         @Test
@@ -180,7 +180,7 @@ public class AccountServiceTest {
             assertThatThrownBy(() -> accountService.createAccount(command))
                     .isInstanceOf(AccountAlreadyExistsException.class)
                     .hasMessageContaining("Account with provided name and currency already exists");
-            assertThat(accountRepository.findAllBy(new GroupId(user.groupId()))).hasSize(1);
+            assertThat(accountRepository.findAllBy(user.groupId())).hasSize(1);
         }
 
         @Test
@@ -207,8 +207,8 @@ public class AccountServiceTest {
             assertThat(account1.balance().currency()).isEqualTo(PLN);
             assertThat(account2.name()).isEqualTo(accountName);
             assertThat(account2.balance().currency()).isEqualTo(EUR);
-            assertThat(accountRepository.findAllBy(new GroupId(user1.groupId()))).hasSize(1);
-            assertThat(accountRepository.findAllBy(new GroupId(user2.groupId()))).hasSize(1);
+            assertThat(accountRepository.findAllBy(user1.groupId())).hasSize(1);
+            assertThat(accountRepository.findAllBy(user2.groupId())).hasSize(1);
         }
     }
 

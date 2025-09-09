@@ -9,11 +9,7 @@ import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
-import pl.btsoftware.backend.transaction.domain.error.TransactionAccessDeniedException;
-import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
-import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
-import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
-import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
+import pl.btsoftware.backend.transaction.domain.error.*;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -29,11 +25,11 @@ public class TransactionService {
     @Transactional // TODO: Verify if transactional works correctly in integration tests
     public Transaction createTransaction(CreateTransactionCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
-        var account = accountModuleFacade.getAccount(command.accountId(), new GroupId(user.groupId()));
+        var account = accountModuleFacade.getAccount(command.accountId(), user.groupId());
         validateDescriptionLength(command.description());
         validateCurrencyMatch(command.amount().currency(), account.balance().currency());
 
-        var auditInfo = AuditInfo.create(command.userId().value(), user.groupId());
+        var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value(), command.date());
         var transaction = command.toDomain(auditInfo);
         transactionRepository.store(transaction);
         accountModuleFacade.addTransaction(command.accountId(), transaction.id(), transaction.amount(), transaction.type(), command.userId());
@@ -69,9 +65,9 @@ public class TransactionService {
     @Transactional
     public Transaction updateTransaction(UpdateTransactionCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var transaction = transactionRepository.findById(command.transactionId(), new GroupId(user.groupId()))
+        var transaction = transactionRepository.findById(command.transactionId(), user.groupId())
                 .orElseThrow(() -> new TransactionNotFoundException(command.transactionId()));
-        if (!transaction.ownedBy().equals(new GroupId(user.groupId()))) {
+        if (!transaction.ownedBy().equals(user.groupId())) {
             throw new TransactionAccessDeniedException();
         }
 
@@ -85,9 +81,9 @@ public class TransactionService {
         if (command.description() != null) {
             updatedTransaction = updatedTransaction.updateDescription(command.description(), userId);
         }
-        
-        if (command.category() != null) {
-            updatedTransaction = updatedTransaction.updateCategory(command.category(), userId);
+
+        if (command.categoryId() != null) {
+            updatedTransaction = updatedTransaction.updateCategory(command.categoryId(), userId);
         }
 
         transactionRepository.store(updatedTransaction);
@@ -97,7 +93,7 @@ public class TransactionService {
     @Transactional
     public void deleteTransaction(TransactionId transactionId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var transaction = transactionRepository.findByIdIncludingDeleted(transactionId, new GroupId(user.groupId()))
+        var transaction = transactionRepository.findByIdIncludingDeleted(transactionId, user.groupId())
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
         
         if (transaction.isDeleted()) {

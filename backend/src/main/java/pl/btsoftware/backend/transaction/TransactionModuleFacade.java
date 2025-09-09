@@ -8,7 +8,6 @@ import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.users.UsersModuleFacade;
-import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.List;
@@ -25,17 +24,17 @@ public class TransactionModuleFacade {
 
     public Transaction getTransactionById(UUID id, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        return transactionService.getTransactionById(TransactionId.of(id), new GroupId(user.groupId()));
+        return transactionService.getTransactionById(TransactionId.of(id), user.groupId());
     }
 
     public List<Transaction> getAllTransactions(UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        return transactionService.getAllTransactions(new GroupId(user.groupId()));
+        return transactionService.getAllTransactions(user.groupId());
     }
 
     public List<Transaction> getTransactionsByAccountId(UUID accountId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        return transactionService.getTransactionsByAccountId(AccountId.from(accountId), new GroupId(user.groupId()));
+        return transactionService.getTransactionsByAccountId(AccountId.from(accountId), user.groupId());
     }
 
     public Transaction updateTransaction(UpdateTransactionCommand command, UserId userId) {

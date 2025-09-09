@@ -38,7 +38,7 @@ public class AccountModuleFacade {
 
     public Account updateAccount(UpdateAccountCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        return accountService.updateAccount(command.accountId(), command.name(), new GroupId(user.groupId()));
+        return accountService.updateAccount(command.accountId(), command.name(), user.groupId());
     }
 
     public void deleteAccount(AccountId accountId, UserId userId) {

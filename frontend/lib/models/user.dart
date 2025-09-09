@@ -1,6 +1,5 @@
 class User {
   final String id;
-  final String externalAuthId;
   final String email;
   final String displayName;
   final String groupId;
@@ -10,7 +9,6 @@ class User {
 
   const User({
     required this.id,
-    required this.externalAuthId,
     required this.email,
     required this.displayName,
     required this.groupId,
@@ -22,14 +20,14 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as String,
-      externalAuthId: json['externalAuthId'] as String,
       email: json['email'] as String,
       displayName: json['displayName'] as String,
       groupId: json['groupId'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      lastLoginAt: json['lastLoginAt'] != null 
-          ? DateTime.parse(json['lastLoginAt'] as String)
-          : null,
+      lastLoginAt:
+          json['lastLoginAt'] != null
+              ? DateTime.parse(json['lastLoginAt'] as String)
+              : null,
       joinedGroupAt: DateTime.parse(json['joinedGroupAt'] as String),
     );
   }
@@ -37,7 +35,6 @@ class User {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'externalAuthId': externalAuthId,
       'email': email,
       'displayName': displayName,
       'groupId': groupId,

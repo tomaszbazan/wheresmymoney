@@ -11,24 +11,9 @@ void main() {
 
     setUp(() {
       testAccounts = [
-        Account(
-          id: '1',
-          name: 'PLN Account',
-          balance: 1000.0,
-          currency: 'PLN',
-        ),
-        Account(
-          id: '2',
-          name: 'USD Account',
-          balance: 500.0,
-          currency: 'USD',
-        ),
-        Account(
-          id: '3',
-          name: 'EUR Account',
-          balance: 200.0,
-          currency: 'EUR',
-        ),
+        Account(id: '1', name: 'PLN Account', balance: 1000.0, currency: 'PLN'),
+        Account(id: '2', name: 'USD Account', balance: 500.0, currency: 'USD'),
+        Account(id: '3', name: 'EUR Account', balance: 200.0, currency: 'EUR'),
       ];
 
       testTransactions = [
@@ -65,30 +50,36 @@ void main() {
       ];
     });
 
-    testWidgets('should display correct currency for each transaction', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: TransactionList(
-            transactions: testTransactions,
-            accounts: testAccounts,
-            onEdit: (_) {},
-            onDelete: (_) {},
+    testWidgets('should display correct currency for each transaction', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TransactionList(
+              transactions: testTransactions,
+              accounts: testAccounts,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
           ),
         ),
-      ));
+      );
 
       expect(find.text('100.00 PLN'), findsOneWidget);
       expect(find.text('50.00 USD'), findsOneWidget);
       expect(find.text('75.00 EUR'), findsOneWidget);
     });
 
-    testWidgets('should fallback to PLN for account without currency', (WidgetTester tester) async {
+    testWidgets('should fallback to PLN for account without currency', (
+      WidgetTester tester,
+    ) async {
       final accountWithoutCurrency = Account(
         id: '4',
         name: 'No Currency Account',
         balance: 300.0,
       );
-      
+
       final transactionWithNoCurrency = Transaction(
         id: 't4',
         accountId: '4',
@@ -100,21 +91,25 @@ void main() {
         updatedAt: DateTime(2024, 1, 4),
       );
 
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: TransactionList(
-            transactions: [transactionWithNoCurrency],
-            accounts: [accountWithoutCurrency],
-            onEdit: (_) {},
-            onDelete: (_) {},
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TransactionList(
+              transactions: [transactionWithNoCurrency],
+              accounts: [accountWithoutCurrency],
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
           ),
         ),
-      ));
+      );
 
       expect(find.text('200.00 PLN'), findsOneWidget);
     });
 
-    testWidgets('should fallback to PLN for unknown account', (WidgetTester tester) async {
+    testWidgets('should fallback to PLN for unknown account', (
+      WidgetTester tester,
+    ) async {
       final orphanTransaction = Transaction(
         id: 't5',
         accountId: 'unknown-account-id',
@@ -126,34 +121,43 @@ void main() {
         updatedAt: DateTime(2024, 1, 5),
       );
 
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: TransactionList(
-            transactions: [orphanTransaction],
-            accounts: testAccounts,
-            onEdit: (_) {},
-            onDelete: (_) {},
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TransactionList(
+              transactions: [orphanTransaction],
+              accounts: testAccounts,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
           ),
         ),
-      ));
+      );
 
       expect(find.text('150.00 PLN'), findsOneWidget);
     });
 
-    testWidgets('should show empty state when no transactions', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: TransactionList(
-            transactions: [],
-            accounts: testAccounts,
-            onEdit: (_) {},
-            onDelete: (_) {},
+    testWidgets('should show empty state when no transactions', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TransactionList(
+              transactions: [],
+              accounts: testAccounts,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
           ),
         ),
-      ));
+      );
 
       expect(find.text('Brak transakcji'), findsOneWidget);
-      expect(find.text('Dodaj pierwszą transakcję klikając przycisk +'), findsOneWidget);
+      expect(
+        find.text('Dodaj pierwszą transakcję klikając przycisk +'),
+        findsOneWidget,
+      );
     });
   });
 }

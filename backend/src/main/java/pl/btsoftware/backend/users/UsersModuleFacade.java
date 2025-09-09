@@ -8,7 +8,6 @@ import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.application.UserService;
 import pl.btsoftware.backend.users.domain.*;
 import pl.btsoftware.backend.users.domain.error.UserNotFoundException;
-import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
 import java.util.Optional;
 
@@ -38,7 +37,7 @@ public class UsersModuleFacade {
         return groupService.findGroupById(groupId);
     }
 
-    public UserView findUserOrThrow(UserId userId) {
-        return userService.findById(userId).map(UserView::from).orElseThrow(UserNotFoundException::new);
+    public User findUserOrThrow(UserId userId) {
+        return userService.findById(userId).orElseThrow(UserNotFoundException::new);
     }
 }

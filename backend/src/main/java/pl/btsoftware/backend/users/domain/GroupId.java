@@ -12,8 +12,4 @@ public record GroupId(UUID value) {
     public static GroupId generate() {
         return new GroupId(UUID.randomUUID());
     }
-
-    public static GroupId of(String value) {
-        return new GroupId(UUID.fromString(value));
-    }
 }
