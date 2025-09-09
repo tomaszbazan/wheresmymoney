@@ -14,7 +14,5 @@ public interface CategoryRepository {
 
     Optional<Category> findByIdIncludingDeleted(CategoryId id, GroupId groupId);
 
-    List<Category> findAll(GroupId groupId);
-
     List<Category> findByType(CategoryType type, GroupId groupId);
 }
