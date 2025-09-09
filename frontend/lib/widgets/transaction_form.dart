@@ -4,12 +4,14 @@ import '../models/account.dart';
 import '../models/http_exception.dart';
 import '../models/transaction.dart';
 import '../services/transaction_service.dart';
+import 'category_selector.dart';
 
 class TransactionForm extends StatefulWidget {
   final List<Account> accounts;
   final Transaction? transaction;
   final String? type;
   final Function(Transaction) onSaved;
+  final TransactionServiceInterface? transactionService;
 
   const TransactionForm({
     super.key,
@@ -17,11 +19,12 @@ class TransactionForm extends StatefulWidget {
     this.transaction,
     this.type,
     required this.onSaved,
+    this.transactionService,
   });
 
   static String normalizeAmount(String amount) {
     String normalized = amount.trim().replaceAll(',', '.');
-    
+
     if (!normalized.contains('.')) {
       normalized = '$normalized.00';
     } else {
@@ -30,7 +33,7 @@ class TransactionForm extends StatefulWidget {
         normalized = '${parts[0]}.${parts[1]}0';
       }
     }
-    
+
     return normalized;
   }
 
@@ -40,14 +43,14 @@ class TransactionForm extends StatefulWidget {
 
 class _TransactionFormState extends State<TransactionForm> {
   final _formKey = GlobalKey<FormState>();
-  final _transactionService = TransactionService();
+  late final TransactionServiceInterface _transactionService;
 
   late TextEditingController _amountController;
   late TextEditingController _descriptionController;
-  late TextEditingController _categoryController;
 
   String? _selectedAccountId;
   String? _selectedType;
+  String? _selectedCategoryId;
   String _selectedCurrency = 'PLN';
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
@@ -56,19 +59,22 @@ class _TransactionFormState extends State<TransactionForm> {
   void initState() {
     super.initState();
 
+    _transactionService = widget.transactionService ?? TransactionService();
+
     _amountController = TextEditingController(
       text: widget.transaction?.amount.abs().toStringAsFixed(2) ?? '',
     );
     _descriptionController = TextEditingController(
       text: widget.transaction?.description ?? '',
     );
-    _categoryController = TextEditingController(
-      text: widget.transaction?.category ?? '',
-    );
 
     if (widget.transaction != null) {
       _selectedAccountId = widget.transaction!.accountId;
       _selectedType = widget.transaction!.type;
+      _selectedCategoryId =
+          widget
+              .transaction!
+              .category; // This will need to be updated when we fix the Transaction model
       _selectedDate = widget.transaction!.createdAt;
       _updateCurrencyFromAccount();
     } else {
@@ -83,7 +89,6 @@ class _TransactionFormState extends State<TransactionForm> {
   void dispose() {
     _amountController.dispose();
     _descriptionController.dispose();
-    _categoryController.dispose();
     super.dispose();
   }
 
@@ -100,11 +105,14 @@ class _TransactionFormState extends State<TransactionForm> {
   Future<void> _saveTransaction() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedAccountId == null) return;
+    if (_selectedType == null) return;
 
     setState(() => _isLoading = true);
 
     try {
-      final normalizedAmount = TransactionForm.normalizeAmount(_amountController.text);
+      final normalizedAmount = TransactionForm.normalizeAmount(
+        _amountController.text,
+      );
       final Transaction transaction;
 
       if (widget.transaction != null) {
@@ -112,7 +120,7 @@ class _TransactionFormState extends State<TransactionForm> {
           id: widget.transaction!.id,
           amount: double.parse(normalizedAmount),
           description: _descriptionController.text,
-          category: _categoryController.text,
+          categoryId: _selectedCategoryId ?? '',
           currency: _selectedCurrency,
         );
       } else {
@@ -122,7 +130,7 @@ class _TransactionFormState extends State<TransactionForm> {
           description: _descriptionController.text,
           date: _selectedDate,
           type: _selectedType!,
-          category: _categoryController.text,
+          categoryId: _selectedCategoryId ?? '',
           currency: _selectedCurrency,
         );
       }
@@ -181,7 +189,6 @@ class _TransactionFormState extends State<TransactionForm> {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 24),
-
             if (!isEditing) ...[
               DropdownButtonFormField<String>(
                 value: _selectedAccountId,
@@ -193,7 +200,7 @@ class _TransactionFormState extends State<TransactionForm> {
                     widget.accounts.map((account) {
                       return DropdownMenuItem(
                         value: account.id,
-                        child: Text(account.name),
+                        child: Text('${account.name} (${account.currency})'),
                       );
                     }).toList(),
                 onChanged: (value) {
@@ -205,28 +212,6 @@ class _TransactionFormState extends State<TransactionForm> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Wybierz konto';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                value: _selectedType,
-                decoration: const InputDecoration(
-                  labelText: 'Typ',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'INCOME', child: Text('Przychód')),
-                  DropdownMenuItem(value: 'EXPENSE', child: Text('Wydatek')),
-                ],
-                onChanged: (value) {
-                  setState(() => _selectedType = value);
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Wybierz typ transakcji';
                   }
                   return null;
                 },
@@ -279,15 +264,17 @@ class _TransactionFormState extends State<TransactionForm> {
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
-              controller: _categoryController,
-              decoration: const InputDecoration(
-                labelText: 'Kategoria',
-                border: OutlineInputBorder(),
-              ),
+            CategorySelector(
+              selectedCategoryId: _selectedCategoryId,
+              transactionType: _selectedType ?? 'EXPENSE',
+              onChanged: (categoryId) {
+                setState(() {
+                  _selectedCategoryId = categoryId;
+                });
+              },
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Wprowadź kategorię';
+                  return 'Wybierz kategorię';
                 }
                 return null;
               },

@@ -36,16 +36,14 @@ class _LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-      
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/main');
-      }
+
+      // Navigation is handled automatically by AuthWrapper via authStateChanges
     } catch (error) {
       if (mounted) {
         String errorMessage = _getErrorMessage(error);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     } finally {
       if (mounted) {
@@ -58,24 +56,26 @@ class _LoginPageState extends State<LoginPage> {
 
   String _getErrorMessage(dynamic error) {
     String errorString = error.toString().toLowerCase();
-    
-    if (errorString.contains('invalid') && 
-        (errorString.contains('credential') || errorString.contains('password') || errorString.contains('email'))) {
+
+    if (errorString.contains('invalid') &&
+        (errorString.contains('credential') ||
+            errorString.contains('password') ||
+            errorString.contains('email'))) {
       return 'Nieprawidłowy email lub hasło';
     }
-    
+
     if (errorString.contains('invalid email or password')) {
       return 'Nieprawidłowy email lub hasło';
     }
-    
+
     if (errorString.contains('too many requests')) {
       return 'Zbyt wiele prób logowania. Spróbuj ponownie za chwilę';
     }
-    
+
     if (errorString.contains('network') || errorString.contains('connection')) {
       return 'Błąd połączenia z serwerem. Sprawdź połączenie internetowe';
     }
-    
+
     return 'Błąd logowania. Spróbuj ponownie';
   }
 
@@ -95,19 +95,13 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const Text(
                     'Where\'s My Money',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'Sign in to your account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
@@ -139,7 +133,11 @@ class _LoginPageState extends State<LoginPage> {
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         onPressed: () {
                           setState(() {
                             _obscurePassword = !_obscurePassword;
@@ -160,9 +158,13 @@ class _LoginPageState extends State<LoginPage> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                     ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator()
-                        : const Text('Sign In', style: TextStyle(fontSize: 16)),
+                    child:
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : const Text(
+                              'Sign In',
+                              style: TextStyle(fontSize: 16),
+                            ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -171,7 +173,9 @@ class _LoginPageState extends State<LoginPage> {
                       const Text('Don\'t have an account? '),
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).pushReplacementNamed('/register');
+                          Navigator.of(
+                            context,
+                          ).pushReplacementNamed('/register');
                         },
                         child: const Text('Sign Up'),
                       ),

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.configuration.SystemTest;
+import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.shared.TransactionType;
@@ -18,7 +19,6 @@ import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooL
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
-import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
@@ -74,7 +74,7 @@ public class TransactionServiceTest {
                 "Salary payment",
                 now(),
                 INCOME,
-                "Salary",
+                CategoryId.generate(),
                 userId
         );
 
@@ -87,7 +87,7 @@ public class TransactionServiceTest {
         assertThat(transaction.amount().value()).isEqualTo(new BigDecimal("100.00"));
         assertThat(transaction.type()).isEqualTo(INCOME);
         assertThat(transaction.description()).isEqualTo("Salary payment");
-        assertThat(transaction.category()).isEqualTo("Salary");
+        assertThat(transaction.categoryId()).isNotNull();
         assertThat(transaction.amount().currency()).isEqualTo(PLN);
         assertThat(transaction.tombstone().isDeleted()).isFalse();
 
@@ -108,7 +108,7 @@ public class TransactionServiceTest {
                 "Grocery shopping",
                 now(),
                 TransactionType.EXPENSE,
-                "Food",
+                CategoryId.generate(),
                 userId
         );
 
@@ -135,7 +135,7 @@ public class TransactionServiceTest {
                 "",
                 now(),
                 INCOME,
-                "Category",
+                CategoryId.generate(),
                 userId
         );
 
@@ -157,7 +157,7 @@ public class TransactionServiceTest {
                 null,
                 now(),
                 INCOME,
-                "Category",
+                CategoryId.generate(),
                 userId
         );
 
@@ -180,7 +180,7 @@ public class TransactionServiceTest {
                 longDescription,
                 now(),
                 INCOME,
-                "Category",
+                CategoryId.generate(),
                 userId
         );
 
@@ -201,7 +201,7 @@ public class TransactionServiceTest {
                 "Payment",
                 now(),
                 INCOME,
-                "Category",
+                CategoryId.generate(),
                 userId
         );
 
@@ -222,14 +222,14 @@ public class TransactionServiceTest {
                 "Test transaction",
                 now(),
                 INCOME,
-                "Test",
+                CategoryId.generate(),
                 userId
         );
         var createdTransaction = transactionService.createTransaction(command);
 
         // When
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var retrievedTransaction = transactionService.getTransactionById(createdTransaction.id(), new GroupId(user.groupId()));
+        var retrievedTransaction = transactionService.getTransactionById(createdTransaction.id(), user.groupId());
 
         // Then
         assertThat(retrievedTransaction.id()).isEqualTo(createdTransaction.id());
@@ -244,7 +244,7 @@ public class TransactionServiceTest {
         // When & Then
         var userId = createTestUser();
         var user = usersModuleFacade.findUserOrThrow(userId);
-        assertThatThrownBy(() -> transactionService.getTransactionById(nonExistentId, new GroupId(user.groupId())))
+        assertThatThrownBy(() -> transactionService.getTransactionById(nonExistentId, user.groupId()))
                 .isInstanceOf(TransactionNotFoundException.class)
                 .hasMessage("Transaction not found with id: " + nonExistentId.value());
     }
@@ -260,7 +260,7 @@ public class TransactionServiceTest {
                 "Transaction 1",
                 now(),
                 INCOME,
-                "Test",
+                CategoryId.generate(),
                 userId
         );
         var command2 = new CreateTransactionCommand(
@@ -269,7 +269,7 @@ public class TransactionServiceTest {
                 "Transaction 2",
                 now(),
                 TransactionType.EXPENSE,
-                "Test",
+                CategoryId.generate(),
                 userId
         );
 
@@ -278,7 +278,7 @@ public class TransactionServiceTest {
 
         // When
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var allTransactions = transactionService.getAllTransactions(new GroupId(user.groupId()));
+        var allTransactions = transactionService.getAllTransactions(user.groupId());
 
         // Then
         assertThat(allTransactions).hasSizeGreaterThanOrEqualTo(2);
@@ -299,7 +299,7 @@ public class TransactionServiceTest {
                 "Transaction for account 1",
                 now(),
                 INCOME,
-                "Test",
+                CategoryId.generate(),
                 userId
         );
         var command2 = new CreateTransactionCommand(
@@ -308,7 +308,7 @@ public class TransactionServiceTest {
                 "Transaction for account 2",
                 now(),
                 TransactionType.EXPENSE,
-                "Test",
+                CategoryId.generate(),
                 userId
         );
 
@@ -317,7 +317,7 @@ public class TransactionServiceTest {
 
         // When
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var account1Transactions = transactionService.getTransactionsByAccountId(account1Id.id(), new GroupId(user.groupId()));
+        var account1Transactions = transactionService.getTransactionsByAccountId(account1Id.id(), user.groupId());
 
         // Then
         assertThat(account1Transactions).hasSize(1);
@@ -335,7 +335,7 @@ public class TransactionServiceTest {
                 "Original transaction",
                 now(),
                 INCOME,
-                "Original",
+                CategoryId.generate(),
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -353,7 +353,7 @@ public class TransactionServiceTest {
         // Then
         assertThat(updatedTransaction.amount().value()).isEqualTo(new BigDecimal("150.00"));
         assertThat(updatedTransaction.description()).isEqualTo("Original transaction");
-        assertThat(updatedTransaction.category()).isEqualTo("Original");
+        assertThat(updatedTransaction.categoryId()).isNotNull();
 
         var account = accountModuleFacade.getAccount(accountId.id(), userId);
         assertThat(account.balance().value()).isEqualTo(new BigDecimal("150.00"));
@@ -370,7 +370,7 @@ public class TransactionServiceTest {
                 "Original description",
                 now(),
                 INCOME,
-                "Original",
+                CategoryId.generate(),
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -401,7 +401,7 @@ public class TransactionServiceTest {
                 "Test transaction",
                 now(),
                 INCOME,
-                "Original Category",
+                CategoryId.generate(),
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -410,14 +410,14 @@ public class TransactionServiceTest {
                 transaction.id(),
                 null,
                 null,
-                "Updated Category"
+                CategoryId.generate()
         );
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
 
         // Then
-        assertThat(updatedTransaction.category()).isEqualTo("Updated Category");
+        assertThat(updatedTransaction.categoryId()).isNotNull();
         assertThat(updatedTransaction.description()).isEqualTo("Test transaction");
     }
 
@@ -451,7 +451,7 @@ public class TransactionServiceTest {
                 "Transaction to delete",
                 now(),
                 INCOME,
-                "Test",
+                CategoryId.generate(),
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -461,7 +461,7 @@ public class TransactionServiceTest {
 
         // Then
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var deletedTransaction = transactionRepository.findByIdIncludingDeleted(transaction.id(), new GroupId(user.groupId())).orElseThrow();
+        var deletedTransaction = transactionRepository.findByIdIncludingDeleted(transaction.id(), user.groupId()).orElseThrow();
         assertThat(deletedTransaction.tombstone().isDeleted()).isTrue();
 
         var account = accountModuleFacade.getAccount(accountId.id(), userId);
@@ -481,7 +481,7 @@ public class TransactionServiceTest {
                 "Expense to delete",
                 now(),
                 TransactionType.EXPENSE,
-                "Test",
+                CategoryId.generate(),
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -518,7 +518,7 @@ public class TransactionServiceTest {
                 "Transaction to delete twice",
                 now(),
                 INCOME,
-                "Test",
+                CategoryId.generate(),
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);

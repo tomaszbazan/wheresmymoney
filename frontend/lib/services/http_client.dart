@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:http/http.dart' as http;
+
 import '../config/api_config.dart';
 import '../models/http_exception.dart';
 import 'auth_service.dart';
@@ -14,13 +16,13 @@ class AuthenticatedHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final token = await _authService.getAccessToken();
-    
+
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-    
+
     request.headers['Content-Type'] = 'application/json';
-    
+
     return _inner.send(request);
   }
 }
@@ -33,8 +35,7 @@ class ApiClient {
     _httpClient = AuthenticatedHttpClient(http.Client(), _authService);
   }
 
-  Future<T> get<T>(
-    String endpoint, 
+  Future<T> get<T>(String endpoint,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
     try {
@@ -53,8 +54,7 @@ class ApiClient {
     }
   }
 
-  Future<List<T>> getList<T>(
-    String endpoint, 
+  Future<List<T>> getList<T>(String endpoint,
     String listKey,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
@@ -80,8 +80,7 @@ class ApiClient {
     }
   }
 
-  Future<T> post<T>(
-    String endpoint, 
+  Future<T> post<T>(String endpoint,
     Map<String, dynamic> body,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
@@ -115,8 +114,7 @@ class ApiClient {
     }
   }
 
-  Future<T> put<T>(
-    String endpoint, 
+  Future<T> put<T>(String endpoint,
     Map<String, dynamic> body,
     T Function(Map<String, dynamic>) fromJson,
   ) async {

@@ -20,7 +20,7 @@ class AuthService {
 
       final prefs = await SharedPreferences.getInstance();
       final userJson = prefs.getString(_userKey);
-      
+
       if (userJson != null) {
         return app_user.User.fromJson(jsonDecode(userJson));
       }
@@ -46,9 +46,7 @@ class AuthService {
     final response = await _supabase.auth.signUp(
       email: email,
       password: password,
-      data: {
-        'display_name': displayName,
-      },
+      data: {'display_name': displayName},
     );
 
     if (response.user == null) {
@@ -87,7 +85,7 @@ class AuthService {
 
   Future<void> signOut() async {
     await _supabase.auth.signOut();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_userKey);
@@ -111,9 +109,7 @@ class AuthService {
 
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode(body),
     );
 
@@ -127,12 +123,10 @@ class AuthService {
     if (token == null) throw Exception('No access token available');
 
     final url = Uri.parse('${ApiConfig.backendUrl}/users/profile');
-    
+
     final response = await http.get(
       url,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode != 200) {

@@ -12,7 +12,6 @@ import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
-import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
@@ -104,7 +103,7 @@ public class AccountServiceTest {
 
         // when
         var groupId = usersModuleFacade.findUserOrThrow(userId).groupId();
-        var updatedAccount = accountService.updateAccount(account.id(), "New Name", new GroupId(groupId));
+        var updatedAccount = accountService.updateAccount(account.id(), "New Name", groupId);
 
         // then
         assertThat(updatedAccount.name()).isEqualTo("New Name");

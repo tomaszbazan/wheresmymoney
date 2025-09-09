@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/auth_service.dart';
 
 class SideMenu extends StatelessWidget {
@@ -22,9 +23,7 @@ class SideMenu extends StatelessWidget {
       width: isExpanded ? 250 : 70,
       child: Card(
         margin: EdgeInsets.zero,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         child: Column(
           children: [
             _buildHeader(),
@@ -40,14 +39,25 @@ class SideMenu extends StatelessWidget {
             ),
             _buildMenuItem(
               index: 2,
-              icon: Icons.receipt_long,
-              title: 'Transakcje',
+              icon: Icons.arrow_upward,
+              title: 'Przychody',
+            ),
+            _buildMenuItem(
+              index: 3,
+              icon: Icons.arrow_downward,
+              title: 'Wydatki',
             ),
             const Spacer(),
             // Logout button
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: isExpanded ? const Text('Wyloguj', style: TextStyle(color: Colors.red)) : null,
+              title:
+                  isExpanded
+                      ? const Text(
+                        'Wyloguj',
+                        style: TextStyle(color: Colors.red),
+                      )
+                      : null,
               onTap: () => _showLogoutDialog(context),
             ),
             // Przycisk do przełączania trybu menu
@@ -71,31 +81,32 @@ class SideMenu extends StatelessWidget {
       height: 100,
       width: double.infinity,
       child: Center(
-        child: isExpanded
-            ? const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.account_balance_wallet,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Where\'s My Money',
-                    style: TextStyle(
+        child:
+            isExpanded
+                ? const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.account_balance_wallet,
                       color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      size: 40,
                     ),
-                  ),
-                ],
-              )
-            : const Icon(
-                Icons.account_balance_wallet,
-                color: Colors.white,
-                size: 30,
-              ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Where\'s My Money',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                )
+                : const Icon(
+                  Icons.account_balance_wallet,
+                  color: Colors.white,
+                  size: 30,
+                ),
       ),
     );
   }
@@ -116,26 +127,32 @@ class SideMenu extends StatelessWidget {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Wylogowanie'),
-        content: const Text('Czy na pewno chcesz się wylogować?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Anuluj'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Wylogowanie'),
+            content: const Text('Czy na pewno chcesz się wylogować?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Anuluj'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final authService = AuthService();
+                  await authService.signOut();
+                  if (context.mounted) {
+                    Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('/', (route) => false);
+                  }
+                },
+                child: const Text(
+                  'Wyloguj',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              final authService = AuthService();
-              await authService.signOut();
-              if (context.mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-              }
-            },
-            child: const Text('Wyloguj', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
   }
 }

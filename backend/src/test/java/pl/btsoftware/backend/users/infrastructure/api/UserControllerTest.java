@@ -99,7 +99,7 @@ class UserControllerTest {
     void shouldGetUserProfileSuccessfully() throws Exception {
         // given
         var user = Instancio.create(User.class);
-        when(usersModuleFacade.findUserOrThrow(new UserId(user.id().value()))).thenReturn(UserView.from(user));
+        when(usersModuleFacade.findUserOrThrow(new UserId(user.id().value()))).thenReturn(user);
 
         mockMvc.perform(get("/api/users/profile")
                         .with(jwt().jwt(jwt -> jwt.subject(user.id().value()))))

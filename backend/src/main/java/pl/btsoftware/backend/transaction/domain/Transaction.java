@@ -13,7 +13,7 @@ public record Transaction(
         Money amount,
         TransactionType type,
         String description,
-        String category,
+        CategoryId categoryId,
         AuditInfo createdInfo,
         AuditInfo updatedInfo,
         Tombstone tombstone
@@ -23,7 +23,7 @@ public record Transaction(
             Money amount,
             String description,
             TransactionType type,
-            String category,
+            CategoryId categoryId,
             AuditInfo createdInfo
     ) {
         return new Transaction(
@@ -32,7 +32,7 @@ public record Transaction(
                 amount,
                 type,
                 description,
-                category,
+                categoryId,
                 createdInfo,
                 createdInfo,
                 Tombstone.active()
@@ -60,19 +60,19 @@ public record Transaction(
     }
 
     public Transaction updateAmount(Money newAmount, UserId updatedBy) {
-        return new Transaction(id, accountId, newAmount, type, description, category, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+        return new Transaction(id, accountId, newAmount, type, description, categoryId, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
     }
 
     public Transaction updateDescription(String newDescription, UserId updatedBy) {
-        return new Transaction(id, accountId, amount, type, newDescription, category, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+        return new Transaction(id, accountId, amount, type, newDescription, categoryId, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
     }
 
-    public Transaction updateCategory(String newCategory, UserId updatedBy) {
-        return new Transaction(id, accountId, amount, type, description, newCategory, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+    public Transaction updateCategory(CategoryId newCategoryId, UserId updatedBy) {
+        return new Transaction(id, accountId, amount, type, description, newCategoryId, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
     }
 
     public Transaction delete() {
-        return new Transaction(id, accountId, amount, type, description, category, createdInfo, updatedInfo, Tombstone.deleted());
+        return new Transaction(id, accountId, amount, type, description, categoryId, createdInfo, updatedInfo, Tombstone.deleted());
     }
 
     public boolean isDeleted() {

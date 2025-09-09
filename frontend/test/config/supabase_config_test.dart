@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wmp_frontend/config/supabase_config.dart';
+import 'package:frontend/config/supabase_config.dart';
 
 void main() {
   group('SupabaseConfig', () {

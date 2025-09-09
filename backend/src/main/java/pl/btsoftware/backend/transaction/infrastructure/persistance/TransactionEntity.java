@@ -28,7 +28,8 @@ public class TransactionEntity {
     @Enumerated(EnumType.STRING)
     private TransactionType type;
     private String description;
-    private String category;
+    @Column(name = "category_id")
+    private UUID categoryId;
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
     @Column(name = "created_by")
@@ -54,7 +55,7 @@ public class TransactionEntity {
                 transaction.amount().currency(),
                 transaction.type(),
                 transaction.description(),
-                transaction.category(),
+                transaction.categoryId().value(),
                 transaction.createdAt(),
                 transaction.createdBy().value(),
                 transaction.ownedBy().value(),
@@ -75,7 +76,7 @@ public class TransactionEntity {
                 Money.of(amount, currency),
                 type,
                 description,
-                category,
+                CategoryId.of(categoryId),
                 createdAuditInfo,
                 updatedAuditInfo,
                 new Tombstone(isDeleted, deletedAt)

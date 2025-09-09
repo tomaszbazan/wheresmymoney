@@ -1,20 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/services/transaction_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../mocks/mock_transaction_service.dart';
 
 void main() {
   group('TransactionService', () {
-    late TransactionService transactionService;
-
-    setUpAll(() async {
-      await Supabase.initialize(
-        url: 'https://test-project.supabase.co',
-        anonKey: 'test-anon-key',
-      );
-    });
+    late TransactionServiceInterface transactionService;
 
     setUp(() {
-      transactionService = TransactionService();
+      transactionService = MockTransactionServiceInterface();
     });
 
     test('should initialize transaction service', () {

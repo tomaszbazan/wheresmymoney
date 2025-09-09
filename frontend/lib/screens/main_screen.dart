@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../widgets/side_menu.dart';
 import 'accounts_page.dart';
+import 'expense_page.dart';
+import 'income_page.dart';
 import 'statistics_page.dart';
-import 'transactions_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,17 +13,19 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateMixin {
+class _MainScreenState extends State<MainScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   bool _isMenuExpanded = true;
   late TabController _tabController;
-  
+
   final List<Widget> _pages = <Widget>[
     const StatisticsPage(),
+    const IncomePage(),
+    const ExpensePage(),
     const AccountsPage(),
-    const TransactionsPage(),
   ];
-  
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +38,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
       _tabController.animateTo(index);
     });
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -53,18 +56,17 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     return Scaffold(
       body: Row(
         children: [
-          // Stałe boczne menu jako osobny widget
           SideMenu(
             isExpanded: _isMenuExpanded,
             selectedIndex: _selectedIndex,
             onItemTapped: _onItemTapped,
             onToggle: _toggleMenu,
           ),
-          // Zawartość strony
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(), // Blokujemy przesuwanie palcem
+              physics: const NeverScrollableScrollPhysics(),
+              // Blokujemy przesuwanie palcem
               children: _pages,
             ),
           ),

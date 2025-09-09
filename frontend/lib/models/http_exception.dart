@@ -20,7 +20,14 @@ class HttpException implements Exception {
     }
 
     if (isClientError) {
-      return message.isNotEmpty ? message : 'Błąd klienta: $statusCode';
+      return switch (statusCode) {
+        400 => 'Nieprawidłowe dane w żądaniu',
+        401 => 'Brak autoryzacji',
+        404 => 'Zasób nie został znaleziony',
+        409 => 'Konflikt danych',
+        422 => 'Błąd walidacji danych',
+        _ => 'Błąd klienta: $statusCode',
+      };
     }
 
     return 'Nieznany błąd: $statusCode';

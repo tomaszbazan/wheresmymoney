@@ -52,10 +52,10 @@ public class UserGroupTest {
         var userProfile = usersModuleFacade.findUserOrThrow(new UserId(externalAuthId1));
 
         assertThat(userProfile).isNotNull();
-        assertThat(userProfile.id()).isEqualTo(registeredUser.id().value());
+        assertThat(userProfile.id().value()).isEqualTo(registeredUser.id().value());
         assertThat(userProfile.email()).isEqualTo("user1@example.com");
         assertThat(userProfile.displayName()).isEqualTo("John Doe");
-        assertThat(userProfile.groupId()).isEqualTo(groupId.value());
+        assertThat(userProfile.groupId().value()).isEqualTo(groupId.value());
 
         // 4. Wysłanie zaproszenia do grupy
         var inviteCommand = new InviteToGroupCommand("user2@example.com");

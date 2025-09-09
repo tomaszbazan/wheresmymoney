@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.users.domain;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.UUID;
 
 public record UserId(String value) {
@@ -15,5 +17,11 @@ public record UserId(String value) {
 
     public static UserId of(String value) {
         return new UserId(value);
+    }
+
+    @NotNull
+    @Override
+    public String toString() {
+        return value;
     }
 }
