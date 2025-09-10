@@ -52,8 +52,9 @@ public class AccountService {
         var account = accountRepository.findById(accountId, groupId)
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
-        var existingAccount = accountRepository.findByNameAndCurrency(newName, account.balance().currency(), account.ownedBy());
-        if (existingAccount.isPresent() && !existingAccount.get().id().equals(account.id())) {
+        var currency = account.balance().currency();
+        var existingAccount = accountRepository.findByNameAndCurrency(newName, currency, account.ownedBy());
+        if (existingAccount.isPresent()) {
             throw new AccountAlreadyExistsException();
         }
 

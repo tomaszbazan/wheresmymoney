@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -58,8 +60,10 @@ public class TransactionControllerTest {
         when(categoryModuleFacade.getCategoryById(any(CategoryId.class), any(UserId.class)))
                 .thenAnswer(invocation -> {
                     var categoryId = invocation.getArgument(0, CategoryId.class);
-                    var userId = invocation.getArgument(1, UserId.class);
-                    return new Category(categoryId, "Sample Category", null, CategoryType.INCOME, "blue", AuditInfo.create(userId.value(), randomUUID()), AuditInfo.create(userId.value(), randomUUID()), Tombstone.active());
+                    return Instancio.of(Category.class)
+                            .set(field(Category::id), categoryId)
+                            .set(field(Category::name), "Sample Category")
+                            .create();
                 });
     }
 

@@ -9,7 +9,10 @@ import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
-import pl.btsoftware.backend.transaction.domain.error.*;
+import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
+import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
+import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
+import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -67,9 +70,6 @@ public class TransactionService {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var transaction = transactionRepository.findById(command.transactionId(), user.groupId())
                 .orElseThrow(() -> new TransactionNotFoundException(command.transactionId()));
-        if (!transaction.ownedBy().equals(user.groupId())) {
-            throw new TransactionAccessDeniedException();
-        }
 
         var updatedTransaction = transaction;
 

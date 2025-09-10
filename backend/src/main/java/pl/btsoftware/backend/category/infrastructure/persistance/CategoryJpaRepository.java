@@ -14,7 +14,5 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, UUI
 
     Optional<CategoryEntity> findByIdAndCreatedByGroup(UUID id, UUID createdByGroup);
 
-    List<CategoryEntity> findByCreatedByGroupAndIsDeletedFalse(UUID createdByGroup);
-
     List<CategoryEntity> findByTypeAndCreatedByGroupAndIsDeletedFalse(CategoryType type, UUID createdByGroup);
 }

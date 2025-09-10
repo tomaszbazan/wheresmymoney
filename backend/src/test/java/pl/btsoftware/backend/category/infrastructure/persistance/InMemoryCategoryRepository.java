@@ -1,6 +1,5 @@
 package pl.btsoftware.backend.category.infrastructure.persistance;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.category.domain.Category;
@@ -9,38 +8,38 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.users.domain.GroupId;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
-@Profile("!test")
-public class JpaCategoryRepository implements CategoryRepository {
-
-    private final CategoryJpaRepository repository;
+@Profile("test")
+public class InMemoryCategoryRepository implements CategoryRepository {
+    private final HashMap<CategoryId, Category> database = new HashMap<>();
 
     @Override
     public void store(Category category) {
-        var entity = CategoryEntity.fromDomain(category);
-        repository.save(entity);
+        database.put(category.id(), category);
     }
 
     @Override
     public Optional<Category> findById(CategoryId id, GroupId groupId) {
-        return repository.findByIdAndCreatedByGroupAndIsDeletedFalse(id.value(), groupId.value())
-                .map(CategoryEntity::toDomain);
+        return Optional.ofNullable(database.get(id))
+                .filter(category -> category.ownedBy().equals(groupId) && !category.isDeleted());
     }
 
     @Override
     public Optional<Category> findByIdIncludingDeleted(CategoryId id, GroupId groupId) {
-        return repository.findByIdAndCreatedByGroup(id.value(), groupId.value())
-                .map(CategoryEntity::toDomain);
+        return Optional.ofNullable(database.get(id))
+                .filter(category -> category.ownedBy().equals(groupId));
     }
 
     @Override
     public List<Category> findByType(CategoryType type, GroupId groupId) {
-        return repository.findByTypeAndCreatedByGroupAndIsDeletedFalse(type, groupId.value()).stream()
-                .map(CategoryEntity::toDomain)
+        return database.values().stream()
+                .filter(category -> category.type().equals(type) &&
+                                    category.ownedBy().equals(groupId) &&
+                                    !category.isDeleted())
                 .toList();
     }
 }

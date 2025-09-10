@@ -15,6 +15,10 @@ public record AuditInfo(UserId who, GroupId fromGroup, OffsetDateTime when) {
         return new AuditInfo(new UserId(userId), new GroupId(groupId), now(UTC));
     }
 
+    public static AuditInfo create(UserId userId, GroupId groupId) {
+        return new AuditInfo(userId, groupId, now(UTC));
+    }
+
     public static AuditInfo create(String userId, UUID groupId, OffsetDateTime when) {
         return new AuditInfo(new UserId(userId), new GroupId(groupId), when);
     }
