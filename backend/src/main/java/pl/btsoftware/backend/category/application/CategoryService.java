@@ -6,7 +6,6 @@ import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.category.domain.CategoryRepository;
 import pl.btsoftware.backend.category.domain.error.CategoryAccessDeniedException;
-import pl.btsoftware.backend.category.domain.error.CategoryNameTooLongException;
 import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
@@ -24,19 +23,12 @@ public class CategoryService {
     @Transactional
     public Category createCategory(CreateCategoryCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
-        validateCategoryNameLength(command.name());
 
         var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value());
         var category = command.toDomain(auditInfo);
         categoryRepository.store(category);
 
         return category;
-    }
-
-    private void validateCategoryNameLength(String name) {
-        if (name != null && name.length() > 100) {
-            throw new CategoryNameTooLongException();
-        }
     }
 
     public Category getCategoryById(CategoryId categoryId, GroupId groupId) {
@@ -54,24 +46,7 @@ public class CategoryService {
         var category = categoryRepository.findById(command.categoryId(), user.groupId())
                 .orElseThrow(() -> new CategoryNotFoundException(command.categoryId()));
 
-        if (!category.ownedBy().equals(user.groupId())) {
-            throw new CategoryAccessDeniedException();
-        }
-
-        var updatedCategory = category;
-
-        if (command.name() != null) {
-            validateCategoryNameLength(command.name());
-            updatedCategory = updatedCategory.updateName(command.name(), userId);
-        }
-
-        if (command.description() != null) {
-            updatedCategory = updatedCategory.updateDescription(command.description(), userId);
-        }
-
-        if (command.color() != null) {
-            updatedCategory = updatedCategory.updateColor(command.color(), userId);
-        }
+        var updatedCategory = category.updateWith(command, userId);
 
         categoryRepository.store(updatedCategory);
         return updatedCategory;

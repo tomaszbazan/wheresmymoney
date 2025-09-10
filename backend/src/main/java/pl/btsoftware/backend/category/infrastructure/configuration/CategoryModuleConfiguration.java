@@ -2,6 +2,7 @@ package pl.btsoftware.backend.category.infrastructure.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.application.CategoryService;
 import pl.btsoftware.backend.category.domain.CategoryRepository;
@@ -14,6 +15,7 @@ import pl.btsoftware.backend.users.UsersModuleFacade;
 public class CategoryModuleConfiguration {
 
     @Bean
+    @Profile("test")
     public CategoryRepository categoryRepository(CategoryJpaRepository categoryJpaRepository) {
         return new JpaCategoryRepository(categoryJpaRepository);
     }

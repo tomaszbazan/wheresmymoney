@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.category.infrastructure.api;
 
 import pl.btsoftware.backend.category.domain.Category;
+import pl.btsoftware.backend.shared.Color;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -8,9 +9,8 @@ import java.util.UUID;
 public record CategoryView(
         UUID id,
         String name,
-        String description,
         String type,
-        String color,
+        Color color,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {
@@ -18,7 +18,6 @@ public record CategoryView(
         return new CategoryView(
                 category.id().value(),
                 category.name(),
-                category.description(),
                 category.type().name(),
                 category.color(),
                 category.createdAt(),

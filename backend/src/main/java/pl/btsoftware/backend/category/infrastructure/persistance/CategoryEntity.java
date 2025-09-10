@@ -8,6 +8,7 @@ import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
+import pl.btsoftware.backend.shared.Color;
 import pl.btsoftware.backend.shared.Tombstone;
 
 import java.time.OffsetDateTime;
@@ -15,14 +16,13 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "category")
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 public class CategoryEntity {
     @Id
     private UUID id;
     private String name;
-    private String description;
     @Enumerated(EnumType.STRING)
     private CategoryType type;
     private String color;
@@ -47,9 +47,8 @@ public class CategoryEntity {
         return new CategoryEntity(
                 category.id().value(),
                 category.name(),
-                category.description(),
                 category.type(),
-                category.color(),
+                category.color().value(),
                 category.createdAt(),
                 category.createdBy().value(),
                 category.ownedBy().value(),
@@ -67,9 +66,8 @@ public class CategoryEntity {
         return new Category(
                 CategoryId.of(id),
                 name,
-                description,
                 type,
-                color,
+                Color.of(color),
                 createdAuditInfo,
                 updatedAuditInfo,
                 new Tombstone(isDeleted, deletedAt)
