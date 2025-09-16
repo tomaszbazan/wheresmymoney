@@ -71,10 +71,7 @@ class _TransactionFormState extends State<TransactionForm> {
     if (widget.transaction != null) {
       _selectedAccountId = widget.transaction!.accountId;
       _selectedType = widget.transaction!.type;
-      _selectedCategoryId =
-          widget
-              .transaction!
-              .category; // This will need to be updated when we fix the Transaction model
+      _selectedCategoryId = widget.transaction!.categoryId;
       _selectedDate = widget.transaction!.createdAt;
       _updateCurrencyFromAccount();
     } else {

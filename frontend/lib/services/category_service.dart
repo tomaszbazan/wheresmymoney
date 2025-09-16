@@ -12,6 +12,7 @@ abstract class CategoryServiceInterface {
     required String description,
     required String type,
     required String color,
+    String? parentId,
   });
 
   Future<Category> updateCategory({
@@ -19,6 +20,7 @@ abstract class CategoryServiceInterface {
     required String name,
     required String description,
     required String color,
+    String? parentId,
   });
 
   Future<void> deleteCategory(String categoryId);
@@ -54,12 +56,14 @@ class CategoryService implements CategoryServiceInterface {
     required String description,
     required String type,
     required String color,
+    String? parentId,
   }) async {
     final Map<String, dynamic> categoryData = {
       'name': name,
       'description': description,
       'type': type.toUpperCase(),
       'color': color,
+      if (parentId != null) 'parentId': parentId,
     };
 
     return await _apiClient.post<Category>(
@@ -75,11 +79,13 @@ class CategoryService implements CategoryServiceInterface {
     required String name,
     required String description,
     required String color,
+    String? parentId,
   }) async {
     final Map<String, dynamic> categoryData = {
       'name': name,
       'description': description,
       'color': color,
+      if (parentId != null) 'parentId': parentId,
     };
 
     return await _apiClient.put<Category>(

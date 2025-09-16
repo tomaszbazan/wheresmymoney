@@ -47,6 +47,16 @@ class SideMenu extends StatelessWidget {
               icon: Icons.arrow_downward,
               title: 'Wydatki',
             ),
+            _buildMenuItem(
+              index: 4,
+              icon: Icons.category_outlined,
+              title: 'Kategorie wydatków',
+            ),
+            _buildMenuItem(
+              index: 5,
+              icon: Icons.category,
+              title: 'Kategorie przychodów',
+            ),
             const Spacer(),
             // Logout button
             ListTile(

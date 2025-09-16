@@ -26,6 +26,8 @@ public class CategoryEntity {
     @Enumerated(EnumType.STRING)
     private CategoryType type;
     private String color;
+    @Column(name = "parent_id")
+    private UUID parentId;
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
     @Column(name = "created_by")
@@ -49,6 +51,7 @@ public class CategoryEntity {
                 category.name(),
                 category.type(),
                 category.color().value(),
+                category.parentId() != null ? category.parentId().value() : null,
                 category.createdAt(),
                 category.createdBy().value(),
                 category.ownedBy().value(),
@@ -68,6 +71,7 @@ public class CategoryEntity {
                 name,
                 type,
                 Color.of(color),
+                parentId != null ? CategoryId.of(parentId) : null,
                 createdAuditInfo,
                 updatedAuditInfo,
                 new Tombstone(isDeleted, deletedAt)

@@ -6,6 +6,10 @@ void main() {
       String getErrorMessage(dynamic error) {
         String errorString = error.toString().toLowerCase();
 
+        if (errorString.contains('email not confirmed')) {
+          return 'Email nie został potwierdzony. Sprawdź swoją skrzynkę mailową i kliknij link aktywacyjny';
+        }
+
         if (errorString.contains('invalid') &&
             (errorString.contains('credential') ||
                 errorString.contains('password') ||
@@ -29,6 +33,10 @@ void main() {
         return 'Błąd logowania. Spróbuj ponownie';
       }
 
+      expect(
+        getErrorMessage(Exception('Email not confirmed')),
+        'Email nie został potwierdzony. Sprawdź swoją skrzynkę mailową i kliknij link aktywacyjny',
+      );
       expect(
         getErrorMessage(Exception('Invalid email or password')),
         'Nieprawidłowy email lub hasło',

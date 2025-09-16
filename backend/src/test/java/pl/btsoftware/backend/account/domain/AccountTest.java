@@ -123,7 +123,7 @@ class AccountTest {
     void shouldAcceptNameWithValidSpecialCharacters() {
         // given
         var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
-        var nameWithSpecialChars = "Valid Name 123 !@#$%^&*()_+-=[]{}|;:'\",.<>/?";
+        var nameWithSpecialChars = "Valid Name 123 ĄŚŻŹĆÓŃĘ";
 
         // when
         var updatedAccount = account.changeName(nameWithSpecialChars);

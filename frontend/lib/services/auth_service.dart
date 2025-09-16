@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,12 @@ class AuthService {
 
       return _fetchUserFromBackend();
     } catch (e) {
+      if (e is AuthApiException && e.code == 'refresh_token_not_found') {
+        developer.log(
+            'Refresh token not found. Logging out.', name: 'AuthService');
+        await signOut();
+        return null;
+      }
       return null;
     }
   }
@@ -63,7 +70,6 @@ class AuthService {
   }
 
   Future<app_user.User> signInWithEmail(String email, String password) async {
-    try {
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -76,11 +82,6 @@ class AuthService {
       final user = await _fetchUserFromBackend();
       await _saveUserLocally(user);
       return user;
-    } on AuthException {
-      throw Exception('Invalid email or password');
-    } catch (e) {
-      throw Exception('Invalid email or password');
-    }
   }
 
   Future<void> signOut() async {

@@ -24,7 +24,7 @@ class MockTransactionServiceInterface extends Mock
     required String description,
     required DateTime date,
     required String type,
-    required String category,
+    required String categoryId,
     required String currency,
   }) => super.noSuchMethod(
     Invocation.method(#createTransaction, [], {
@@ -33,7 +33,7 @@ class MockTransactionServiceInterface extends Mock
       #description: description,
       #date: date,
       #type: type,
-      #category: category,
+      #categoryId: categoryId,
       #currency: currency,
     }),
     returnValue: Future<Transaction>.value(
@@ -45,7 +45,8 @@ class MockTransactionServiceInterface extends Mock
         createdAt: date,
         updatedAt: date,
         type: type,
-        category: category,
+        categoryId: categoryId,
+        categoryName: null,
       ),
     ),
   );
@@ -55,14 +56,14 @@ class MockTransactionServiceInterface extends Mock
     required String id,
     required double amount,
     required String description,
-    required String category,
+    required String categoryId,
     required String currency,
   }) => super.noSuchMethod(
     Invocation.method(#updateTransaction, [], {
       #id: id,
       #amount: amount,
       #description: description,
-      #category: category,
+      #categoryId: categoryId,
       #currency: currency,
     }),
     returnValue: Future<Transaction>.value(
@@ -74,7 +75,8 @@ class MockTransactionServiceInterface extends Mock
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         type: 'EXPENSE',
-        category: category,
+        categoryId: categoryId,
+        categoryName: null,
       ),
     ),
   );

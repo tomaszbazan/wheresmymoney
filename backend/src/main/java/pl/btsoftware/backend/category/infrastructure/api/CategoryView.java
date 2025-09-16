@@ -11,6 +11,7 @@ public record CategoryView(
         String name,
         String type,
         Color color,
+        UUID parentId,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {
@@ -20,6 +21,7 @@ public record CategoryView(
                 category.name(),
                 category.type().name(),
                 category.color(),
+                category.parentId() != null ? category.parentId().value() : null,
                 category.createdAt(),
                 category.lastUpdatedAt()
         );

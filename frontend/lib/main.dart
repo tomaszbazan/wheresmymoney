@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -57,25 +58,52 @@ class _AuthWrapperState extends State<AuthWrapper> {
   void initState() {
     super.initState();
     _checkAuthState();
-    _authSubscription = _authService.authStateChanges.listen((AuthState state) {
-      // Add slight delay to ensure navigation operations complete
-      Future.microtask(() {
-        if (mounted) {
-          setState(() {
-            _isAuthenticated = state.session != null;
-          });
+    _authSubscription = _authService.authStateChanges.listen(
+          (AuthState state) {
+        // Add slight delay to ensure navigation operations complete
+        Future.microtask(() {
+          if (mounted) {
+            setState(() {
+              _isAuthenticated = state.session != null;
+            });
+          }
+        });
+      },
+      onError: (error) {
+        if (error is AuthApiException &&
+            error.code == 'refresh_token_not_found') {
+          developer.log(
+              'Refresh token not found. Logging out.', name: 'AuthWrapper');
+          if (mounted) {
+            setState(() {
+              _isAuthenticated = false;
+            });
+          }
         }
-      });
-    });
+      },
+    );
   }
 
   Future<void> _checkAuthState() async {
-    final user = await _authService.getCurrentUser();
-    if (mounted) {
-      setState(() {
-        _isAuthenticated = user != null;
-        _isLoading = false;
-      });
+    try {
+      final user = await _authService.getCurrentUser();
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = user != null;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (e is AuthApiException && e.code == 'refresh_token_not_found') {
+        developer.log(
+            'Refresh token not found. Logging out.', name: 'AuthWrapper');
+      }
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = false;
+          _isLoading = false;
+        });
+      }
     }
   }
 

@@ -11,7 +11,6 @@ import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
-import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
@@ -29,7 +28,6 @@ public class TransactionService {
     public Transaction createTransaction(CreateTransactionCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
         var account = accountModuleFacade.getAccount(command.accountId(), user.groupId());
-        validateDescriptionLength(command.description());
         validateCurrencyMatch(command.amount().currency(), account.balance().currency());
 
         var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value(), command.date());
@@ -38,12 +36,6 @@ public class TransactionService {
         accountModuleFacade.addTransaction(command.accountId(), transaction.id(), transaction.amount(), transaction.type(), command.userId());
 
         return transaction;
-    }
-
-    private void validateDescriptionLength(String description) {
-        if (description != null && description.length() > 200) {
-            throw new TransactionDescriptionTooLongException();
-        }
     }
 
     private void validateCurrencyMatch(Currency transactionCurrency, Currency accountCurrency) {

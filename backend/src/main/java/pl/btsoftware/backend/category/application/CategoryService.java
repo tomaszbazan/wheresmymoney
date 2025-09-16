@@ -6,6 +6,7 @@ import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.category.domain.CategoryRepository;
 import pl.btsoftware.backend.category.domain.error.CategoryAccessDeniedException;
+import pl.btsoftware.backend.category.domain.error.CategoryHierarchyTooDeepException;
 import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
@@ -23,6 +24,8 @@ public class CategoryService {
     @Transactional
     public Category createCategory(CreateCategoryCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
+
+        validateHierarchyDepth(command.parentId(), user.groupId());
 
         var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value());
         var category = command.toDomain(auditInfo);
@@ -46,6 +49,10 @@ public class CategoryService {
         var category = categoryRepository.findById(command.categoryId(), user.groupId())
                 .orElseThrow(() -> new CategoryNotFoundException(command.categoryId()));
 
+        if (command.parentId() != null && !command.parentId().equals(category.parentId())) {
+            validateHierarchyDepth(command.parentId(), user.groupId());
+        }
+
         var updatedCategory = category.updateWith(command, userId);
 
         categoryRepository.store(updatedCategory);
@@ -64,5 +71,29 @@ public class CategoryService {
 
         var deletedCategory = category.delete();
         categoryRepository.store(deletedCategory);
+    }
+
+    private void validateHierarchyDepth(CategoryId parentId, GroupId groupId) {
+        if (parentId == null) {
+            return;
+        }
+
+        var depth = calculateHierarchyDepth(parentId, groupId);
+        if (depth >= 5) {
+            throw new CategoryHierarchyTooDeepException();
+        }
+    }
+
+    private int calculateHierarchyDepth(CategoryId categoryId, GroupId groupId) {
+        if (categoryId == null) {
+            return 0;
+        }
+
+        var category = categoryRepository.findById(categoryId, groupId);
+        if (category.isEmpty()) {
+            return 0;
+        }
+
+        return 1 + calculateHierarchyDepth(category.get().parentId(), groupId);
     }
 }

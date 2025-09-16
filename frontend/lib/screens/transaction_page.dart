@@ -3,19 +3,22 @@ import 'package:flutter/material.dart';
 import '../models/account.dart';
 import '../models/http_exception.dart';
 import '../models/transaction.dart';
+import '../models/transaction_type.dart';
 import '../services/account_service.dart';
 import '../services/transaction_service.dart';
 import '../widgets/transaction_form.dart';
 import '../widgets/transaction_list.dart';
 
-class ExpensePage extends StatefulWidget {
-  const ExpensePage({super.key});
+class TransactionsPage extends StatefulWidget {
+  final TransactionType type;
+
+  const TransactionsPage({super.key, required this.type});
 
   @override
-  State<ExpensePage> createState() => _ExpensePageState();
+  State<TransactionsPage> createState() => _TransactionsPageState();
 }
 
-class _ExpensePageState extends State<ExpensePage> {
+class _TransactionsPageState extends State<TransactionsPage> {
   final TransactionService _transactionService = TransactionService();
   final AccountService _accountService = AccountService();
 
@@ -37,7 +40,15 @@ class _ExpensePageState extends State<ExpensePage> {
       final accounts = await _accountService.getAccounts();
 
       setState(() {
-        _transactions = allTransactions.where((t) => t.isExpense).toList();
+        _transactions =
+            allTransactions
+                .where(
+                  (t) =>
+                      widget.type == TransactionType.income
+                          ? t.isIncome
+                          : t.isExpense,
+                )
+                .toList();
         _accounts = accounts;
       });
     } on HttpException catch (e) {
@@ -72,7 +83,10 @@ class _ExpensePageState extends State<ExpensePage> {
               width: 500,
               child: TransactionForm(
                 accounts: _accounts,
-                type: 'EXPENSE',
+                type:
+                    widget.type == TransactionType.income
+                        ? 'INCOME'
+                        : 'EXPENSE',
                 onSaved: (transaction) {
                   Navigator.of(context).pop();
                   _loadData();
@@ -160,7 +174,9 @@ class _ExpensePageState extends State<ExpensePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wydatki'),
+        title: Text(
+          widget.type == TransactionType.income ? 'Przychody' : 'Wydatki',
+        ),
         automaticallyImplyLeading: false,
       ),
       body:

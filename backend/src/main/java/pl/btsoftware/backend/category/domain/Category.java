@@ -20,19 +20,28 @@ public record Category(
         @With(PRIVATE) String name,
         CategoryType type,
         @With(PRIVATE) Color color,
+        @With(PRIVATE) CategoryId parentId,
         AuditInfo createdInfo,
         @With(PRIVATE) AuditInfo updatedInfo,
         Tombstone tombstone
 ) {
-    public Category {
-        if (name != null && name.length() > 100) {
-            throw new CategoryNameTooLongException();
-        }
+    public Category(CategoryId id, String name, CategoryType type, Color color, CategoryId parentId, AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
+        validateNameLength(name);
+        this.id = id;
+        this.name = name.trim();
+        this.type = type;
+        this.color = color;
+        this.parentId = parentId;
+        this.createdInfo = createdInfo;
+        this.updatedInfo = updatedInfo;
+        this.tombstone = tombstone;
     }
+
     public static Category create(
             String name,
             CategoryType type,
             Color color,
+            CategoryId parentId,
             AuditInfo createdInfo
     ) {
         return new Category(
@@ -40,10 +49,20 @@ public record Category(
                 name,
                 type,
                 color,
+                parentId,
                 createdInfo,
                 createdInfo,
                 Tombstone.active()
         );
+    }
+
+    public static Category create(
+            String name,
+            CategoryType type,
+            Color color,
+            AuditInfo createdInfo
+    ) {
+        return create(name, type, color, null, createdInfo);
     }
 
     public UserId createdBy() {
@@ -66,12 +85,22 @@ public record Category(
         return updatedInfo.when();
     }
 
-    public Category delete() {
-        return new Category(id, name, type, color, createdInfo, updatedInfo, Tombstone.deleted());
+    private static void validateNameLength(String name) {
+        if (name != null && name.length() > 100) {
+            throw new CategoryNameTooLongException();
+        }
     }
 
     public boolean isDeleted() {
         return tombstone.isDeleted();
+    }
+
+    public Category delete() {
+        return new Category(id, name, type, color, parentId, createdInfo, updatedInfo, Tombstone.deleted());
+    }
+
+    private AuditInfo createUpdateInfo(UserId updatedBy) {
+        return AuditInfo.create(updatedBy, createdInfo.fromGroup());
     }
 
     public Category updateWith(UpdateCategoryCommand command, UserId updatedBy) {
@@ -82,10 +111,9 @@ public record Category(
         if (command.name() != null && !command.name().equals(this.name)) {
             category = category.withName(command.name()).withUpdatedInfo(createUpdateInfo(updatedBy));
         }
+        if (!java.util.Objects.equals(command.parentId(), this.parentId)) {
+            category = category.withParentId(command.parentId()).withUpdatedInfo(createUpdateInfo(updatedBy));
+        }
         return category;
-    }
-
-    private AuditInfo createUpdateInfo(UserId updatedBy) {
-        return AuditInfo.create(updatedBy, createdInfo.fromGroup());
     }
 }

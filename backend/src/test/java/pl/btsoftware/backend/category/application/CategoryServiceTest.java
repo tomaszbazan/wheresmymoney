@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.category.domain.Category;
+import pl.btsoftware.backend.category.domain.error.CategoryHierarchyTooDeepException;
 import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.category.infrastructure.persistance.InMemoryCategoryRepository;
 import pl.btsoftware.backend.shared.CategoryId;
@@ -142,7 +143,7 @@ class CategoryServiceTest {
         var originalCategory = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(originalCategory);
 
-        var command = new UpdateCategoryCommand(categoryId, "Updated Food", Color.of("#FF9800"));
+        var command = new UpdateCategoryCommand(categoryId, "Updated Food", Color.of("#FF9800"), null);
         var updatedCategory = categoryService.updateCategory(command, testUser.id());
 
         assertThat(updatedCategory.id()).isEqualTo(categoryId);
@@ -159,7 +160,7 @@ class CategoryServiceTest {
         var originalCategory = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(originalCategory);
 
-        var command = new UpdateCategoryCommand(categoryId, "Updated Food", Color.of("#FF9800"));
+        var command = new UpdateCategoryCommand(categoryId, "Updated Food", Color.of("#FF9800"), null);
         var updatedCategory = categoryService.updateCategory(command, testUser.id());
 
         var storedCategory = categoryRepository.findById(categoryId, testGroupId);
@@ -170,7 +171,7 @@ class CategoryServiceTest {
     @Test
     void shouldThrowCategoryNotFoundExceptionWhenUpdatingNonExistentCategory() {
         var nonExistentId = CategoryId.generate();
-        var command = new UpdateCategoryCommand(nonExistentId, "Updated Food", Color.of("#FF9800"));
+        var command = new UpdateCategoryCommand(nonExistentId, "Updated Food", Color.of("#FF9800"), null);
 
         assertThatThrownBy(() -> categoryService.updateCategory(command, testUser.id()))
                 .isInstanceOf(CategoryNotFoundException.class);
@@ -183,7 +184,7 @@ class CategoryServiceTest {
         var category = createCategoryForGroup(categoryId, "Food", CategoryType.EXPENSE, "#FF5722", differentGroupId);
         categoryRepository.store(category);
 
-        var command = new UpdateCategoryCommand(categoryId, "Updated Food", Color.of("#FF9800"));
+        var command = new UpdateCategoryCommand(categoryId, "Updated Food", Color.of("#FF9800"), null);
 
         assertThatThrownBy(() -> categoryService.updateCategory(command, testUser.id()))
                 .isInstanceOf(CategoryNotFoundException.class);
@@ -238,7 +239,7 @@ class CategoryServiceTest {
         var originalCategory = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(originalCategory);
 
-        var command = new UpdateCategoryCommand(categoryId, "Updated Food", null);
+        var command = new UpdateCategoryCommand(categoryId, "Updated Food", null, null);
         var updatedCategory = categoryService.updateCategory(command, testUser.id());
 
         assertThat(updatedCategory.name()).isEqualTo("Updated Food");
@@ -251,7 +252,7 @@ class CategoryServiceTest {
         var originalCategory = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(originalCategory);
 
-        var command = new UpdateCategoryCommand(categoryId, null, Color.of("#FF9800"));
+        var command = new UpdateCategoryCommand(categoryId, null, Color.of("#FF9800"), null);
         var updatedCategory = categoryService.updateCategory(command, testUser.id());
 
         assertThat(updatedCategory.name()).isEqualTo("Food");
@@ -264,11 +265,98 @@ class CategoryServiceTest {
         var originalCategory = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(originalCategory);
 
-        var command = new UpdateCategoryCommand(categoryId, "Food", Color.of("#FF5722"));
+        var command = new UpdateCategoryCommand(categoryId, "Food", Color.of("#FF5722"), null);
         var updatedCategory = categoryService.updateCategory(command, testUser.id());
 
         assertThat(updatedCategory.lastUpdatedAt()).isEqualTo(originalCategory.lastUpdatedAt());
         assertThat(updatedCategory.lastUpdatedBy()).isEqualTo(originalCategory.lastUpdatedBy());
+    }
+
+    @Test
+    void shouldUpdateCategoryParent() {
+        var categoryId = CategoryId.generate();
+        var parentCategoryId = CategoryId.generate();
+        var originalCategory = createCategory(categoryId, "Restaurants", CategoryType.EXPENSE, "#FF5722");
+        var parentCategory = createCategory(parentCategoryId, "Food", CategoryType.EXPENSE, "#FF9800");
+        categoryRepository.store(originalCategory);
+        categoryRepository.store(parentCategory);
+
+        var command = new UpdateCategoryCommand(categoryId, "Restaurants", Color.of("#FF5722"), parentCategoryId);
+        var updatedCategory = categoryService.updateCategory(command, testUser.id());
+
+        assertThat(updatedCategory.parentId()).isEqualTo(parentCategoryId);
+        assertThat(updatedCategory.lastUpdatedBy()).isEqualTo(testUser.id());
+        assertThat(updatedCategory.lastUpdatedAt()).isAfter(originalCategory.lastUpdatedAt());
+    }
+
+    @Test
+    void shouldCreateCategoryWithParent() {
+        var parentCategoryCommand = new CreateCategoryCommand("Food", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id());
+        var parentCategory = categoryService.createCategory(parentCategoryCommand);
+
+        var command = new CreateCategoryCommand("Restaurants", CategoryType.EXPENSE, Color.of("#FF9800"), testUser.id(), parentCategory.id());
+
+        var childCategory = categoryService.createCategory(command);
+
+        assertThat(childCategory).isNotNull();
+        assertThat(childCategory.parentId()).isEqualTo(parentCategory.id());
+        assertThat(childCategory.name()).isEqualTo("Restaurants");
+        assertThat(childCategory.type()).isEqualTo(CategoryType.EXPENSE);
+    }
+
+    @Test
+    void shouldAllowCreatingCategoriesUp5LevelsDeep() {
+        var level1 = categoryService.createCategory(new CreateCategoryCommand("Level1", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id()));
+        var level2 = categoryService.createCategory(new CreateCategoryCommand("Level2", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level1.id()));
+        var level3 = categoryService.createCategory(new CreateCategoryCommand("Level3", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level2.id()));
+        var level4 = categoryService.createCategory(new CreateCategoryCommand("Level4", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level3.id()));
+        var level5 = categoryService.createCategory(new CreateCategoryCommand("Level5", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level4.id()));
+
+        assertThat(level5.parentId()).isEqualTo(level4.id());
+    }
+
+    @Test
+    void shouldThrowCategoryHierarchyTooDeepExceptionWhenCreatingCategoryAt6thLevel() {
+        var level1 = categoryService.createCategory(new CreateCategoryCommand("Level1", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id()));
+        var level2 = categoryService.createCategory(new CreateCategoryCommand("Level2", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level1.id()));
+        var level3 = categoryService.createCategory(new CreateCategoryCommand("Level3", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level2.id()));
+        var level4 = categoryService.createCategory(new CreateCategoryCommand("Level4", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level3.id()));
+        var level5 = categoryService.createCategory(new CreateCategoryCommand("Level5", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level4.id()));
+
+        var level6Command = new CreateCategoryCommand("Level6", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level5.id());
+
+        assertThatThrownBy(() -> categoryService.createCategory(level6Command))
+                .isInstanceOf(CategoryHierarchyTooDeepException.class);
+    }
+
+    @Test
+    void shouldThrowCategoryHierarchyTooDeepExceptionWhenUpdatingCategoryToExceedMaxDepth() {
+        var level1 = categoryService.createCategory(new CreateCategoryCommand("Level1", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id()));
+        var level2 = categoryService.createCategory(new CreateCategoryCommand("Level2", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level1.id()));
+        var level3 = categoryService.createCategory(new CreateCategoryCommand("Level3", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level2.id()));
+        var level4 = categoryService.createCategory(new CreateCategoryCommand("Level4", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level3.id()));
+        var level5 = categoryService.createCategory(new CreateCategoryCommand("Level5", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level4.id()));
+
+        var separateCategory = categoryService.createCategory(new CreateCategoryCommand("Separate", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id()));
+
+        var updateCommand = new UpdateCategoryCommand(separateCategory.id(), "Separate", Color.of("#FF5722"), level5.id());
+
+        assertThatThrownBy(() -> categoryService.updateCategory(updateCommand, testUser.id()))
+                .isInstanceOf(CategoryHierarchyTooDeepException.class);
+    }
+
+    @Test
+    void shouldAllowUpdatingCategoryToValidHierarchyDepth() {
+        var level1 = categoryService.createCategory(new CreateCategoryCommand("Level1", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id()));
+        var level2 = categoryService.createCategory(new CreateCategoryCommand("Level2", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level1.id()));
+        var level3 = categoryService.createCategory(new CreateCategoryCommand("Level3", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id(), level2.id()));
+
+        var separateCategory = categoryService.createCategory(new CreateCategoryCommand("Separate", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id()));
+
+        var updateCommand = new UpdateCategoryCommand(separateCategory.id(), "Separate", Color.of("#FF5722"), level3.id());
+        var updatedCategory = categoryService.updateCategory(updateCommand, testUser.id());
+
+        assertThat(updatedCategory.parentId()).isEqualTo(level3.id());
     }
 
     private Category createCategory(CategoryId categoryId, String name, CategoryType type, String colorHex) {
@@ -282,6 +370,39 @@ class CategoryServiceTest {
                 name,
                 type,
                 Color.of(colorHex),
+                null,
+                auditInfo,
+                auditInfo,
+                Tombstone.active()
+        );
+    }
+
+    @Test
+    void shouldGetCategoriesByTypeIncludingChildCategories() {
+        var parentCategory = createCategory(CategoryId.generate(), "Food", CategoryType.EXPENSE, "#FF5722");
+        var childCategory1 = createCategoryWithParent(CategoryId.generate(), "Restaurants", CategoryType.EXPENSE, "#FF9800", parentCategory.id());
+        var childCategory2 = createCategoryWithParent(CategoryId.generate(), "Groceries", CategoryType.EXPENSE, "#4CAF50", parentCategory.id());
+        var grandChildCategory = createCategoryWithParent(CategoryId.generate(), "Fast Food", CategoryType.EXPENSE, "#2196F3", childCategory1.id());
+
+        categoryRepository.store(parentCategory);
+        categoryRepository.store(childCategory1);
+        categoryRepository.store(childCategory2);
+        categoryRepository.store(grandChildCategory);
+
+        var categories = categoryService.getCategoriesByType(CategoryType.EXPENSE, testGroupId);
+
+        assertThat(categories).hasSize(4);
+        assertThat(categories).containsExactlyInAnyOrder(parentCategory, childCategory1, childCategory2, grandChildCategory);
+    }
+
+    private Category createCategoryWithParent(CategoryId categoryId, String name, CategoryType type, String colorHex, CategoryId parentId) {
+        var auditInfo = AuditInfo.create(testUser.id(), testGroupId);
+        return new Category(
+                categoryId,
+                name,
+                type,
+                Color.of(colorHex),
+                parentId,
                 auditInfo,
                 auditInfo,
                 Tombstone.active()

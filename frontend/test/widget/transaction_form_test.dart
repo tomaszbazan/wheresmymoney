@@ -4,6 +4,7 @@ import 'package:frontend/models/account.dart';
 import 'package:frontend/widgets/transaction_form.dart';
 
 import '../mocks/mock_transaction_service.dart';
+import '../test_setup.dart';
 
 void main() {
   group('TransactionForm Amount Normalization', () {
@@ -36,7 +37,8 @@ void main() {
     late List<Account> testAccounts;
     late MockTransactionServiceInterface mockTransactionService;
 
-    setUp(() {
+    setUp(() async {
+      await TestSetup.initializeSupabase();
       mockTransactionService = MockTransactionServiceInterface();
       testAccounts = [
         Account(id: '1', name: 'PLN Account', balance: 1000.0, currency: 'PLN'),
