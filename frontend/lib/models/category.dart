@@ -4,6 +4,7 @@ class Category {
   final String description;
   final String type;
   final String color;
+  final String? parentId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -13,6 +14,7 @@ class Category {
     required this.description,
     required this.type,
     required this.color,
+    this.parentId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -24,6 +26,7 @@ class Category {
       description: json['description'] as String? ?? '',
       type: json['type'] as String,
       color: json['color'] as String,
+      parentId: json['parentId'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
@@ -36,6 +39,7 @@ class Category {
       'description': description,
       'type': type,
       'color': color,
+      'parentId': parentId,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -44,4 +48,8 @@ class Category {
   bool get isIncome => type == 'INCOME';
 
   bool get isExpense => type == 'EXPENSE';
+
+  bool get hasParent => parentId != null;
+
+  bool get isTopLevel => parentId == null;
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../models/transaction_type.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/logout_dialog.dart';
 import '../widgets/side_menu.dart';
 import 'accounts_page.dart';
-import 'expense_page.dart';
-import 'income_page.dart';
+import 'categories_page.dart';
 import 'statistics_page.dart';
+import 'transaction_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -21,9 +24,11 @@ class _MainScreenState extends State<MainScreen>
 
   final List<Widget> _pages = <Widget>[
     const StatisticsPage(),
-    const IncomePage(),
-    const ExpensePage(),
     const AccountsPage(),
+    const TransactionsPage(type: TransactionType.expense),
+    const TransactionsPage(type: TransactionType.income),
+    const CategoriesPage(transactionType: TransactionType.expense),
+    const CategoriesPage(transactionType: TransactionType.income),
   ];
 
   @override
@@ -51,8 +56,40 @@ class _MainScreenState extends State<MainScreen>
     });
   }
 
+  bool _isMobile(BuildContext context) {
+    return MediaQuery
+        .of(context)
+        .size
+        .width < 800;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMobile = _isMobile(context);
+
+    if (isMobile) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Where\'s My Money'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.red),
+              onPressed: () => _showLogoutDialog(context),
+            ),
+          ],
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          physics: const NeverScrollableScrollPhysics(),
+          children: _pages,
+        ),
+        bottomNavigationBar: BottomNavigation(
+          selectedIndex: _selectedIndex,
+          onItemTapped: _onItemTapped,
+        ),
+      );
+    }
+
     return Scaffold(
       body: Row(
         children: [
@@ -66,12 +103,18 @@ class _MainScreenState extends State<MainScreen>
             child: TabBarView(
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
-              // Blokujemy przesuwanie palcem
               children: _pages,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const LogoutDialog(),
     );
   }
 }

@@ -39,6 +39,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static pl.btsoftware.backend.shared.Currency.EUR;
@@ -74,7 +75,7 @@ public class AccountControllerTest {
                         .contentType(APPLICATION_JSON)
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.accounts", hasSize(2)))
                 .andExpect(jsonPath("$.accounts[0].id").value(accountId1.value().toString()))
                 .andExpect(jsonPath("$.accounts[0].name").value("Checking Account"))
@@ -105,7 +106,7 @@ public class AccountControllerTest {
                         .contentType(APPLICATION_JSON)
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.accounts", hasSize(0)));
     }
 
@@ -140,7 +141,7 @@ public class AccountControllerTest {
                         .content(json)
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(accountId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Updated Account"))
                 .andExpect(jsonPath("$.balance").value(0))
@@ -168,7 +169,7 @@ public class AccountControllerTest {
                         .content(createAccountRequest)
                         .with(createTokenFor("test-user")))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(accountId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Test Account"))
                 .andExpect(jsonPath("$.balance").value(0))
@@ -236,7 +237,7 @@ public class AccountControllerTest {
                         .contentType(APPLICATION_JSON)
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(accountId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Test Account"))
                 .andExpect(jsonPath("$.balance").value(0))

@@ -152,7 +152,7 @@ public class AccountServiceTest {
         @Test
         void shouldCreateAccountWithValidSpecialCharacters() {
             // given
-            var validName = "Valid Name-123 O'Connor's";
+            var validName = "Valid Name-123 ŁĄŚĆÓŻŹ";
             var command = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), validName).create();
             var user = userExists(command);
 

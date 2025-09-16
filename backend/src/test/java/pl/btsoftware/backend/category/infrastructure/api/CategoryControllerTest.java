@@ -34,6 +34,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static pl.btsoftware.backend.shared.CategoryType.EXPENSE;
@@ -76,7 +77,7 @@ public class CategoryControllerTest {
                         .content(createCategoryRequest)
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(categoryId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Food"))
                 .andExpect(jsonPath("$.type").value("EXPENSE"))
@@ -100,7 +101,7 @@ public class CategoryControllerTest {
                         .contentType(APPLICATION_JSON)
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(categoryId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Salary"))
                 .andExpect(jsonPath("$.type").value("INCOME"))
@@ -145,7 +146,7 @@ public class CategoryControllerTest {
                         .contentType(APPLICATION_JSON)
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.categories", hasSize(2)))
                 .andExpect(jsonPath("$.categories[0].id").value(categoryId1.value().toString()))
                 .andExpect(jsonPath("$.categories[0].type").value(type.name()))
@@ -165,7 +166,7 @@ public class CategoryControllerTest {
                         .contentType(APPLICATION_JSON)
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.categories", hasSize(0)));
     }
 
@@ -179,7 +180,7 @@ public class CategoryControllerTest {
         when(categoryModuleFacade.updateCategory(any(UpdateCategoryCommand.class), eq(userId)))
                 .thenReturn(updatedCategory);
 
-        var updateRequest = new UpdateCategoryRequest("Updated Food", Color.of("#FF9800"));
+        var updateRequest = new UpdateCategoryRequest("Updated Food", Color.of("#FF9800"), null);
 
         // when & then
         mockMvc.perform(put("/api/categories/" + categoryId.value())
@@ -187,7 +188,7 @@ public class CategoryControllerTest {
                         .content(objectMapper.writeValueAsString(updateRequest))
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(categoryId.value().toString()))
                 .andExpect(jsonPath("$.name").value("Updated Food"))
                 .andExpect(jsonPath("$.color").value("#FF9800"));
@@ -202,7 +203,7 @@ public class CategoryControllerTest {
         when(categoryModuleFacade.updateCategory(any(UpdateCategoryCommand.class), eq(userId)))
                 .thenThrow(new CategoryNotFoundException(nonExistentId));
 
-        var updateRequest = new UpdateCategoryRequest("Updated Name", Color.of("#FF5722"));
+        var updateRequest = new UpdateCategoryRequest("Updated Name", Color.of("#FF5722"), null);
 
         // when & then
         mockMvc.perform(put("/api/categories/" + nonExistentId.value())
@@ -250,6 +251,7 @@ public class CategoryControllerTest {
                 name,
                 type,
                 Color.of(color),
+                null,
                 Instancio.create(AuditInfo.class),
                 Instancio.create(AuditInfo.class),
                 Tombstone.active()

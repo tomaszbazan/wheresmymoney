@@ -6,6 +6,7 @@ import pl.btsoftware.backend.shared.Color;
 public record UpdateCategoryCommand(
         CategoryId categoryId,
         String name,
-        Color color
+        Color color,
+        CategoryId parentId
 ) {
 }

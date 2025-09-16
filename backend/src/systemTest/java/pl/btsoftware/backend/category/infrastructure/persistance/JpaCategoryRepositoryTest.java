@@ -37,6 +37,7 @@ class JpaCategoryRepositoryTest {
                 "Test Category",
                 type,
                 Color.of("#FF0000"),
+                null,
                 auditInfo,
                 auditInfo,
                 tombstone
@@ -90,7 +91,8 @@ class JpaCategoryRepositoryTest {
             var updateCommand = new UpdateCategoryCommand(
                     category.id(),
                     "Updated Name",
-                    category.color()
+                    category.color(),
+                    null
             );
 
             var updatedCategory = category.updateWith(updateCommand, category.createdBy());

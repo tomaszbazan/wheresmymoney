@@ -18,8 +18,15 @@ import static pl.btsoftware.backend.shared.Money.zero;
 
 public record Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds,
                       AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
-    public Account {
+    public Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds, AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
         validateAccountName(name);
+        this.id = id;
+        this.name = name.trim();
+        this.balance = balance;
+        this.transactionIds = transactionIds;
+        this.createdInfo = createdInfo;
+        this.updatedInfo = updatedInfo;
+        this.tombstone = tombstone;
     }
 
     public Account(AccountId id, String name, @Nullable Currency currency, UserView createdBy) {
@@ -38,7 +45,7 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
         if (newName.length() > 100) {
             throw new AccountNameTooLongException();
         }
-        if (!newName.matches("^[a-zA-Z0-9 !@#$%^&*()_+\\-=\\[\\]{}|;:'\",.<>/?]+$")) {
+        if (!newName.matches("^[^<>&\"'\\;\\\\/\\|\\$\\`\\n\\r\\t\\x00-\\x1F]+$")) {
             throw new AccountNameInvalidCharactersException();
         }
     }

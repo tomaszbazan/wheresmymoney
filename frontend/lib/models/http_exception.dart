@@ -11,6 +11,10 @@ class HttpException implements Exception {
   bool get isNetworkError => statusCode == 0;
 
   String get userFriendlyMessage {
+    if (message.isNotEmpty && message != 'Connection refused') {
+      return message;
+    }
+
     if (isNetworkError) {
       return 'Błąd połączenia z serwerem';
     }

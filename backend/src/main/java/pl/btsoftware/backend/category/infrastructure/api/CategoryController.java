@@ -31,7 +31,7 @@ public class CategoryController {
     public CategoryView getCategory(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received request to get category with id: {} by user: {}", id, userId);
-        var category = categoryModuleFacade.getCategoryById(new CategoryId(id), userId);
+        var category = categoryModuleFacade.getCategoryById(CategoryId.of(id), userId);
         return CategoryView.from(category);
     }
 

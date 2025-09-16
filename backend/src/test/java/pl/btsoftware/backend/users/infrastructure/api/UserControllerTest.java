@@ -22,6 +22,7 @@ import pl.btsoftware.backend.users.domain.error.UserNotFoundException;
 import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -57,7 +58,7 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(user.id().value()))
                 .andExpect(jsonPath("$.email").value(user.email()))
                 .andExpect(jsonPath("$.displayName").value(user.displayName()))
@@ -85,7 +86,7 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request))
                 .param("invitationToken", "valid-token-123"))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(mockUser.id().value()))
                 .andExpect(jsonPath("$.email").value(mockUser.email()))
                 .andExpect(jsonPath("$.displayName").value(mockUser.displayName()))
@@ -104,7 +105,7 @@ class UserControllerTest {
         mockMvc.perform(get("/api/users/profile")
                         .with(jwt().jwt(jwt -> jwt.subject(user.id().value()))))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(user.id().value()))
                 .andExpect(jsonPath("$.email").value(user.email()))
                 .andExpect(jsonPath("$.displayName").value(user.displayName()))

@@ -8,13 +8,15 @@ import java.util.UUID;
 
 public record UpdateCategoryRequest(
         String name,
-        Color color
+        Color color,
+        UUID parentId
 ) {
     public UpdateCategoryCommand toCommand(UUID categoryId) {
         return new UpdateCategoryCommand(
                 CategoryId.of(categoryId),
                 name,
-                color
+                color,
+                parentId != null ? CategoryId.of(parentId) : null
         );
     }
 }

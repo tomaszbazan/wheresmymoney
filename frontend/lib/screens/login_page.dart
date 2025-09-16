@@ -36,8 +36,6 @@ class _LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-
-      // Navigation is handled automatically by AuthWrapper via authStateChanges
     } catch (error) {
       if (mounted) {
         String errorMessage = _getErrorMessage(error);
@@ -57,18 +55,15 @@ class _LoginPageState extends State<LoginPage> {
   String _getErrorMessage(dynamic error) {
     String errorString = error.toString().toLowerCase();
 
-    if (errorString.contains('invalid') &&
-        (errorString.contains('credential') ||
-            errorString.contains('password') ||
-            errorString.contains('email'))) {
+    if (errorString.contains('email_not_confirmed')) {
+      return 'Email nie został potwierdzony. Sprawdź swoją skrzynkę mailową i kliknij link aktywacyjny';
+    }
+
+    if (errorString.contains('invalid_credentials')) {
       return 'Nieprawidłowy email lub hasło';
     }
 
-    if (errorString.contains('invalid email or password')) {
-      return 'Nieprawidłowy email lub hasło';
-    }
-
-    if (errorString.contains('too many requests')) {
+    if (errorString.contains('too_many_requests')) {
       return 'Zbyt wiele prób logowania. Spróbuj ponownie za chwilę';
     }
 

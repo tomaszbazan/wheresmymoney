@@ -34,6 +34,7 @@ import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static pl.btsoftware.backend.shared.Currency.PLN;
@@ -82,7 +83,7 @@ public class TransactionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(transactionId.toString()))
                 .andExpect(jsonPath("$.accountId").value(accountId.toString()))
                 .andExpect(jsonPath("$.amount").value(100.50))
@@ -125,7 +126,7 @@ public class TransactionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.transactions", hasSize(2)))
                 .andExpect(jsonPath("$.transactions[0].description").value("Transaction 1"))
                 .andExpect(jsonPath("$.transactions[1].description").value("Transaction 2"));
@@ -142,7 +143,7 @@ public class TransactionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.transactions", hasSize(0)));
     }
 
@@ -161,7 +162,7 @@ public class TransactionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.transactions", hasSize(2)))
                 .andExpect(jsonPath("$.transactions[0].accountId").value(accountId.toString()))
                 .andExpect(jsonPath("$.transactions[1].accountId").value(accountId.toString()));
@@ -186,7 +187,7 @@ public class TransactionControllerTest {
                         .content(json)
                         .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(transactionId.toString()))
                 .andExpect(jsonPath("$.amount").value(150.00))
                 .andExpect(jsonPath("$.description").value("Updated transaction"));
@@ -234,7 +235,7 @@ public class TransactionControllerTest {
                         .content(objectMapper.writeValueAsString(createRequest))
                         .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(transactionId.toString()))
                 .andExpect(jsonPath("$.accountId").value(accountId.toString()))
                 .andExpect(jsonPath("$.amount").value(100.50))
