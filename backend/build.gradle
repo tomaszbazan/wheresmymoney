@@ -2,6 +2,10 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.5'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'checkstyle'
+    id 'com.github.spotbugs' version '6.0.7'
+    id 'jacoco'
+    id 'org.sonarqube' version '4.4.1.3373'
 }
 
 group = 'pl.btsoftware'
@@ -11,6 +15,20 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+checkstyle {
+    toolVersion = '10.12.4'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
+spotbugs {
+    toolVersion = '4.8.2'
+    excludeFilter = file('config/spotbugs/exclude.xml')
+}
+
+jacoco {
+    toolVersion = "0.8.8"
 }
 
 configurations {
@@ -53,6 +71,21 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+test {
+    finalizedBy jacocoTestReport
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 apply from: 'src/systemTest/build.gradle'
