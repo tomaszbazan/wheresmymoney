@@ -1,0 +1,21 @@
+pre-commit:
+  parallel: true
+  commands:
+    backend-checkstyle:
+      glob: "backend/**/*.java"
+      run: cd backend && ./gradlew checkstyleMain checkstyleTest
+    backend-spotbugs:
+      glob: "backend/**/*.java"  
+      run: cd backend && ./gradlew spotbugsMain
+    backend-tests:
+      glob: "backend/**/*.java"
+      run: cd backend && ./gradlew test
+    frontend-analyze:
+      glob: "frontend/**/*.dart"
+      run: cd frontend && flutter analyze
+    frontend-format:
+      glob: "frontend/**/*.dart"
+      run: cd frontend && dart format --set-exit-if-changed .
+    frontend-tests:
+      glob: "frontend/**/*.dart"
+      run: cd frontend && flutter test
