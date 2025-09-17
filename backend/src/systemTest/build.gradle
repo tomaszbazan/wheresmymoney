@@ -13,13 +13,12 @@ configurations {
 dependencies {
     systemTestAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     systemTestCompileOnly "org.projectlombok:lombok:$lombokVersion"
-
     annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     systemTestImplementation 'org.springframework.boot:spring-boot-starter-test'
     systemTestImplementation "org.testcontainers:localstack:$localstackVersion"
     systemTestImplementation "org.testcontainers:junit-jupiter:$localstackVersion"
-    systemTestImplementation 'org.reflections:reflections:0.9.11'
+    systemTestImplementation "org.reflections:reflections:$reflectionsVersion"
 
     systemTestImplementation 'org.testcontainers:junit-jupiter'
     systemTestImplementation 'org.testcontainers:postgresql'
