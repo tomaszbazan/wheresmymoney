@@ -105,6 +105,9 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v5
         with:
