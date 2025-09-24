@@ -197,7 +197,8 @@ public class TransactionControllerTest {
         // given
         var nonExistentId = randomUUID();
 
-        when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class), any(UserId.class))).thenThrow(new IllegalArgumentException("Transaction not found"));
+        when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class), any(UserId.class)))
+                .thenThrow(new IllegalArgumentException("Transaction not found"));
 
         var updateRequest = new UpdateTransactionRequest(Money.of(new BigDecimal("100.00"), PLN), "Test", randomUUID());
 

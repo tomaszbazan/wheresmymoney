@@ -11,14 +11,14 @@ public record GroupInvitationView(String id, String groupId, String inviteeEmail
 
     public static GroupInvitationView from(GroupInvitation invitation) {
         return new GroupInvitationView(
-                invitation.getId().toString(),
-                invitation.getGroupId().toString(),
-                invitation.getInviteeEmail(),
-                invitation.getInvitationToken(),
-                invitation.getInvitedBy().toString(),
-                invitation.getStatus(),
-                invitation.getCreatedAt(),
-                invitation.getExpiresAt(),
+                invitation.id().toString(),
+                invitation.groupId().toString(),
+                invitation.inviteeEmail(),
+                invitation.invitationToken(),
+                invitation.invitedBy().toString(),
+                invitation.status(),
+                invitation.createdAt(),
+                invitation.expiresAt(),
                 invitation.isExpired(),
                 invitation.isPending()
         );

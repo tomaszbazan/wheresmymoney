@@ -6,7 +6,7 @@ pre-commit:
       run: cd backend && ./gradlew checkstyleMain checkstyleTest
     backend-spotbugs:
       glob: "backend/**/*.java"  
-      run: cd backend && ./gradlew spotbugsMain
+      run: cd backend && ./gradlew spotbugsMain spotbugsTest
     backend-tests:
       glob: "backend/**/*.java"
       run: cd backend && ./gradlew test

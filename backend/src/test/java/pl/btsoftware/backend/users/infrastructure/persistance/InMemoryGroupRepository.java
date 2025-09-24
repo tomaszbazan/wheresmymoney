@@ -47,10 +47,6 @@ public class InMemoryGroupRepository implements GroupRepository {
                 .findFirst();
     }
 
-    public void clear() {
-        groups.clear();
-    }
-
     public int size() {
         return groups.size();
     }

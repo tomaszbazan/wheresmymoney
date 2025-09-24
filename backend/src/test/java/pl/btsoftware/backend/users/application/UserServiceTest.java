@@ -83,14 +83,14 @@ class UserServiceTest {
         invitationRepository.save(invitation);
 
         RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "Ignored Group", invitation.getInvitationToken()
+                "ext-auth-123", "test@example.com", "John Doe", "Ignored Group", invitation.invitationToken()
         );
 
         User user = userService.registerUser(command);
 
         assertThat(user.groupId()).isEqualTo(existingGroup.id());
         assertThat(groupRepository.findById(existingGroup.id()).get().hasMember(user.id())).isTrue();
-        assertThat(invitationRepository.findByToken(invitation.getInvitationToken()).get().getStatus()).isEqualTo(InvitationStatus.ACCEPTED);
+        assertThat(invitationRepository.findByToken(invitation.invitationToken()).get().status()).isEqualTo(InvitationStatus.ACCEPTED);
         assertThat(groupRepository.size()).isEqualTo(1);
         assertThat(userRepository.size()).isEqualTo(1);
     }
@@ -151,7 +151,7 @@ class UserServiceTest {
         invitationRepository.save(invitation);
 
         RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "Shared Group", invitation.getInvitationToken()
+                "ext-auth-123", "test@example.com", "John Doe", "Shared Group", invitation.invitationToken()
         );
 
         User user = userService.registerUser(command);

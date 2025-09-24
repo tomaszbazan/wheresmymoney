@@ -340,7 +340,7 @@ public class AccountServiceTest {
             var requestingUserId = UserId.generate();
             userExistsInGroup(accountOwnerUserId, groupId);
             userExistsInGroup(requestingUserId, groupId);
-            
+
             var account = accountService.createAccount(new CreateAccountCommand("Shared Account", PLN, accountOwnerUserId));
 
             // when
@@ -358,11 +358,11 @@ public class AccountServiceTest {
             var accountOwnerUserId = UserId.generate();
             var accountOwnerGroupId = GroupId.generate();
             userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
-            
+
             var requestingUserId = UserId.generate();
             var requestingUserGroupId = GroupId.generate();
             userExistsInGroup(requestingUserId, requestingUserGroupId);
-            
+
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
 
             // when & then
@@ -421,7 +421,7 @@ public class AccountServiceTest {
             var accountOwnerGroupId = GroupId.generate();
             var differentGroupId = GroupId.generate();
             userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
-            
+
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
 
             // when & then
@@ -665,11 +665,11 @@ public class AccountServiceTest {
             var accountOwnerUserId = UserId.generate();
             var accountOwnerGroupId = GroupId.generate();
             userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
-            
+
             var requestingUserId = UserId.generate();
             var requestingUserGroupId = GroupId.generate();
             userExistsInGroup(requestingUserId, requestingUserGroupId);
-            
+
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
@@ -683,7 +683,7 @@ public class AccountServiceTest {
             var accountOwnerUserId = UserId.generate();
             var accountOwnerGroupId = GroupId.generate();
             userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
-            
+
             var attemptingGroupId = GroupId.generate();
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 

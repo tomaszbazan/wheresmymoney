@@ -1,6 +1,9 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
-import pl.btsoftware.backend.users.domain.*;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.GroupInvitation;
+import pl.btsoftware.backend.users.domain.GroupInvitationId;
+import pl.btsoftware.backend.users.domain.GroupInvitationRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +16,7 @@ public class InMemoryGroupInvitationRepository implements GroupInvitationReposit
 
     @Override
     public GroupInvitation save(GroupInvitation invitation) {
-        invitations.put(invitation.getId(), invitation);
+        invitations.put(invitation.id(), invitation);
         return invitation;
     }
 
@@ -25,24 +28,24 @@ public class InMemoryGroupInvitationRepository implements GroupInvitationReposit
     @Override
     public Optional<GroupInvitation> findByToken(String token) {
         return invitations.values().stream()
-            .filter(invitation -> invitation.getInvitationToken().equals(token))
-            .findFirst();
+                .filter(invitation -> invitation.invitationToken().equals(token))
+                .findFirst();
     }
 
     @Override
     public List<GroupInvitation> findPendingByGroupId(GroupId groupId) {
         return invitations.values().stream()
-            .filter(invitation -> invitation.getGroupId().equals(groupId))
-            .filter(GroupInvitation::isPending)
-            .collect(Collectors.toList());
+                .filter(invitation -> invitation.groupId().equals(groupId))
+                .filter(GroupInvitation::isPending)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<GroupInvitation> findPendingByEmail(String email) {
         return invitations.values().stream()
-            .filter(invitation -> invitation.getInviteeEmail().equals(email))
-            .filter(GroupInvitation::isPending)
-            .collect(Collectors.toList());
+                .filter(invitation -> invitation.inviteeEmail().equals(email))
+                .filter(GroupInvitation::isPending)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -53,15 +56,11 @@ public class InMemoryGroupInvitationRepository implements GroupInvitationReposit
     @Override
     public void deleteExpired() {
         List<GroupInvitationId> expiredIds = invitations.values().stream()
-            .filter(GroupInvitation::isExpired)
-            .map(GroupInvitation::getId)
-            .collect(Collectors.toList());
-        
-        expiredIds.forEach(invitations::remove);
-    }
+                .filter(GroupInvitation::isExpired)
+                .map(GroupInvitation::id)
+                .toList();
 
-    public void clear() {
-        invitations.clear();
+        expiredIds.forEach(invitations::remove);
     }
 
     public int size() {

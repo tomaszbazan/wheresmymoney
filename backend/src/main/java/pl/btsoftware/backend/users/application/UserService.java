@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-@SuppressWarnings("EI_EXPOSE_REP2")
 public class UserService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
@@ -83,9 +82,9 @@ public class UserService {
         var invitation = invitationRepository.findByToken(command.invitationToken())
             .orElseThrow(InvitationNotFoundException::new);
         
-        invitation.accept();
-        invitationRepository.save(invitation);
+        var acceptedInvitation = invitation.accept();
+        invitationRepository.save(acceptedInvitation);
         
-        return invitation.getGroupId();
+        return acceptedInvitation.groupId();
     }
 }

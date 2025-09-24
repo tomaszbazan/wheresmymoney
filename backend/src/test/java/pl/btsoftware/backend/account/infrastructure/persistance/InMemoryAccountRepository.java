@@ -35,9 +35,9 @@ public class InMemoryAccountRepository implements AccountRepository {
     @Override
     public Optional<Account> findByNameAndCurrency(String name, Currency currency, GroupId groupId) {
         return database.values().stream()
-                .filter(account -> account.name().equals(name) &&
-                                   account.balance().currency().equals(currency) &&
-                                   account.ownedBy().equals(groupId))
+                .filter(account -> account.name().equals(name)
+                                   && account.balance().currency().equals(currency)
+                                   && account.ownedBy().equals(groupId))
                 .findFirst();
     }
 

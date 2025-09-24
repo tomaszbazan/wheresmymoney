@@ -94,9 +94,11 @@ class GroupTest {
 
     @Test
     void shouldThrowExceptionWhenRemovingLastMember() {
-        UserId creator = UserId.generate();
-        Group group = Group.create("Test Group", "Description", creator);
+        // given
+        var creator = UserId.generate();
+        var group = Group.create("Test Group", "Description", creator);
 
+        // when & then
         assertThatThrownBy(() -> group.removeMember(creator))
                 .isInstanceOf(IllegalStateException.class);
     }

@@ -46,14 +46,14 @@ public class GroupInvitationEntity {
 
     public static GroupInvitationEntity from(GroupInvitation invitation) {
         return new GroupInvitationEntity(
-            invitation.getId().value(),
-                invitation.getGroupId().value(),
-            invitation.getInviteeEmail(),
-            invitation.getInvitationToken(),
-                invitation.getInvitedBy().value(),
-            invitation.getStatus(),
-            invitation.getCreatedAt(),
-            invitation.getExpiresAt()
+            invitation.id().value(),
+                invitation.groupId().value(),
+            invitation.inviteeEmail(),
+            invitation.invitationToken(),
+                invitation.invitedBy().value(),
+            invitation.status(),
+            invitation.createdAt(),
+            invitation.expiresAt()
         );
     }
 

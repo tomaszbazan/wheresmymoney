@@ -37,9 +37,9 @@ public class InMemoryCategoryRepository implements CategoryRepository {
     @Override
     public List<Category> findByType(CategoryType type, GroupId groupId) {
         return database.values().stream()
-                .filter(category -> category.type().equals(type) &&
-                                    category.ownedBy().equals(groupId) &&
-                                    !category.isDeleted())
+                .filter(category -> category.type().equals(type)
+                                    && category.ownedBy().equals(groupId)
+                                    && !category.isDeleted())
                 .toList();
     }
 }

@@ -63,10 +63,10 @@ public class UserGroupTest {
         var invitation = usersModuleFacade.inviteToGroup(registeredUser.id(), inviteCommand);
 
         assertThat(invitation).isNotNull();
-        assertThat(invitation.getInviteeEmail()).isEqualTo("user2@example.com");
-        assertThat(invitation.getGroupId()).isEqualTo(groupId);
-        assertThat(invitation.getInvitedBy()).isEqualTo(registeredUser.id());
-        assertThat(invitation.getInvitationToken()).isNotNull();
+        assertThat(invitation.inviteeEmail()).isEqualTo("user2@example.com");
+        assertThat(invitation.groupId()).isEqualTo(groupId);
+        assertThat(invitation.invitedBy()).isEqualTo(registeredUser.id());
+        assertThat(invitation.invitationToken()).isNotNull();
         assertThat(invitation.isPending()).isTrue();
         assertThat(invitation.isExpired()).isFalse();
 
@@ -77,7 +77,7 @@ public class UserGroupTest {
                 "user2@example.com",
                 "Jane Smith",
                 "Jane's Group",
-                invitation.getInvitationToken()
+                invitation.invitationToken()
         );
 
         var secondUser = usersModuleFacade.registerUser(registerCommand2);
@@ -98,12 +98,12 @@ public class UserGroupTest {
         assertThat(finalGroup.memberIds()).contains(registeredUser.id(), secondUser.id());
 
         // Weryfikacja że zaproszenie zostało zaakceptowane
-        var finalInvitation = usersModuleFacade.findInvitationByToken(invitation.getInvitationToken())
+        var finalInvitation = usersModuleFacade.findInvitationByToken(invitation.invitationToken())
                 .orElseThrow(() -> new AssertionError("Invitation should exist"));
 
         assertThat(finalInvitation).isNotNull();
         assertThat(finalInvitation.isPending()).isFalse();
-        assertThat(finalInvitation.getStatus().name()).isEqualTo("ACCEPTED");
+        assertThat(finalInvitation.status().name()).isEqualTo("ACCEPTED");
     }
 
 }
