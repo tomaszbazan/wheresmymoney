@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- Wyklucz pliki generowane automatycznie -->
+    <suppress files=".*[\\/]generated[\\/].*\.java" checks=".*"/>
+    <suppress files=".*[\\/]target[\\/].*\.java" checks=".*"/>
+    <suppress files=".*[\\/]build[\\/].*\.java" checks=".*"/>
+
+    <!-- Wyklucz pliki generowane przez Lombok -->
+    <suppress files=".*Builder\.java" checks=".*"/>
+
+    <!-- Wyklucz pliki generowane przez MapStruct -->
+    <suppress files=".*MapperImpl\.java" checks=".*"/>
+
+    <!-- Spring Boot Application class - main method nie potrzebuje JavaDoc -->
+    <suppress files=".*Application\.java" checks="JavadocMethod" id="main"/>
+
+    <!-- Testy jednostkowe - mniej rygorystyczne zasady -->
+    <suppress files=".*Test\.java" checks="MagicNumber"/>
+    <suppress files=".*Test\.java" checks="JavadocMethod"/>
+    <suppress files=".*Test\.java" checks="JavadocVariable"/>
+    <suppress files=".*Test\.java" checks="JavadocType"/>
+    <suppress files=".*Test\.java" checks="DesignForExtension"/>
+    <suppress files=".*Test\.java" checks="HideUtilityClassConstructor"/>
+    <suppress files=".*Test\.java" checks="FinalParameters"/>
+
+    <!-- Testy integracyjne -->
+    <suppress files=".*IT\.java" checks="MagicNumber"/>
+    <suppress files=".*IT\.java" checks="JavadocMethod"/>
+    <suppress files=".*IT\.java" checks="JavadocVariable"/>
+    <suppress files=".*IT\.java" checks="JavadocType"/>
+
+    <!-- Configuration classes -->
+    <suppress files=".*Config\.java" checks="DesignForExtension"/>
+    <suppress files=".*Configuration\.java" checks="DesignForExtension"/>
+
+    <!-- Entity classes - JPA requirements -->
+    <suppress files=".*Entity\.java" checks="DesignForExtension"/>
+    <suppress files=".*Entity\.java" checks="FinalParameters"/>
+    <suppress files=".*Entity\.java" checks="HiddenField"/>
+
+    <!-- DTO classes -->
+    <suppress files=".*DTO\.java" checks="DesignForExtension"/>
+    <suppress files=".*DTO\.java" checks="FinalParameters"/>
+    <suppress files=".*DTO\.java" checks="HiddenField"/>
+    <suppress files=".*Dto\.java" checks="DesignForExtension"/>
+    <suppress files=".*Dto\.java" checks="FinalParameters"/>
+    <suppress files=".*Dto\.java" checks="HiddenField"/>
+
+    <!-- Request/Response classes -->
+    <suppress files=".*Request\.java" checks="DesignForExtension"/>
+    <suppress files=".*Request\.java" checks="FinalParameters"/>
+    <suppress files=".*Response\.java" checks="DesignForExtension"/>
+    <suppress files=".*Response\.java" checks="FinalParameters"/>
+
+    <!-- Controller classes -->
+    <suppress files=".*Controller\.java" checks="DesignForExtension"/>
+
+    <!-- Exception classes -->
+    <suppress files=".*Exception\.java" checks="DesignForExtension"/>
+
+    <!-- Constants classes -->
+    <suppress files=".*Constants\.java" checks="HideUtilityClassConstructor"/>
+    <suppress files=".*Constants\.java" checks="FinalParameters"/>
+
+    <!-- Utility classes -->
+    <suppress files=".*Utils\.java" checks="HideUtilityClassConstructor"/>
+    <suppress files=".*Util\.java" checks="HideUtilityClassConstructor"/>
+
+    <!-- Repository interfaces - Spring Data JPA -->
+    <suppress files=".*Repository\.java" checks="InterfaceIsType"/>
+
+    <!-- Service interfaces -->
+    <suppress files=".*Service\.java" checks="InterfaceIsType"/>
+
+    <!-- Enum classes -->
+    <suppress files=".*enum.*\.java" checks="FinalParameters"/>
+
+    <!-- Record classes (Java 14+) -->
+    <suppress files=".*Record\.java" checks="FinalParameters"/>
+    <suppress files=".*Record\.java" checks="DesignForExtension"/>
+    <suppress files=".*Record\.java" checks="HiddenField"/>
+
+    <!-- Application properties nie są Java files -->
+    <suppress files=".*\.properties" checks=".*"/>
+    <suppress files=".*\.yml" checks=".*"/>
+    <suppress files=".*\.yaml" checks=".*"/>
+
+    <!-- Pliki konfiguracyjne -->
+    <suppress files=".*\.xml" checks=".*"/>
+    <suppress files=".*\.json" checks=".*"/>
+
+    <!-- Specyficzne wykluczenia dla metod -->
+
+    <!-- Spring Boot @EventListener methods nie potrzebują być publiczne -->
+    <suppress checks="DesignForExtension" message=".*@EventListener.*"/>
+
+    <!-- @Scheduled methods -->
+    <suppress checks="DesignForExtension" message=".*@Scheduled.*"/>
+
+    <!-- @PostConstruct i @PreDestroy methods -->
+    <suppress checks="DesignForExtension" message=".*@PostConstruct.*"/>
+    <suppress checks="DesignForExtension" message=".*@PreDestroy.*"/>
+
+    <!-- Validation methods w Entity classes -->
+    <suppress files=".*Entity\.java" checks="DesignForExtension" message=".*@PrePersist.*"/>
+    <suppress files=".*Entity\.java" checks="DesignForExtension" message=".*@PreUpdate.*"/>
+    <suppress files=".*Entity\.java" checks="DesignForExtension" message=".*@PostLoad.*"/>
+
+    <!-- Security Configuration -->
+    <suppress files=".*SecurityConfig\.java" checks="LineLength"/>
+
+    <!-- WebMvcConfigurer implementations -->
+    <suppress files=".*WebConfig\.java" checks="DesignForExtension"/>
+
+    <!-- Jackson related -->
+    <suppress checks="HiddenField" message=".*@JsonProperty.*"/>
+    <suppress checks="FinalParameters" message=".*@JsonCreator.*"/>
+
+    <!-- Swagger/OpenAPI -->
+    <suppress files=".*ApiResponse\.java" checks=".*"/>
+    <suppress files=".*OpenApi.*\.java" checks=".*"/>
+
+    <!-- Hibernate Validator annotations -->
+    <suppress checks="MagicNumber" message=".*@Size.*"/>
+    <suppress checks="MagicNumber" message=".*@Min.*"/>
+    <suppress checks="MagicNumber" message=".*@Max.*"/>
+
+    <!-- Spring Boot actuator -->
+    <suppress files=".*Actuator.*\.java" checks=".*"/>
+    <suppress files=".*Health.*\.java" checks=".*"/>
+
+    <!-- Flyway/Liquibase migrations -->
+    <suppress files=".*[\\/]db[\\/]migration[\\/].*\.java" checks=".*"/>
+
+    <!-- GraphQL resolvers -->
+    <suppress files=".*Resolver\.java" checks="DesignForExtension"/>
+    <suppress files=".*DataFetcher\.java" checks="DesignForExtension"/>
+</suppressions>

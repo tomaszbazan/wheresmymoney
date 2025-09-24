@@ -23,8 +23,7 @@ public record Category(
         @With(PRIVATE) CategoryId parentId,
         AuditInfo createdInfo,
         @With(PRIVATE) AuditInfo updatedInfo,
-        Tombstone tombstone
-) {
+        Tombstone tombstone) {
     public Category(CategoryId id, String name, CategoryType type, Color color, CategoryId parentId, AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
         validateNameLength(name);
         this.id = id;
@@ -111,7 +110,7 @@ public record Category(
         if (command.name() != null && !command.name().equals(this.name)) {
             category = category.withName(command.name()).withUpdatedInfo(createUpdateInfo(updatedBy));
         }
-        if (!java.util.Objects.equals(command.parentId(), this.parentId)) {
+        if (command.parentId() != this.parentId) {
             category = category.withParentId(command.parentId()).withUpdatedInfo(createUpdateInfo(updatedBy));
         }
         return category;

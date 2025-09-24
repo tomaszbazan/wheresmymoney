@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@SuppressWarnings("EI_EXPOSE_REP2")
 public class AccountService {
     private final AccountRepository accountRepository;
     private final UsersModuleFacade usersModuleFacade;

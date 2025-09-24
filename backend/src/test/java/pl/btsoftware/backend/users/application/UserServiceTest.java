@@ -232,7 +232,7 @@ class UserServiceTest {
         );
 
         assertThatThrownBy(() -> userService.registerUser(command))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test

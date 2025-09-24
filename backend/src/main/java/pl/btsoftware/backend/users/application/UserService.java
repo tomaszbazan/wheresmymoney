@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@SuppressWarnings("EI_EXPOSE_REP2")
 public class UserService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;

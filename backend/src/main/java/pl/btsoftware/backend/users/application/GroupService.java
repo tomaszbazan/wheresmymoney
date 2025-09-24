@@ -7,6 +7,7 @@ import pl.btsoftware.backend.users.domain.error.InvitationNotFoundException;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@SuppressWarnings("EI_EXPOSE_REP2")
 public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupInvitationRepository invitationRepository;

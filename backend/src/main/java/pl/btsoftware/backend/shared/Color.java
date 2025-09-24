@@ -2,15 +2,16 @@ package pl.btsoftware.backend.shared;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;
+
+import static java.util.Objects.isNull;
 
 public record Color(String value) {
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("^#[0-9A-Fa-f]{6}$");
 
     public Color {
-        if (value == null) {
+        if (isNull(value)) {
             throw new IllegalArgumentException("Color value cannot be null");
         }
         if (!HEX_COLOR_PATTERN.matcher(value).matches()) {
@@ -23,7 +24,6 @@ public record Color(String value) {
         return new Color(value);
     }
 
-    @NotNull
     @JsonValue
     @Override
     public String toString() {

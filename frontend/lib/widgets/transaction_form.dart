@@ -188,7 +188,7 @@ class _TransactionFormState extends State<TransactionForm> {
             const SizedBox(height: 24),
             if (!isEditing) ...[
               DropdownButtonFormField<String>(
-                value: _selectedAccountId,
+                initialValue: _selectedAccountId,
                 decoration: const InputDecoration(
                   labelText: 'Konto',
                   border: OutlineInputBorder(),

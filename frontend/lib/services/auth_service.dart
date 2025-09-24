@@ -30,7 +30,9 @@ class AuthService {
     } catch (e) {
       if (e is AuthApiException && e.code == 'refresh_token_not_found') {
         developer.log(
-            'Refresh token not found. Logging out.', name: 'AuthService');
+          'Refresh token not found. Logging out.',
+          name: 'AuthService',
+        );
         await signOut();
         return null;
       }
@@ -70,18 +72,18 @@ class AuthService {
   }
 
   Future<app_user.User> signInWithEmail(String email, String password) async {
-      final response = await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+    final response = await _supabase.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
 
-      if (response.user == null) {
-        throw Exception('Invalid email or password');
-      }
+    if (response.user == null) {
+      throw Exception('Invalid email or password');
+    }
 
-      final user = await _fetchUserFromBackend();
-      await _saveUserLocally(user);
-      return user;
+    final user = await _fetchUserFromBackend();
+    await _saveUserLocally(user);
+    return user;
   }
 
   Future<void> signOut() async {

@@ -59,7 +59,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
     super.initState();
     _checkAuthState();
     _authSubscription = _authService.authStateChanges.listen(
-          (AuthState state) {
+      (AuthState state) {
         // Add slight delay to ensure navigation operations complete
         Future.microtask(() {
           if (mounted) {
@@ -73,7 +73,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
         if (error is AuthApiException &&
             error.code == 'refresh_token_not_found') {
           developer.log(
-              'Refresh token not found. Logging out.', name: 'AuthWrapper');
+            'Refresh token not found. Logging out.',
+            name: 'AuthWrapper',
+          );
           if (mounted) {
             setState(() {
               _isAuthenticated = false;
@@ -96,7 +98,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
     } catch (e) {
       if (e is AuthApiException && e.code == 'refresh_token_not_found') {
         developer.log(
-            'Refresh token not found. Logging out.', name: 'AuthWrapper');
+          'Refresh token not found. Logging out.',
+          name: 'AuthWrapper',
+        );
       }
       if (mounted) {
         setState(() {

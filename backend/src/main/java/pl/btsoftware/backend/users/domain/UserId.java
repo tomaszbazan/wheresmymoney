@@ -4,11 +4,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+import static java.util.Objects.requireNonNull;
+
 public record UserId(String value) {
     public UserId {
-        if (value == null) {
-            throw new IllegalArgumentException("UserId cannot be null");
-        }
+        requireNonNull(value, "UserId cannot be null");
     }
 
     public static UserId generate() {

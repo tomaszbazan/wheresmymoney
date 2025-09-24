@@ -35,7 +35,8 @@ class ApiClient {
     _httpClient = AuthenticatedHttpClient(http.Client(), _authService);
   }
 
-  Future<T> get<T>(String endpoint,
+  Future<T> get<T>(
+    String endpoint,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
     try {
@@ -54,7 +55,8 @@ class ApiClient {
     }
   }
 
-  Future<List<T>> getList<T>(String endpoint,
+  Future<List<T>> getList<T>(
+    String endpoint,
     String listKey,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
@@ -80,7 +82,8 @@ class ApiClient {
     }
   }
 
-  Future<T> post<T>(String endpoint,
+  Future<T> post<T>(
+    String endpoint,
     Map<String, dynamic> body,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
@@ -114,7 +117,8 @@ class ApiClient {
     }
   }
 
-  Future<T> put<T>(String endpoint,
+  Future<T> put<T>(
+    String endpoint,
     Map<String, dynamic> body,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
