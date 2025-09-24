@@ -4,15 +4,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
 import static pl.btsoftware.backend.shared.Currency.DEFAULT;
 
 public record Money(BigDecimal value, Currency currency) {
 
     public Money {
-        Objects.requireNonNull(value, "Amount cannot be null");
-        Objects.requireNonNull(currency, "Currency cannot be null");
+        requireNonNull(value, "Amount cannot be null");
+        requireNonNull(currency, "Currency cannot be null");
 
         // Ensure value has exactly 2 decimal places
         value = value.setScale(2, RoundingMode.HALF_UP);

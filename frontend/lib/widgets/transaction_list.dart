@@ -91,8 +91,9 @@ class TransactionList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Konto: ${_getAccountName(transaction.accountId)}'),
-                Text('Kategoria: ${transaction.categoryName ??
-                    transaction.categoryId}'),
+                Text(
+                  'Kategoria: ${transaction.categoryName ?? transaction.categoryId}',
+                ),
                 Text(
                   '${transaction.createdAt.day}.${transaction.createdAt.month.toString().padLeft(2, '0')}.${transaction.createdAt.year}',
                   style: Theme.of(context).textTheme.bodySmall,

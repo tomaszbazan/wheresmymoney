@@ -173,7 +173,6 @@ public class TransactionControllerTest {
         // given
         var transactionId = randomUUID();
         var accountId = randomUUID();
-        var userId = new UserId("user123");
         var updatedTransaction = createTransaction(transactionId, accountId, new BigDecimal("150.00"), "Updated transaction", TransactionType.INCOME);
 
         when(transactionModuleFacade.updateTransaction(any(UpdateTransactionCommand.class), any(UserId.class))).thenReturn(updatedTransaction);

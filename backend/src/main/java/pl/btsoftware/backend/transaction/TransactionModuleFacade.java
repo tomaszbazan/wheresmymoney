@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
+@SuppressWarnings("EI_EXPOSE_REP2")
 public class TransactionModuleFacade {
     private final TransactionService transactionService;
     private final UsersModuleFacade usersModuleFacade;

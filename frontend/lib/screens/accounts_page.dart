@@ -59,12 +59,12 @@ class _AccountsPageState extends State<AccountsPage> {
                       isExpanded: true,
                       value: selectedType,
                       items:
-                      availableAccountTypes.map((String type) {
-                        return DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        );
-                      }).toList(),
+                          availableAccountTypes.map((String type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           setState(() {
@@ -79,12 +79,12 @@ class _AccountsPageState extends State<AccountsPage> {
                       isExpanded: true,
                       value: selectedCurrency,
                       items:
-                      availableCurrencies.map((String currency) {
-                        return DropdownMenuItem<String>(
-                          value: currency,
-                          child: Text(currency),
-                        );
-                      }).toList(),
+                          availableCurrencies.map((String currency) {
+                            return DropdownMenuItem<String>(
+                              value: currency,
+                              child: Text(currency),
+                            );
+                          }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           setState(() {
@@ -123,11 +123,12 @@ class _AccountsPageState extends State<AccountsPage> {
     );
   }
 
-  Future<void> _addAccount(BuildContext context,
-      String accountName, {
-        String? type,
-        String? currency,
-      }) async {
+  Future<void> _addAccount(
+    BuildContext context,
+    String accountName, {
+    String? type,
+    String? currency,
+  }) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
@@ -168,34 +169,36 @@ class _AccountsPageState extends State<AccountsPage> {
     }
   }
 
-  Future<bool> _showDeleteConfirmationDialog(BuildContext context,
-      String accountName,) async {
+  Future<bool> _showDeleteConfirmationDialog(
+    BuildContext context,
+    String accountName,
+  ) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Usunąć konto?'),
-          content: Text('Czy na pewno chcesz usunąć konto "$accountName"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Usuń'),
-            ),
-          ],
-        );
-      },
-    ) ??
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Usunąć konto?'),
+              content: Text('Czy na pewno chcesz usunąć konto "$accountName"?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Anuluj'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                  child: const Text('Usuń'),
+                ),
+              ],
+            );
+          },
+        ) ??
         false;
   }
 
   Future<void> _deleteAccountById(
     Map<String, dynamic> account,
-      ScaffoldMessengerState scaffoldMessenger,
+    ScaffoldMessengerState scaffoldMessenger,
   ) async {
     final accountId = account['id'];
     final accountName = account['name'];
@@ -260,16 +263,15 @@ class _AccountsPageState extends State<AccountsPage> {
         accounts =
             fetchedAccounts
                 .map(
-                  (account) =>
-              {
-                'id': account.id,
-                'name': account.name,
-                'balance': account.balance,
-                'number': account.number,
-                'type': account.type,
-                'currency': account.currency ?? 'PLN',
-              },
-            )
+                  (account) => {
+                    'id': account.id,
+                    'name': account.name,
+                    'balance': account.balance,
+                    'number': account.number,
+                    'type': account.type,
+                    'currency': account.currency ?? 'PLN',
+                  },
+                )
                 .toList();
         _isLoading = false;
       });
@@ -350,112 +352,110 @@ class _AccountsPageState extends State<AccountsPage> {
           else
             Expanded(
               child:
-              accounts.isEmpty
-                  ? const Center(child: Text('Brak kont do wyświetlenia'))
-                  : ListView.builder(
-                itemCount: accounts.length,
-                itemBuilder: (context, index) {
-                  final account = accounts[index];
-                  final isNegative = (account['balance'] as double) < 0;
+                  accounts.isEmpty
+                      ? const Center(child: Text('Brak kont do wyświetlenia'))
+                      : ListView.builder(
+                        itemCount: accounts.length,
+                        itemBuilder: (context, index) {
+                          final account = accounts[index];
+                          final isNegative = (account['balance'] as double) < 0;
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Dismissible(
-                      key: Key(account['name']),
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20.0),
-                        child: const Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                        ),
-                      ),
-                      direction: DismissDirection.endToStart,
-                      confirmDismiss: (direction) async {
-                        return await _showDeleteConfirmationDialog(
-                          context,
-                          account['name'],
-                        );
-                      },
-                      onDismissed: (direction) {
-                        final scaffoldMessenger = ScaffoldMessenger.of(
-                          context,
-                        );
-                        final accountToDelete = Map<String, dynamic>.from(
-                          account,
-                        );
-                        _deleteAccountById(
-                          accountToDelete,
-                          scaffoldMessenger,
-                        );
-                      },
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getAccountColor(
-                            account['type'],
-                          ),
-                          child: _getAccountIcon(account['type']),
-                        ),
-                        title: Text(
-                          '${account['name']} (${account['currency']})',
-                        ),
-                        subtitle:
-                        account['number'] != null
-                            ? Text(
-                          '${account['type']} ${account['number']}',
-                        )
-                            : Text(account['type']),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${account['balance'].toStringAsFixed(
-                                  2)} ${account['currency'] ?? 'zł'}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color:
-                                isNegative
-                                    ? Colors.red
-                                    : Colors.black,
-                              ),
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
                             ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete_outline,
+                            child: Dismissible(
+                              key: Key(account['name']),
+                              background: Container(
                                 color: Colors.red,
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20.0),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                ),
                               ),
-                              onPressed: () {
-                                // Tworzymy lokalne kopie danych przed async gap
-                                final accountToDelete =
-                                Map<String, dynamic>.from(account);
-                                final scaffoldMessenger =
-                                ScaffoldMessenger.of(context);
-
-                                _showDeleteConfirmationDialog(
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (direction) async {
+                                return await _showDeleteConfirmationDialog(
                                   context,
                                   account['name'],
-                                ).then((confirmed) {
-                                  if (confirmed && mounted) {
-                                    _deleteAccountById(
-                                      accountToDelete,
-                                      scaffoldMessenger,
-                                    );
-                                  }
-                                });
+                                );
                               },
+                              onDismissed: (direction) {
+                                final scaffoldMessenger = ScaffoldMessenger.of(
+                                  context,
+                                );
+                                final accountToDelete =
+                                    Map<String, dynamic>.from(account);
+                                _deleteAccountById(
+                                  accountToDelete,
+                                  scaffoldMessenger,
+                                );
+                              },
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: _getAccountColor(
+                                    account['type'],
+                                  ),
+                                  child: _getAccountIcon(account['type']),
+                                ),
+                                title: Text(
+                                  '${account['name']} (${account['currency']})',
+                                ),
+                                subtitle:
+                                    account['number'] != null
+                                        ? Text(
+                                          '${account['type']} ${account['number']}',
+                                        )
+                                        : Text(account['type']),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${account['balance'].toStringAsFixed(2)} ${account['currency'] ?? 'zł'}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color:
+                                            isNegative
+                                                ? Colors.red
+                                                : Colors.black,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () {
+                                        // Tworzymy lokalne kopie danych przed async gap
+                                        final accountToDelete =
+                                            Map<String, dynamic>.from(account);
+                                        final scaffoldMessenger =
+                                            ScaffoldMessenger.of(context);
+
+                                        _showDeleteConfirmationDialog(
+                                          context,
+                                          account['name'],
+                                        ).then((confirmed) {
+                                          if (confirmed && mounted) {
+                                            _deleteAccountById(
+                                              accountToDelete,
+                                              scaffoldMessenger,
+                                            );
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-              ),
             ),
         ],
       ),

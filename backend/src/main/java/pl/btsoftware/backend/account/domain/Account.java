@@ -23,7 +23,7 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
         this.id = id;
         this.name = name.trim();
         this.balance = balance;
-        this.transactionIds = transactionIds;
+        this.transactionIds = transactionIds != null ? List.copyOf(transactionIds) : List.of();
         this.createdInfo = createdInfo;
         this.updatedInfo = updatedInfo;
         this.tombstone = tombstone;

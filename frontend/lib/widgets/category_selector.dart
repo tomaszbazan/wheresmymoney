@@ -100,7 +100,7 @@ class _CategorySelectorState extends State<CategorySelector> {
     }
 
     return DropdownButtonFormField<String>(
-      value: widget.selectedCategoryId,
+      initialValue: widget.selectedCategoryId,
       decoration: const InputDecoration(
         labelText: 'Kategoria',
         border: OutlineInputBorder(),

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-
-import '../../lib/utils/password_validator.dart';
+import 'package:frontend/utils/password_validator.dart';
 
 void main() {
   group('PasswordValidator', () {
@@ -60,7 +59,7 @@ void main() {
     test(
       'should handle password with all special characters from the requirement',
       () {
-        const password = 'Abc123!@#\$%^&*()_+-=[]{};\':\"|<>?,./`~';
+        const password = 'Abc123!@#\$%^&*()_+-=[]{};\':"|<>?,./`~';
         final result = PasswordValidator.validate(password);
         expect(result, isNull);
       },

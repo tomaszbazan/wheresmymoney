@@ -20,7 +20,11 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
 
         name = name.trim();
         description = description != null ? description.trim() : "";
-        memberIds = new HashSet<>(memberIds);
+        memberIds = Set.copyOf(memberIds);
+    }
+
+    public Set<UserId> memberIds() {
+        return memberIds;
     }
 
     private Group(GroupId id, String name, String description, Set<UserId> memberIds, UserId createdBy, Instant createdAt, boolean validateMembers) {

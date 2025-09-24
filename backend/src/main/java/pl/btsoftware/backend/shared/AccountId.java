@@ -4,15 +4,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+import static java.util.Objects.requireNonNull;
+import static java.util.UUID.randomUUID;
+
 public record AccountId(UUID value) {
+    public AccountId {
+        requireNonNull(value, "Account id cannot be null");
+    }
+
     public static AccountId generate() {
-        return new AccountId(UUID.randomUUID());
+        return new AccountId(randomUUID());
     }
 
     public static AccountId from(UUID id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Account id cannot be null");
-        }
         return new AccountId(id);
     }
 

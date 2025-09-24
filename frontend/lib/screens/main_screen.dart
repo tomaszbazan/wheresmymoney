@@ -57,10 +57,7 @@ class _MainScreenState extends State<MainScreen>
   }
 
   bool _isMobile(BuildContext context) {
-    return MediaQuery
-        .of(context)
-        .size
-        .width < 800;
+    return MediaQuery.of(context).size.width < 800;
   }
 
   @override
@@ -112,9 +109,6 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const LogoutDialog(),
-    );
+    showDialog(context: context, builder: (context) => const LogoutDialog());
   }
 }

@@ -24,11 +24,11 @@ void main() {
     });
 
     test('should provide user-friendly messages for common 4XX errors', () {
-      const badRequest = HttpException(400, 'Bad Request');
-      const unauthorized = HttpException(401, 'Unauthorized');
-      const notFound = HttpException(404, 'Not Found');
-      const conflict = HttpException(409, 'Conflict');
-      const unprocessable = HttpException(422, 'Validation Error');
+      const badRequest = HttpException(400, '');
+      const unauthorized = HttpException(401, '');
+      const notFound = HttpException(404, '');
+      const conflict = HttpException(409, '');
+      const unprocessable = HttpException(422, '');
 
       expect(
         badRequest.userFriendlyMessage,
@@ -47,13 +47,13 @@ void main() {
     });
 
     test('should return generic message for unknown 4XX errors', () {
-      const unknownError = HttpException(418, 'I am a teapot');
+      const unknownError = HttpException(418, '');
 
       expect(unknownError.userFriendlyMessage, equals('Błąd klienta: 418'));
     });
 
     test('should return server error message for 5XX errors', () {
-      const serverError = HttpException(500, 'Internal Server Error');
+      const serverError = HttpException(500, '');
 
       expect(serverError.userFriendlyMessage, equals('Błąd serwera'));
     });

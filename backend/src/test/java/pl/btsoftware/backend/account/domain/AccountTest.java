@@ -58,7 +58,6 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenChangingNameToNull() {
         // given
-        var accountId = AccountId.generate();
         var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
 
         // when & then
@@ -69,7 +68,6 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenChangingNameToBlank() {
         // given
-        var accountId = AccountId.generate();
         var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
 
         // when & then
@@ -82,7 +80,6 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenNameIsTooLong() {
         // given
-        var accountId = AccountId.generate();
         var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var tooLongName = "a".repeat(101);
 
@@ -94,7 +91,6 @@ class AccountTest {
     @Test
     void shouldAcceptNameWithMaximumLength() {
         // given
-        var accountId = AccountId.generate();
         var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var maxLengthName = "a".repeat(100);
 

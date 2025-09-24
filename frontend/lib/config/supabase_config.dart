@@ -10,12 +10,10 @@ class SupabaseConfig {
 
     if (envUrl.isEmpty || envAnonKey.isEmpty) {
       throw Exception(
-          'Environment variables SUPABASE_URL or SUPABASE_ANON_KEY not set');
+        'Environment variables SUPABASE_URL or SUPABASE_ANON_KEY not set',
+      );
     }
 
-    return SupabaseConfig(
-      url: envUrl,
-      anonKey: envAnonKey,
-    );
+    return SupabaseConfig(url: envUrl, anonKey: envAnonKey);
   }
 }
