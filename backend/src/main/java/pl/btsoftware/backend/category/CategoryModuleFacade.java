@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-@SuppressWarnings("EI_EXPOSE_REP2")
 public class CategoryModuleFacade {
     private final CategoryService categoryService;
     private final UsersModuleFacade usersModuleFacade;

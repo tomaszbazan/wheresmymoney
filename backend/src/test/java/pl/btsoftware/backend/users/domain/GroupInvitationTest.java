@@ -9,6 +9,8 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static pl.btsoftware.backend.users.domain.InvitationStatus.ACCEPTED;
+import static pl.btsoftware.backend.users.domain.InvitationStatus.EXPIRED;
 
 class GroupInvitationTest {
 
@@ -20,16 +22,16 @@ class GroupInvitationTest {
 
         GroupInvitation invitation = GroupInvitation.create(groupId, email, invitedBy);
 
-        assertThat(invitation.getId()).isNotNull();
-        assertThat(invitation.getGroupId()).isEqualTo(groupId);
-        assertThat(invitation.getInviteeEmail()).isEqualTo(email.toLowerCase());
-        assertThat(invitation.getInvitedBy()).isEqualTo(invitedBy);
-        assertThat(invitation.getStatus()).isEqualTo(InvitationStatus.PENDING);
-        assertThat(invitation.getInvitationToken()).isNotNull();
-        assertThat(invitation.getInvitationToken()).hasSize(32);
-        assertThat(invitation.getCreatedAt()).isNotNull();
-        assertThat(invitation.getExpiresAt()).isNotNull();
-        assertThat(invitation.getExpiresAt()).isAfter(invitation.getCreatedAt());
+        assertThat(invitation.id()).isNotNull();
+        assertThat(invitation.groupId()).isEqualTo(groupId);
+        assertThat(invitation.inviteeEmail()).isEqualTo(email.toLowerCase());
+        assertThat(invitation.invitedBy()).isEqualTo(invitedBy);
+        assertThat(invitation.status()).isEqualTo(InvitationStatus.PENDING);
+        assertThat(invitation.invitationToken()).isNotNull();
+        assertThat(invitation.invitationToken()).hasSize(32);
+        assertThat(invitation.createdAt()).isNotNull();
+        assertThat(invitation.expiresAt()).isNotNull();
+        assertThat(invitation.expiresAt()).isAfter(invitation.createdAt());
     }
 
     @Test
@@ -53,19 +55,22 @@ class GroupInvitationTest {
     @Test
     void shouldTrimAndLowercaseEmail() {
         String email = "  TEST@EXAMPLE.COM  ";
-        
+
         GroupInvitation invitation = GroupInvitation.create(GroupId.generate(), email, UserId.generate());
 
-        assertThat(invitation.getInviteeEmail()).isEqualTo("test@example.com");
+        assertThat(invitation.inviteeEmail()).isEqualTo("test@example.com");
     }
 
     @Test
     void shouldAcceptPendingInvitation() {
-        GroupInvitation invitation = GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
+        // given
+        var invitation = GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
 
-        invitation.accept();
+        // when
+        var acceptedInvitation = invitation.accept();
 
-        assertThat(invitation.getStatus()).isEqualTo(InvitationStatus.ACCEPTED);
+        // then
+        assertThat(acceptedInvitation.status()).isEqualTo(ACCEPTED);
     }
 
     @Test
@@ -74,10 +79,10 @@ class GroupInvitationTest {
         GroupId groupId = GroupId.generate();
         UserId invitedBy = UserId.generate();
         Instant pastTime = Instant.now().minus(Duration.ofDays(8));
-        
+
         GroupInvitation expiredInvitation = new GroupInvitation(
-            id, groupId, "test@example.com", "token", invitedBy,
-            InvitationStatus.PENDING, pastTime, pastTime.plus(Duration.ofDays(7))
+                id, groupId, "test@example.com", "token", invitedBy,
+                InvitationStatus.PENDING, pastTime, pastTime.plus(Duration.ofDays(7))
         );
 
         assertThatThrownBy(expiredInvitation::accept)
@@ -90,10 +95,10 @@ class GroupInvitationTest {
         GroupId groupId = GroupId.generate();
         UserId invitedBy = UserId.generate();
         Instant now = Instant.now();
-        
+
         GroupInvitation acceptedInvitation = new GroupInvitation(
-            id, groupId, "test@example.com", "token", invitedBy,
-            InvitationStatus.ACCEPTED, now, now.plus(Duration.ofDays(7))
+                id, groupId, "test@example.com", "token", invitedBy,
+                ACCEPTED, now, now.plus(Duration.ofDays(7))
         );
 
         assertThatThrownBy(acceptedInvitation::accept)
@@ -102,12 +107,15 @@ class GroupInvitationTest {
 
     @Test
     void shouldExpireInvitation() {
-        GroupInvitation invitation = GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
+        // given
+        var invitation = GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
 
-        invitation.expire();
+        // when
+        var expiredInvitation = invitation.expire();
 
-        assertThat(invitation.getStatus()).isEqualTo(InvitationStatus.EXPIRED);
-        assertThat(invitation.isExpired()).isTrue();
+        // then
+        assertThat(expiredInvitation.status()).isEqualTo(EXPIRED);
+        assertThat(expiredInvitation.isExpired()).isTrue();
     }
 
     @Test
@@ -116,10 +124,10 @@ class GroupInvitationTest {
         GroupId groupId = GroupId.generate();
         UserId invitedBy = UserId.generate();
         Instant pastTime = Instant.now().minus(Duration.ofDays(8));
-        
+
         GroupInvitation expiredInvitation = new GroupInvitation(
-            id, groupId, "test@example.com", "token", invitedBy,
-            InvitationStatus.PENDING, pastTime, pastTime.plus(Duration.ofDays(7))
+                id, groupId, "test@example.com", "token", invitedBy,
+                InvitationStatus.PENDING, pastTime, pastTime.plus(Duration.ofDays(7))
         );
 
         assertThat(expiredInvitation.isExpired()).isTrue();
@@ -143,6 +151,6 @@ class GroupInvitationTest {
         GroupInvitation invitation1 = GroupInvitation.create(groupId, email, invitedBy);
         GroupInvitation invitation2 = GroupInvitation.create(groupId, email, invitedBy);
 
-        assertThat(invitation1.getInvitationToken()).isNotEqualTo(invitation2.getInvitationToken());
+        assertThat(invitation1.invitationToken()).isNotEqualTo(invitation2.invitationToken());
     }
 }

@@ -11,6 +11,7 @@ configurations {
 }
 
 dependencies {
+    implementation 'com.github.spotbugs:spotbugs-annotations:4.0.1'
     systemTestAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     systemTestCompileOnly "org.projectlombok:lombok:$lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$lombokVersion"

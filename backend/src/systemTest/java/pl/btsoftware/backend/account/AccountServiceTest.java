@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
-import pl.btsoftware.backend.account.domain.AccountRepository;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.configuration.SystemTest;
@@ -28,9 +27,6 @@ public class AccountServiceTest {
 
     @Autowired
     private AccountService accountService;
-
-    @Autowired
-    private AccountRepository accountRepository;
 
     @Autowired
     private UsersModuleFacade usersModuleFacade;

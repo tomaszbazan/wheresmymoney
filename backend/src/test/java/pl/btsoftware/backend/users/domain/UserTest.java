@@ -1,6 +1,5 @@
 package pl.btsoftware.backend.users.domain;
 
-import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
@@ -9,20 +8,19 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.instancio.Select.field;
 
 class UserTest {
 
     @Test
     void shouldCreateUserWithValidData() {
         // given
-        var UserId = new UserId("ext-auth-123");
+        var userId = new UserId("ext-auth-123");
         var email = "test@example.com";
         var displayName = "John Doe";
         var groupId = GroupId.generate();
 
         // when
-        var user = User.create(UserId, email, displayName, groupId);
+        var user = User.create(userId, email, displayName, groupId);
 
         // then
         assertThat(user.id()).isNotNull();
@@ -36,9 +34,6 @@ class UserTest {
 
     @Test
     void shouldThrowExceptionWhenEmailIsNull() {
-        // given
-        var user = Instancio.of(User.class).setBlank(field(User::email)).create();
-
         // except
         assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), null, "John Doe", GroupId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
@@ -76,11 +71,14 @@ class UserTest {
 
     @Test
     void shouldTrimEmailAndDisplayName() {
-        String email = "  test@example.com  ";
-        String displayName = "  John Doe  ";
+        // given
+        var email = "  test@example.com  ";
+        var displayName = "  John Doe  ";
 
-        User user = User.create(new UserId("ext-auth-123"), email, displayName, GroupId.generate());
+        // when
+        var user = User.create(new UserId("ext-auth-123"), email, displayName, GroupId.generate());
 
+        // then
         assertThat(user.email()).isEqualTo("test@example.com");
         assertThat(user.displayName()).isEqualTo("John Doe");
     }

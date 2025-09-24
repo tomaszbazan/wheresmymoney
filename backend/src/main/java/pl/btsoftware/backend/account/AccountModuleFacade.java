@@ -16,7 +16,6 @@ import pl.btsoftware.backend.users.domain.UserId;
 import java.util.List;
 
 @AllArgsConstructor
-@SuppressWarnings("EI_EXPOSE_REP2")
 public class AccountModuleFacade {
     private final AccountService accountService;
     private final UsersModuleFacade usersModuleFacade;

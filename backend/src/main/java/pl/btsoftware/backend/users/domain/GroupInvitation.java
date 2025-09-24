@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.users.domain;
 
-import lombok.Getter;
+import lombok.AccessLevel;
+import lombok.With;
 import pl.btsoftware.backend.users.domain.error.InvitationTokenExpiredException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
@@ -9,27 +10,19 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
-@Getter
-public class GroupInvitation {
+public record GroupInvitation(GroupInvitationId id, GroupId groupId, String inviteeEmail, String invitationToken,
+                              UserId invitedBy, @With(value = AccessLevel.PRIVATE) InvitationStatus status,
+                              Instant createdAt, Instant expiresAt) {
     private static final Duration DEFAULT_VALIDITY = Duration.ofDays(7);
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int TOKEN_LENGTH = 32;
 
-    private final GroupInvitationId id;
-    private final GroupId groupId;
-    private final String inviteeEmail;
-    private final String invitationToken;
-    private final UserId invitedBy;
-    private InvitationStatus status;
-    private final Instant createdAt;
-    private final Instant expiresAt;
-
     public GroupInvitation(GroupInvitationId id, GroupId groupId, String inviteeEmail,
-                          String invitationToken, UserId invitedBy, InvitationStatus status,
-                          Instant createdAt, Instant expiresAt) {
+                           String invitationToken, UserId invitedBy, InvitationStatus status,
+                           Instant createdAt, Instant expiresAt) {
         validateEmail(inviteeEmail);
-        
+
         this.id = Objects.requireNonNull(id, "GroupInvitationId cannot be null");
         this.groupId = Objects.requireNonNull(groupId, "GroupId cannot be null");
         this.inviteeEmail = inviteeEmail.trim().toLowerCase();
@@ -43,27 +36,31 @@ public class GroupInvitation {
     public static GroupInvitation create(GroupId groupId, String inviteeEmail, UserId invitedBy) {
         Instant now = Instant.now();
         return new GroupInvitation(
-            GroupInvitationId.generate(),
-            groupId,
-            inviteeEmail,
-            generateToken(),
-            invitedBy,
-            InvitationStatus.PENDING,
-            now,
-            now.plus(DEFAULT_VALIDITY)
+                GroupInvitationId.generate(),
+                groupId,
+                inviteeEmail,
+                generateToken(),
+                invitedBy,
+                InvitationStatus.PENDING,
+                now,
+                now.plus(DEFAULT_VALIDITY)
         );
     }
 
-    public void accept() {
+    public GroupInvitation accept() {
         validateNotExpired();
-        if (status != InvitationStatus.PENDING) {
-            throw new IllegalStateException("Invitation is not in pending status");
-        }
-        this.status = InvitationStatus.ACCEPTED;
+        invitationIsPending();
+        return withStatus(InvitationStatus.ACCEPTED);
     }
 
-    public void expire() {
-        this.status = InvitationStatus.EXPIRED;
+    public GroupInvitation expire() {
+        return withStatus(InvitationStatus.EXPIRED);
+    }
+
+    private void invitationIsPending() {
+        if (!isPending()) {
+            throw new IllegalStateException("Invitation is not in pending status");
+        }
     }
 
     public boolean isExpired() {

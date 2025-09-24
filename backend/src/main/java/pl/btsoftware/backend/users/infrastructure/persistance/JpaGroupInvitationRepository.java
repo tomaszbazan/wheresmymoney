@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.users.domain.*;
 
@@ -10,12 +11,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
+@AllArgsConstructor
 public class JpaGroupInvitationRepository implements GroupInvitationRepository {
     private final GroupInvitationJpaRepository jpaRepository;
-
-    public JpaGroupInvitationRepository(GroupInvitationJpaRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
-    }
 
     @Override
     public GroupInvitation save(GroupInvitation invitation) {

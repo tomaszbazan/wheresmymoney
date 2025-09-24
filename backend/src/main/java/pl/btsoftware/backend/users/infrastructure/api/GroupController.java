@@ -29,7 +29,7 @@ public class GroupController {
 
         var invitation = usersModuleFacade.inviteToGroup(new UserId(inviterId), command);
         
-        log.info("Invitation created with token: {}", invitation.getInvitationToken());
+        log.info("Invitation created with token: {}", invitation.invitationToken());
         return GroupInvitationView.from(invitation);
     }
 

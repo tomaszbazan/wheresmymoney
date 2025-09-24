@@ -59,6 +59,14 @@ public class AccountControllerTest {
     @MockBean
     private AccountModuleFacade accountModuleFacade;
 
+    private static Stream<Arguments> incorrectName() {
+        return Stream.of(
+                Arguments.of(""),
+                Arguments.of("  "),
+                Arguments.of("a".repeat(101))
+        );
+    }
+
     @Test
     void shouldReturnListOfAccounts() throws Exception {
         // given
@@ -85,14 +93,6 @@ public class AccountControllerTest {
                 .andExpect(jsonPath("$.accounts[1].name").value("Savings Account"))
                 .andExpect(jsonPath("$.accounts[1].balance").value(0))
                 .andExpect(jsonPath("$.accounts[1].currency").value("PLN"));
-    }
-
-    private static Stream<Arguments> incorrectName() {
-        return Stream.of(
-                Arguments.of(""),
-                Arguments.of("  "),
-                Arguments.of("a".repeat(101))
-        );
     }
 
     @Test
@@ -288,7 +288,7 @@ public class AccountControllerTest {
 
         when(accountModuleFacade.updateAccount(any(UpdateAccountCommand.class), eq(userId)))
                 .thenThrow(new AccountNotFoundException(nonExistentId));
-        
+
         var updateRequest = new UpdateAccountRequest("Updated Name");
 
         // when & then

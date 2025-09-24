@@ -7,7 +7,6 @@ import pl.btsoftware.backend.users.domain.error.InvitationNotFoundException;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-@SuppressWarnings("EI_EXPOSE_REP2")
 public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupInvitationRepository invitationRepository;
@@ -37,11 +36,11 @@ public class GroupService {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        invitation.accept();
-        invitationRepository.save(invitation);
+        var acceptedInvitation = invitation.accept();
+        invitationRepository.save(acceptedInvitation);
 
         var oldGroupId = user.groupId();
-        var newGroupId = invitation.getGroupId();
+        var newGroupId = acceptedInvitation.groupId();
 
         var updatedUser = user.changeGroup(newGroupId);
         userRepository.save(updatedUser);
