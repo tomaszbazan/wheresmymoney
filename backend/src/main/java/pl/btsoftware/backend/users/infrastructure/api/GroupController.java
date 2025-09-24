@@ -28,7 +28,7 @@ public class GroupController {
         var command = new InviteToGroupCommand(request.email());
 
         var invitation = usersModuleFacade.inviteToGroup(new UserId(inviterId), command);
-        
+
         log.info("Invitation created with token: {}", invitation.invitationToken());
         return GroupInvitationView.from(invitation);
     }
@@ -39,7 +39,7 @@ public class GroupController {
 
         var invitation = usersModuleFacade.findInvitationByToken(token)
             .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
-        
+
         return GroupInvitationView.from(invitation);
     }
 
@@ -49,7 +49,7 @@ public class GroupController {
         log.info("Accepting invitation with token: {} by user: {}", token, userId);
 
         usersModuleFacade.acceptInvitation(token, new UserId(userId));
-        
+
         log.info("Invitation accepted successfully");
     }
 
@@ -59,7 +59,7 @@ public class GroupController {
 
         var group = usersModuleFacade.findGroupById(new GroupId(groupId))
             .orElseThrow(() -> new IllegalArgumentException("Group not found"));
-        
+
         return GroupView.from(group);
     }
 }

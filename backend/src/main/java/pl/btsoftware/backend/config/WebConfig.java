@@ -52,11 +52,11 @@ public class WebConfig {
     @Bean
     public JwtDecoder jwtDecoder() {
         var jwtSecret = System.getProperty("supabase.jwt.secret", System.getenv("SUPABASE_JWT_SECRET"));
-        
+
         if (jwtSecret == null || jwtSecret.isEmpty()) {
             jwtSecret = "test-jwt-secret-for-development-and-testing-only";
         }
-        
+
         var secretKey = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
         return NimbusJwtDecoder.withSecretKey(secretKey)
                 .macAlgorithm(MacAlgorithm.HS256)

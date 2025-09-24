@@ -80,11 +80,11 @@ public class UserService {
 
     private GroupId handleInvitationBasedRegistration(RegisterUserCommand command) {
         var invitation = invitationRepository.findByToken(command.invitationToken())
-            .orElseThrow(InvitationNotFoundException::new);
-        
+                .orElseThrow(InvitationNotFoundException::new);
+
         var acceptedInvitation = invitation.accept();
         invitationRepository.save(acceptedInvitation);
-        
+
         return acceptedInvitation.groupId();
     }
 }

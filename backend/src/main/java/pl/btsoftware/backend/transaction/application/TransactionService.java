@@ -66,10 +66,15 @@ public class TransactionService {
         var updatedTransaction = transaction;
 
         if (command.amount() != null) {
-            accountModuleFacade.changeTransaction(transaction.accountId(), transaction.id(), updatedTransaction.amount(), command.amount(), transaction.type(), userId);
+            accountModuleFacade.changeTransaction(transaction.accountId(),
+                    transaction.id(),
+                    updatedTransaction.amount(),
+                    command.amount(),
+                    transaction.type(),
+                    userId);
             updatedTransaction = updatedTransaction.updateAmount(command.amount(), userId);
         }
-        
+
         if (command.description() != null) {
             updatedTransaction = updatedTransaction.updateDescription(command.description(), userId);
         }
@@ -87,7 +92,7 @@ public class TransactionService {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var transaction = transactionRepository.findByIdIncludingDeleted(transactionId, user.groupId())
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
-        
+
         if (transaction.isDeleted()) {
             throw new TransactionAlreadyDeletedException(transactionId);
         }

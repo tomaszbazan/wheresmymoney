@@ -18,7 +18,8 @@ import static pl.btsoftware.backend.shared.Money.zero;
 
 public record Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds,
                       AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
-    public Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds, AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
+    public Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds, AuditInfo createdInfo,
+                   AuditInfo updatedInfo, Tombstone tombstone) {
         validateAccountName(name);
         this.id = id;
         this.name = name.trim();
@@ -90,8 +91,10 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
             case EXPENSE -> {
                 return updateBalance(amount.negate()).addTransactionId(transactionId);
             }
+            default -> {
+                return this;
+            }
         }
-        return this;
     }
 
     public Account removeTransaction(TransactionId transactionId, Money amount, TransactionType transactionType) {
@@ -105,8 +108,10 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
             case EXPENSE -> {
                 return updateBalance(amount).removeTransactionId(transactionId);
             }
+            default -> {
+                return this;
+            }
         }
-        return this;
     }
 
     public Account changeTransaction(TransactionId transactionId, Money oldAmount, Money newAmount, TransactionType transactionType) {
@@ -124,8 +129,10 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
             case EXPENSE -> {
                 return updateBalance(balanceChange.negate()).removeTransactionId(transactionId).addTransactionId(transactionId);
             }
+            default -> {
+                return this;
+            }
         }
-        return this;
     }
 
     private Account addTransactionId(TransactionId transactionId) {

@@ -15,11 +15,11 @@ import java.util.UUID;
 @Repository
 public interface GroupInvitationJpaRepository extends JpaRepository<GroupInvitationEntity, UUID> {
     Optional<GroupInvitationEntity> findByInvitationToken(String token);
-    
+
     List<GroupInvitationEntity> findByGroupIdAndStatus(UUID groupId, InvitationStatus status);
-    
+
     List<GroupInvitationEntity> findByInviteeEmailAndStatus(String email, InvitationStatus status);
-    
+
     @Modifying
     @Query("DELETE FROM GroupInvitationEntity g WHERE g.expiresAt < :now OR g.status = 'EXPIRED'")
     void deleteExpired(@Param("now") Instant now);

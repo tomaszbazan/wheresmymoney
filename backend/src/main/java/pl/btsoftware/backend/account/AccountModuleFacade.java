@@ -53,7 +53,8 @@ public class AccountModuleFacade {
         accountService.removeTransaction(accountId, transactionId, amount, transactionType, userId);
     }
 
-    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount, TransactionType transactionType, UserId userId) {
+    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount,
+                                  TransactionType transactionType, UserId userId) {
         accountService.changeTransaction(accountId, transactionId, oldAmount, newAmount, transactionType, userId);
     }
 }
