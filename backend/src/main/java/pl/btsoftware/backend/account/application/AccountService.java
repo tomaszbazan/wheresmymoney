@@ -93,7 +93,8 @@ public class AccountService {
         accountRepository.store(updatedAccount);
     }
 
-    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount, TransactionType transactionType, UserId userId) {
+    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount,
+                                  TransactionType transactionType, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var account = accountRepository.findById(accountId, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(accountId));

@@ -23,10 +23,6 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
         memberIds = Set.copyOf(memberIds);
     }
 
-    public Set<UserId> memberIds() {
-        return memberIds;
-    }
-
     private Group(GroupId id, String name, String description, Set<UserId> memberIds, UserId createdBy, Instant createdAt, boolean validateMembers) {
         this(id, name, description, memberIds, createdBy, createdAt);
 
@@ -38,12 +34,12 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
     public static Group create(String name, String description, UserId creatorId) {
         Set<UserId> initialMembers = Set.of(creatorId);
         return new Group(
-            GroupId.generate(),
-            name,
-            description,
-            initialMembers,
-            creatorId,
-            Instant.now()
+                GroupId.generate(),
+                name,
+                description,
+                initialMembers,
+                creatorId,
+                Instant.now()
         );
     }
 
@@ -71,6 +67,10 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
         );
     }
 
+    public Set<UserId> memberIds() {
+        return memberIds;
+    }
+
     public Group addMember(UserId userId) {
         Objects.requireNonNull(userId, "UserId cannot be null");
         var newMemberIds = new HashSet<>(memberIds);
@@ -80,7 +80,7 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
 
     public Group removeMember(UserId userId) {
         Objects.requireNonNull(userId, "UserId cannot be null");
-        
+
         if (memberIds.size() <= 1) {
             throw new IllegalStateException("Cannot remove last member fromGroup group");
         }

@@ -10,18 +10,19 @@ import org.testcontainers.utility.DockerImageName;
 class TestcontainersInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
     private static final String POSTGRES_VERSION = "17";
 
-    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:" + POSTGRES_VERSION));
+    private static final PostgreSQLContainer<?> POSTGRES =
+            new PostgreSQLContainer<>(DockerImageName.parse("postgres:" + POSTGRES_VERSION));
 
     static {
-        Startables.deepStart(postgres).join();
+        Startables.deepStart(POSTGRES).join();
     }
 
     @Override
     public void initialize(ConfigurableApplicationContext ctx) {
         TestPropertyValues.of(
-                "spring.datasource.url=" + postgres.getJdbcUrl(),
-                "spring.datasource.username=" + postgres.getUsername(),
-                "spring.datasource.password=" + postgres.getPassword()
+                "spring.datasource.url=" + POSTGRES.getJdbcUrl(),
+                "spring.datasource.username=" + POSTGRES.getUsername(),
+                "spring.datasource.password=" + POSTGRES.getPassword()
         ).applyTo(ctx.getEnvironment());
     }
 }

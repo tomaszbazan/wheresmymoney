@@ -24,7 +24,8 @@ public record Category(
         AuditInfo createdInfo,
         @With(PRIVATE) AuditInfo updatedInfo,
         Tombstone tombstone) {
-    public Category(CategoryId id, String name, CategoryType type, Color color, CategoryId parentId, AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
+    public Category(CategoryId id, String name, CategoryType type, Color color, CategoryId parentId, AuditInfo createdInfo,
+                    AuditInfo updatedInfo, Tombstone tombstone) {
         validateNameLength(name);
         this.id = id;
         this.name = name.trim();

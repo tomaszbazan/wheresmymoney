@@ -74,8 +74,10 @@ public class JpaAccountRepositoryTest {
         var groupId = GroupId.generate();
         var auditInfo = AuditInfo.create(userId.value(), groupId.value());
 
-        var account1 = new Account(AccountId.generate(), "Account 1", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
-        var account2 = new Account(AccountId.generate(), "Account 2", Money.of(BigDecimal.ZERO, USD), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
+        var account1 = new Account(AccountId.generate(), "Account 1", Money.of(BigDecimal.ZERO, PLN),
+                new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
+        var account2 = new Account(AccountId.generate(), "Account 2", Money.of(BigDecimal.ZERO, USD),
+                new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
 
         accountRepository.store(account1);
         accountRepository.store(account2);
@@ -94,7 +96,8 @@ public class JpaAccountRepositoryTest {
         var userId = UserId.generate();
         var groupId = GroupId.generate();
         var auditInfo = AuditInfo.create(userId.value(), groupId.value());
-        var account = new Account(AccountId.generate(), "To Delete", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
+        var account = new Account(AccountId.generate(), "To Delete", Money.of(BigDecimal.ZERO, PLN),
+                new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
         accountRepository.store(account);
 
         // when
@@ -111,7 +114,8 @@ public class JpaAccountRepositoryTest {
         var userId = UserId.generate();
         var groupId = GroupId.generate();
         var auditInfo = AuditInfo.create(userId.value(), groupId.value());
-        var account = new Account(AccountId.generate(), "Unique Account", Money.of(BigDecimal.ZERO, GBP), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
+        var account = new Account(AccountId.generate(), "Unique Account", Money.of(BigDecimal.ZERO, GBP),
+                new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
         accountRepository.store(account);
 
         // when
@@ -143,9 +147,12 @@ public class JpaAccountRepositoryTest {
         var auditInfoGroupX = AuditInfo.create(userA.value(), groupX.value());
         var auditInfoGroupY = AuditInfo.create(userC.value(), groupY.value());
 
-        var accountGroupX1 = new Account(AccountId.generate(), "Group X Account 1", Money.of(BigDecimal.ZERO, PLN), new ArrayList<>(), auditInfoGroupX, auditInfoGroupX, Tombstone.active());
-        var accountGroupX2 = new Account(AccountId.generate(), "Group X Account 2", Money.of(BigDecimal.ZERO, EUR), new ArrayList<>(), auditInfoGroupX, auditInfoGroupX, Tombstone.active());
-        var accountGroupY = new Account(AccountId.generate(), "Group Y Account", Money.of(BigDecimal.ZERO, USD), new ArrayList<>(), auditInfoGroupY, auditInfoGroupY, Tombstone.active());
+        var accountGroupX1 = new Account(AccountId.generate(), "Group X Account 1", Money.of(BigDecimal.ZERO, PLN),
+                new ArrayList<>(), auditInfoGroupX, auditInfoGroupX, Tombstone.active());
+        var accountGroupX2 = new Account(AccountId.generate(), "Group X Account 2", Money.of(BigDecimal.ZERO, EUR),
+                new ArrayList<>(), auditInfoGroupX, auditInfoGroupX, Tombstone.active());
+        var accountGroupY = new Account(AccountId.generate(), "Group Y Account", Money.of(BigDecimal.ZERO, USD),
+                new ArrayList<>(), auditInfoGroupY, auditInfoGroupY, Tombstone.active());
 
         accountRepository.store(accountGroupX1);
         accountRepository.store(accountGroupX2);
@@ -183,7 +190,8 @@ public class JpaAccountRepositoryTest {
         var userId = UserId.generate();
         var groupId = GroupId.generate();
         var auditInfo = AuditInfo.create(userId.value(), groupId.value());
-        var originalAccount = new Account(AccountId.generate(), "Original Name", Money.of(new BigDecimal("50.00"), PLN), new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
+        var originalAccount = new Account(AccountId.generate(), "Original Name", Money.of(new BigDecimal("50.00"), PLN),
+                new ArrayList<>(), auditInfo, auditInfo, Tombstone.active());
         accountRepository.store(originalAccount);
 
         // when

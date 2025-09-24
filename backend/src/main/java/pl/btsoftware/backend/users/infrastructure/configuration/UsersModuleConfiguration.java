@@ -30,16 +30,16 @@ public class UsersModuleConfiguration {
     }
 
     @Bean
-    public UserService userService(UserRepository userRepository, 
-                                  GroupRepository groupRepository,
-                                  GroupInvitationRepository groupInvitationRepository) {
+    public UserService userService(UserRepository userRepository,
+                                   GroupRepository groupRepository,
+                                   GroupInvitationRepository groupInvitationRepository) {
         return new UserService(userRepository, groupRepository, groupInvitationRepository);
     }
 
     @Bean
     public GroupService groupService(GroupRepository groupRepository,
-                                   GroupInvitationRepository groupInvitationRepository,
-                                   UserRepository userRepository) {
+                                     GroupInvitationRepository groupInvitationRepository,
+                                     UserRepository userRepository) {
         return new GroupService(groupRepository, groupInvitationRepository, userRepository);
     }
 }

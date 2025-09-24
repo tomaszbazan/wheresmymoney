@@ -19,7 +19,9 @@ public record Transaction(
         AuditInfo updatedInfo,
         Tombstone tombstone
 ) {
-    public Transaction(TransactionId id, AccountId accountId, Money amount, TransactionType type, String description, CategoryId categoryId, AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
+    private static final int MAX_DESCRIPTION_LENGTH = 200;
+    public Transaction(TransactionId id, AccountId accountId, Money amount, TransactionType type, String description,
+                       CategoryId categoryId, AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
         validateDescriptionLength(description);
         this.id = id;
         this.accountId = accountId;
@@ -74,15 +76,18 @@ public record Transaction(
     }
 
     public Transaction updateAmount(Money newAmount, UserId updatedBy) {
-        return new Transaction(id, accountId, newAmount, type, description, categoryId, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+        return new Transaction(id, accountId, newAmount, type, description, categoryId, createdInfo,
+                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
     }
 
     public Transaction updateDescription(String newDescription, UserId updatedBy) {
-        return new Transaction(id, accountId, amount, type, newDescription, categoryId, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+        return new Transaction(id, accountId, amount, type, newDescription, categoryId, createdInfo,
+                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
     }
 
     public Transaction updateCategory(CategoryId newCategoryId, UserId updatedBy) {
-        return new Transaction(id, accountId, amount, type, description, newCategoryId, createdInfo, new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+        return new Transaction(id, accountId, amount, type, description, newCategoryId, createdInfo,
+                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
     }
 
     public Transaction delete() {
@@ -94,7 +99,7 @@ public record Transaction(
     }
 
     private void validateDescriptionLength(String description) {
-        if (description != null && description.length() > 200) {
+        if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
             throw new TransactionDescriptionTooLongException();
         }
     }
