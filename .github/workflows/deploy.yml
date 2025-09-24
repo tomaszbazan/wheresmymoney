@@ -57,7 +57,7 @@ jobs:
           ./gradlew checkstyleMain
 
       - name: SonarQube Analysis
-        uses: sonarqube-quality-gate-action@master
+        uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
