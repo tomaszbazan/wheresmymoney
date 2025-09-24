@@ -47,10 +47,14 @@ jobs:
           ./gradlew systemTest -x test
 
       - name: Run SpotBugs
-        run: cd backend && ./gradlew spotbugsMain
+        run: |
+          cd backend 
+          ./gradlew spotbugsMain
 
       - name: Run Checkstyle
-        run: cd backend && ./gradlew checkstyleMain
+        run: |
+          cd backend
+          ./gradlew checkstyleMain
 
       - name: SonarQube Analysis
         uses: sonarqube-quality-gate-action@master
