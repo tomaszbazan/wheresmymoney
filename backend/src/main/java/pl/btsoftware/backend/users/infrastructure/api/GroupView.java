@@ -19,10 +19,6 @@ public record GroupView(String id, String name, String description, List<String>
         this.memberCount = memberCount;
     }
 
-    public List<String> memberIds() {
-        return memberIds;
-    }
-
     public static GroupView from(Group group) {
         return new GroupView(
                 group.id().toString(),
