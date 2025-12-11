@@ -48,5 +48,130 @@ services:
       timeout: 5s
       retries: 5
 
+  # Supabase Auth (GoTrue)
+  supabase-auth:
+    image: supabase/gotrue:v2.158.1
+    container_name: WheresMyMoney-supabase-auth
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://localhost:9000
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:postgres@supabase-db:5432/postgres
+
+      GOTRUE_SITE_URL: http://localhost:9081
+      GOTRUE_URI_ALLOW_LIST: "*"
+      GOTRUE_DISABLE_SIGNUP: "false"
+
+      GOTRUE_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@example.com
+      GOTRUE_SMTP_HOST: inbucket
+      GOTRUE_SMTP_PORT: 2500
+      GOTRUE_SMTP_SENDER_NAME: WheresMyMoney
+
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "false"
+      GOTRUE_PASSWORD_MIN_LENGTH: 6
+    restart: unless-stopped
+
+  # Supabase PostgreSQL (separate from app DB)
+  supabase-db:
+    image: supabase/postgres:15.6.1.143
+    container_name: WheresMyMoney-supabase-db
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PASSWORD: postgres
+      JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters
+      JWT_EXP: 3600
+    volumes:
+      - supabase_db_data:/var/lib/postgresql/data
+    ports:
+      - "54322:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Supabase Studio (Web UI) - Optional but useful
+  supabase-studio:
+    image: supabase/studio:20240729-ce42139
+    container_name: WheresMyMoney-supabase-studio
+    depends_on:
+      supabase-auth:
+        condition: service_started
+    environment:
+      STUDIO_PG_META_URL: http://supabase-meta:8080
+      POSTGRES_PASSWORD: postgres
+      DEFAULT_ORGANIZATION_NAME: WheresMyMoney
+      DEFAULT_PROJECT_NAME: WheresMyMoney
+
+      SUPABASE_URL: http://supabase-kong:8000
+      SUPABASE_PUBLIC_URL: http://localhost:9000
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+
+      NEXT_PUBLIC_ENABLE_LOGS: "true"
+      NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
+    ports:
+      - "54323:3000"
+    restart: unless-stopped
+
+  # Kong API Gateway (routes requests to auth)
+  supabase-kong:
+    image: kong:2.8.1
+    container_name: WheresMyMoney-supabase-kong
+    depends_on:
+      supabase-auth:
+        condition: service_started
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+    volumes:
+      - ./supabase/kong.yml:/var/lib/kong/kong.yml:ro
+    ports:
+      - "9000:8000"
+      - "9443:8443"
+    restart: unless-stopped
+
+  # Postgres Meta (for Studio)
+  supabase-meta:
+    image: supabase/postgres-meta:v0.83.2
+    container_name: WheresMyMoney-supabase-meta
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: supabase-db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: postgres
+    restart: unless-stopped
+
+  # Inbucket (local email testing)
+  inbucket:
+    image: inbucket/inbucket:3.0.3
+    container_name: WheresMyMoney-inbucket
+    ports:
+      - "54324:9000"
+      - "2500:2500"
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  supabase_db_data:

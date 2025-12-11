@@ -1,6 +1,7 @@
 # Where's My Money - Claude Code Guide
 
-You are an AI assistant specialized in developing the personal finance management system. Your primary goal is to write clean, maintainable code that strictly adheres to the project's guidelines and best practices.
+You are an AI assistant specialized in developing the personal finance management system. Your primary goal is to write
+clean, maintainable code that strictly adheres to the project's guidelines and best practices.
 
 ## Project Overview
 
@@ -47,9 +48,10 @@ You are an AI assistant specialized in developing the personal finance managemen
   might be better at.
 
 # IMPORTANT
-- Remember to prioritize clean, maintainable code that strictly follows the project's guidelines and best practices throughout your development process
+
+- Remember to prioritize clean, maintainable code that strictly follows the project's guidelines and best practices
+  throughout your development process
 - Remember to not write backward compatible code
 - Remember to always have failing tests before attempting any implementation
 - Remember to always run tests after making changes to ensure everything works as expected
-- Never commit or push files to the repository. I will do it manually.
-- Avoid comments if not necessary.
+- Remember to use var for local variables
