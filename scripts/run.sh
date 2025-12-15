@@ -19,7 +19,7 @@ if [ "$1" = "backend" ]; then
     
     echo "✅ Backend services started!"
     echo "Backend: http://localhost:9080"
-    echo "Database: localhost:5433"
+    echo "Database: localhost:5432"
 else
     echo "🚀 Building and starting Where's My Money application..."
     
@@ -34,7 +34,7 @@ else
     echo "✅ Application started!"
     echo "Backend: http://localhost:9080"
     echo "Frontend: http://localhost:9081"
-    echo "Database: localhost:5433"
+    echo "Database: localhost:5432"
     echo ""
     echo "💡 To configure Supabase, set environment variables:"
     echo "   export SUPABASE_URL=your_supabase_url"
