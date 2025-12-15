@@ -12,12 +12,10 @@ You are an AI assistant specialized in developing the personal finance managemen
 - Strong domain model following DDD principles
 
 ## Domain Model Core Concepts
-
-- Budget: Zero-based monthly budget with categories
+- 
 - Transaction: Financial movements with budget assignment
-- Account: Banking accounts with transaction import
-- Goal: Financial objectives with tracking
-- Portfolio: Investment tracking with allocation
+- Account: User accounts with balances
+- Category: Transaction categorization
 - Repository pattern: Both in-memory and PostgreSQL implementations
 
 ## Development Requirements
