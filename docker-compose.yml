@@ -1,17 +1,14 @@
-version: '3.8'
-
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: WheresMyMoney
+    container_name: WheresMyMoney-backend
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/wheresmymoney
       - SPRING_DATASOURCE_USERNAME=wheresmymoney
       - SPRING_DATASOURCE_PASSWORD=mypassword
-      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET:-}
-#      - SUPABASE_JWT_SECRET=${JWT_SECRET}
+      - SUPABASE_JWT_SECRET=${JWT_SECRET}
     ports:
       - "9080:9080"
     depends_on:
@@ -24,13 +21,11 @@ services:
       dockerfile: Dockerfile
       args:
         - BACKEND_BASE_URL=http://localhost:9080/api
-#        - SUPABASE_URL=${API_EXTERNAL_URL}
-        - SUPABASE_URL=${SUPABASE_URL:-}
-#        - SUPABASE_ANON_KEY=${ANON_KEY}
-        - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
+        - SUPABASE_URL=http://localhost:9999
+        - SUPABASE_ANON_KEY=${ANON_KEY}
     container_name: WheresMyMoney-frontend
     ports:
-      - "9081:9081"
+      - "8000:80"
     depends_on:
       - backend
       - supabase-auth
@@ -57,6 +52,8 @@ services:
     container_name: supabase-auth
     image: supabase/gotrue:v2.183.0
     restart: unless-stopped
+    ports:
+      - "9999:9999"
     healthcheck:
       test:
         [
