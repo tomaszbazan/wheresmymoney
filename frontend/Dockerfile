@@ -19,5 +19,14 @@ RUN flutter build web \
 FROM nginx:alpine
 COPY --from=build /app/build/web /usr/share/nginx/html
 
-EXPOSE 80
+RUN echo 'server { \
+    listen 8000; \
+    location / { \
+        root /usr/share/nginx/html; \
+        index index.html index.htm; \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+EXPOSE 8000
+
 CMD ["nginx", "-g", "daemon off;"]
