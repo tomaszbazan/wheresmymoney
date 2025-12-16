@@ -52,9 +52,7 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Registration failed: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Registration failed: $error')));
       }
     } finally {
       if (mounted) {
@@ -66,7 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _showEmailConfirmationDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -77,16 +75,9 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               const Icon(Icons.email, size: 64, color: Colors.blue),
               const SizedBox(height: 16),
-              Text(
-                'We\'ve sent a confirmation email to ${_emailController.text.trim()}',
-                textAlign: TextAlign.center,
-              ),
+              Text('We\'ve sent a confirmation email to ${_emailController.text.trim()}', textAlign: TextAlign.center),
               const SizedBox(height: 8),
-              const Text(
-                'Please check your email and click the confirmation link to activate your account.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
+              const Text('Please check your email and click the confirmation link to activate your account.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
             ],
           ),
           actions: [
@@ -117,25 +108,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Where\'s My Money',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
+                  const Text('Where\'s My Money', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Create your account',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
+                  const Text('Create your account', style: TextStyle(fontSize: 16, color: Colors.grey), textAlign: TextAlign.center),
                   const SizedBox(height: 48),
                   TextFormField(
                     controller: _displayNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Display Name',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
-                    ),
+                    decoration: const InputDecoration(labelText: 'Display Name', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your display name';
@@ -147,11 +126,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
-                    ),
+                    decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
@@ -171,11 +146,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
+                        icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
                         onPressed: () {
                           setState(() {
                             _obscurePassword = !_obscurePassword;
@@ -194,11 +165,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
+                        icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
                         onPressed: () {
                           setState(() {
                             _obscureConfirmPassword = !_obscureConfirmPassword;
@@ -224,8 +191,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       labelText: 'Group Name',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.group),
-                      helperText:
-                          'Name for your financial group (e.g., "Smith Family")',
+                      helperText: 'Name for your financial group (e.g., "Smith Family")',
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -237,16 +203,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                    ),
-                    child:
-                        _isLoading
-                            ? const CircularProgressIndicator()
-                            : const Text(
-                              'Sign Up',
-                              style: TextStyle(fontSize: 16),
-                            ),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+                    child: _isLoading ? const CircularProgressIndicator() : const Text('Sign Up', style: TextStyle(fontSize: 16)),
                   ),
                   const SizedBox(height: 16),
                   Row(

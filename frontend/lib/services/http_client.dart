@@ -35,17 +35,12 @@ class ApiClient {
     _httpClient = AuthenticatedHttpClient(http.Client(), _authService);
   }
 
-  Future<T> get<T>(
-    String endpoint,
-    T Function(Map<String, dynamic>) fromJson,
-  ) async {
+  Future<T> get<T>(String endpoint, T Function(Map<String, dynamic>) fromJson) async {
     try {
-      final response = await _httpClient.get(
-        Uri.parse('${ApiConfig.backendUrl}$endpoint'),
-      );
+      final response = await _httpClient.get(Uri.parse('${ApiConfig.backendUrl}$endpoint'));
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final Map<String, dynamic> responseData = jsonDecode(response.body) as Map<String, dynamic>;
         return fromJson(responseData);
       } else {
         throw HttpException(response.statusCode, response.body);
@@ -55,22 +50,16 @@ class ApiClient {
     }
   }
 
-  Future<List<T>> getList<T>(
-    String endpoint,
-    String listKey,
-    T Function(Map<String, dynamic>) fromJson,
-  ) async {
+  Future<List<T>> getList<T>(String endpoint, String listKey, T Function(Map<String, dynamic>) fromJson) async {
     try {
-      final response = await _httpClient.get(
-        Uri.parse('${ApiConfig.backendUrl}$endpoint'),
-      );
+      final response = await _httpClient.get(Uri.parse('${ApiConfig.backendUrl}$endpoint'));
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final Map<String, dynamic> responseData = jsonDecode(response.body) as Map<String, dynamic>;
 
         if (responseData.containsKey(listKey)) {
-          final List<dynamic> itemsJson = responseData[listKey];
-          return itemsJson.map((json) => fromJson(json)).toList();
+          final List<dynamic> itemsJson = responseData[listKey] as List<dynamic>;
+          return itemsJson.map((json) => fromJson(json as Map<String, dynamic>)).toList();
         } else {
           return [];
         }
@@ -82,19 +71,12 @@ class ApiClient {
     }
   }
 
-  Future<T> post<T>(
-    String endpoint,
-    Map<String, dynamic> body,
-    T Function(Map<String, dynamic>) fromJson,
-  ) async {
+  Future<T> post<T>(String endpoint, Map<String, dynamic> body, T Function(Map<String, dynamic>) fromJson) async {
     try {
-      final response = await _httpClient.post(
-        Uri.parse('${ApiConfig.backendUrl}$endpoint'),
-        body: jsonEncode(body),
-      );
+      final response = await _httpClient.post(Uri.parse('${ApiConfig.backendUrl}$endpoint'), body: jsonEncode(body));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return fromJson(jsonDecode(response.body));
+        return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
       } else {
         throw HttpException(response.statusCode, response.body);
       }
@@ -105,9 +87,7 @@ class ApiClient {
 
   Future<void> delete(String endpoint) async {
     try {
-      final response = await _httpClient.delete(
-        Uri.parse('${ApiConfig.backendUrl}$endpoint'),
-      );
+      final response = await _httpClient.delete(Uri.parse('${ApiConfig.backendUrl}$endpoint'));
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw HttpException(response.statusCode, response.body);
@@ -117,19 +97,12 @@ class ApiClient {
     }
   }
 
-  Future<T> put<T>(
-    String endpoint,
-    Map<String, dynamic> body,
-    T Function(Map<String, dynamic>) fromJson,
-  ) async {
+  Future<T> put<T>(String endpoint, Map<String, dynamic> body, T Function(Map<String, dynamic>) fromJson) async {
     try {
-      final response = await _httpClient.put(
-        Uri.parse('${ApiConfig.backendUrl}$endpoint'),
-        body: jsonEncode(body),
-      );
+      final response = await _httpClient.put(Uri.parse('${ApiConfig.backendUrl}$endpoint'), body: jsonEncode(body));
 
       if (response.statusCode == 200) {
-        return fromJson(jsonDecode(response.body));
+        return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
       } else {
         throw HttpException(response.statusCode, response.body);
       }

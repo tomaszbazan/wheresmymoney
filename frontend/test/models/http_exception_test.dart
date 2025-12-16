@@ -30,20 +30,11 @@ void main() {
       const conflict = HttpException(409, '');
       const unprocessable = HttpException(422, '');
 
-      expect(
-        badRequest.userFriendlyMessage,
-        equals('Nieprawidłowe dane w żądaniu'),
-      );
+      expect(badRequest.userFriendlyMessage, equals('Nieprawidłowe dane w żądaniu'));
       expect(unauthorized.userFriendlyMessage, equals('Brak autoryzacji'));
-      expect(
-        notFound.userFriendlyMessage,
-        equals('Zasób nie został znaleziony'),
-      );
+      expect(notFound.userFriendlyMessage, equals('Zasób nie został znaleziony'));
       expect(conflict.userFriendlyMessage, equals('Konflikt danych'));
-      expect(
-        unprocessable.userFriendlyMessage,
-        equals('Błąd walidacji danych'),
-      );
+      expect(unprocessable.userFriendlyMessage, equals('Błąd walidacji danych'));
     });
 
     test('should return generic message for unknown 4XX errors', () {
@@ -61,10 +52,7 @@ void main() {
     test('should return network error message for connection errors', () {
       const networkError = HttpException(0, 'Connection refused');
 
-      expect(
-        networkError.userFriendlyMessage,
-        equals('Błąd połączenia z serwerem'),
-      );
+      expect(networkError.userFriendlyMessage, equals('Błąd połączenia z serwerem'));
     });
   });
 }

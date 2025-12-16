@@ -56,13 +56,10 @@ void main() {
       expect(result, isNull);
     });
 
-    test(
-      'should handle password with all special characters from the requirement',
-      () {
-        const password = 'Abc123!@#\$%^&*()_+-=[]{};\':"|<>?,./`~';
-        final result = PasswordValidator.validate(password);
-        expect(result, isNull);
-      },
-    );
+    test('should handle password with all special characters from the requirement', () {
+      const password = 'Abc123!@#\$%^&*()_+-=[]{};\':"|<>?,./`~';
+      final result = PasswordValidator.validate(password);
+      expect(result, isNull);
+    });
   });
 }

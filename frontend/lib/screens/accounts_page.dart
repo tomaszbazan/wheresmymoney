@@ -4,7 +4,7 @@ import '../models/http_exception.dart';
 import '../services/account_service.dart';
 
 class AccountsPage extends StatefulWidget {
-  final AccountServiceInterface? accountService;
+  final AccountService? accountService;
 
   const AccountsPage({super.key, this.accountService});
 
@@ -13,7 +13,7 @@ class AccountsPage extends StatefulWidget {
 }
 
 class _AccountsPageState extends State<AccountsPage> {
-  late final AccountServiceInterface _accountService;
+  late final AccountService _accountService;
 
   List<Map<String, dynamic>> accounts = [];
 
@@ -26,14 +26,9 @@ class _AccountsPageState extends State<AccountsPage> {
     String selectedType = 'Rachunek bieżący';
 
     const List<String> availableCurrencies = ['PLN', 'EUR', 'USD', 'GBP'];
-    const List<String> availableAccountTypes = [
-      'Rachunek bieżący',
-      'Oszczędnościowe',
-      'Gotówka',
-      'Kredytowa',
-    ];
+    const List<String> availableAccountTypes = ['Rachunek bieżący', 'Oszczędnościowe', 'Gotówka', 'Kredytowa'];
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
@@ -45,14 +40,7 @@ class _AccountsPageState extends State<AccountsPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nazwa konta',
-                        hintText: 'Wpisz nazwę konta',
-                      ),
-                      autofocus: true,
-                    ),
+                    TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Nazwa konta', hintText: 'Wpisz nazwę konta'), autofocus: true),
                     const SizedBox(height: 16),
                     const Text('Typ konta:'),
                     DropdownButton<String>(
@@ -60,10 +48,7 @@ class _AccountsPageState extends State<AccountsPage> {
                       value: selectedType,
                       items:
                           availableAccountTypes.map((String type) {
-                            return DropdownMenuItem<String>(
-                              value: type,
-                              child: Text(type),
-                            );
+                            return DropdownMenuItem<String>(value: type, child: Text(type));
                           }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
@@ -80,10 +65,7 @@ class _AccountsPageState extends State<AccountsPage> {
                       value: selectedCurrency,
                       items:
                           availableCurrencies.map((String currency) {
-                            return DropdownMenuItem<String>(
-                              value: currency,
-                              child: Text(currency),
-                            );
+                            return DropdownMenuItem<String>(value: currency, child: Text(currency));
                           }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
@@ -97,19 +79,11 @@ class _AccountsPageState extends State<AccountsPage> {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Anuluj'),
-                ),
+                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Anuluj')),
                 ElevatedButton(
                   onPressed: () {
                     if (nameController.text.isNotEmpty) {
-                      _addAccount(
-                        context,
-                        nameController.text,
-                        type: selectedType,
-                        currency: selectedCurrency,
-                      );
+                      _addAccount(context, nameController.text, type: selectedType, currency: selectedCurrency);
                       Navigator.of(context).pop();
                     }
                   },
@@ -123,56 +97,31 @@ class _AccountsPageState extends State<AccountsPage> {
     );
   }
 
-  Future<void> _addAccount(
-    BuildContext context,
-    String accountName, {
-    String? type,
-    String? currency,
-  }) async {
+  Future<void> _addAccount(BuildContext context, String accountName, {String? type, String? currency}) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
-      final createdAccount = await _accountService.createAccount(
-        accountName,
-        type: type,
-        currency: currency,
-      );
+      final createdAccount = await _accountService.createAccount(accountName, type: type, currency: currency);
 
       setState(() {
         accounts.add({
           'id': createdAccount.id,
           'name': createdAccount.name,
           'balance': createdAccount.balance,
-          'number': createdAccount.number,
           'type': createdAccount.type,
           'currency': createdAccount.currency ?? 'PLN',
         });
       });
 
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Konto "$accountName" zostało dodane')),
-      );
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Konto "$accountName" zostało dodane')));
     } on HttpException catch (e) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text(e.userFriendlyMessage),
-          backgroundColor: Colors.red,
-        ),
-      );
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
     } catch (e) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Nieoczekiwany błąd: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
     }
   }
 
-  Future<bool> _showDeleteConfirmationDialog(
-    BuildContext context,
-    String accountName,
-  ) async {
+  Future<bool> _showDeleteConfirmationDialog(BuildContext context, String accountName) async {
     return await showDialog<bool>(
           context: context,
           builder: (BuildContext context) {
@@ -180,15 +129,8 @@ class _AccountsPageState extends State<AccountsPage> {
               title: const Text('Usunąć konto?'),
               content: Text('Czy na pewno chcesz usunąć konto "$accountName"?'),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Anuluj'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  child: const Text('Usuń'),
-                ),
+                TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Anuluj')),
+                TextButton(onPressed: () => Navigator.of(context).pop(true), style: TextButton.styleFrom(foregroundColor: Colors.red), child: const Text('Usuń')),
               ],
             );
           },
@@ -196,12 +138,9 @@ class _AccountsPageState extends State<AccountsPage> {
         false;
   }
 
-  Future<void> _deleteAccountById(
-    Map<String, dynamic> account,
-    ScaffoldMessengerState scaffoldMessenger,
-  ) async {
-    final accountId = account['id'];
-    final accountName = account['name'];
+  Future<void> _deleteAccountById(Map<String, dynamic> account, ScaffoldMessengerState scaffoldMessenger) async {
+    final accountId = account['id'] as String;
+    final accountName = account['name'] as String;
 
     try {
       await _accountService.deleteAccount(accountId);
@@ -210,30 +149,18 @@ class _AccountsPageState extends State<AccountsPage> {
         accounts.removeWhere((account) => account['id'] == accountId);
       });
 
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Konto "$accountName" zostało usunięte')),
-      );
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Konto "$accountName" zostało usunięte')));
     } on HttpException catch (e) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text(e.userFriendlyMessage),
-          backgroundColor: Colors.red,
-        ),
-      );
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
     } catch (e) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Nieoczekiwany błąd: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _accountService = widget.accountService ?? AccountService();
+    _accountService = widget.accountService ?? RestAccountService();
     _fetchAccounts();
   }
 
@@ -241,7 +168,7 @@ class _AccountsPageState extends State<AccountsPage> {
     final Map<String, double> sums = {};
 
     for (var account in accounts) {
-      final currency = account['currency'] ?? 'PLN';
+      final currency = account['currency'] as String? ?? 'PLN';
       final balance = account['balance'] as double;
 
       sums[currency] = (sums[currency] ?? 0.0) + balance;
@@ -262,16 +189,7 @@ class _AccountsPageState extends State<AccountsPage> {
       setState(() {
         accounts =
             fetchedAccounts
-                .map(
-                  (account) => {
-                    'id': account.id,
-                    'name': account.name,
-                    'balance': account.balance,
-                    'number': account.number,
-                    'type': account.type,
-                    'currency': account.currency ?? 'PLN',
-                  },
-                )
+                .map((account) => {'id': account.id, 'name': account.name, 'balance': account.balance, 'type': account.type, 'currency': account.currency ?? 'PLN'})
                 .toList();
         _isLoading = false;
       });
@@ -304,13 +222,7 @@ class _AccountsPageState extends State<AccountsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Saldo łączne według walut:',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      const Text('Saldo łączne według walut:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       ..._calculateCurrencySums().entries.map((entry) {
                         final isNegative = entry.value < 0;
@@ -320,13 +232,7 @@ class _AccountsPageState extends State<AccountsPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(entry.key),
-                              Text(
-                                entry.value.toStringAsFixed(2),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: isNegative ? Colors.red : Colors.black,
-                                ),
-                              ),
+                              Text(entry.value.toStringAsFixed(2), style: TextStyle(fontWeight: FontWeight.bold, color: isNegative ? Colors.red : Colors.black)),
                             ],
                           ),
                         );
@@ -338,17 +244,10 @@ class _AccountsPageState extends State<AccountsPage> {
             ),
           const SizedBox(height: 16),
 
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
-            ),
+          if (_error != null) Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: const TextStyle(color: Colors.red))),
 
           if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Center(child: CircularProgressIndicator()),
-            )
+            const Padding(padding: EdgeInsets.all(32.0), child: Center(child: CircularProgressIndicator()))
           else
             Expanded(
               child:
@@ -361,90 +260,44 @@ class _AccountsPageState extends State<AccountsPage> {
                           final isNegative = (account['balance'] as double) < 0;
 
                           return Card(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
+                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Dismissible(
-                              key: Key(account['name']),
+                              key: Key(account['name'] as String),
                               background: Container(
                                 color: Colors.red,
                                 alignment: Alignment.centerRight,
                                 padding: const EdgeInsets.only(right: 20.0),
-                                child: const Icon(
-                                  Icons.delete,
-                                  color: Colors.white,
-                                ),
+                                child: const Icon(Icons.delete, color: Colors.white),
                               ),
                               direction: DismissDirection.endToStart,
                               confirmDismiss: (direction) async {
-                                return await _showDeleteConfirmationDialog(
-                                  context,
-                                  account['name'],
-                                );
+                                return await _showDeleteConfirmationDialog(context, account['name'] as String);
                               },
                               onDismissed: (direction) {
-                                final scaffoldMessenger = ScaffoldMessenger.of(
-                                  context,
-                                );
-                                final accountToDelete =
-                                    Map<String, dynamic>.from(account);
-                                _deleteAccountById(
-                                  accountToDelete,
-                                  scaffoldMessenger,
-                                );
+                                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                final accountToDelete = Map<String, dynamic>.from(account);
+                                _deleteAccountById(accountToDelete, scaffoldMessenger);
                               },
                               child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: _getAccountColor(
-                                    account['type'],
-                                  ),
-                                  child: _getAccountIcon(account['type']),
-                                ),
-                                title: Text(
-                                  '${account['name']} (${account['currency']})',
-                                ),
-                                subtitle:
-                                    account['number'] != null
-                                        ? Text(
-                                          '${account['type']} ${account['number']}',
-                                        )
-                                        : Text(account['type']),
+                                leading: CircleAvatar(backgroundColor: _getAccountColor(account['type'] as String?), child: _getAccountIcon(account['type'] as String?)),
+                                title: Text('${account['name']} (${account['currency']})'),
+                                subtitle: Text('${account['type']}'),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
                                       '${account['balance'].toStringAsFixed(2)} ${account['currency'] ?? 'zł'}',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color:
-                                            isNegative
-                                                ? Colors.red
-                                                : Colors.black,
-                                      ),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isNegative ? Colors.red : Colors.black),
                                     ),
                                     IconButton(
-                                      icon: const Icon(
-                                        Icons.delete_outline,
-                                        color: Colors.red,
-                                      ),
+                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
                                       onPressed: () {
-                                        // Tworzymy lokalne kopie danych przed async gap
-                                        final accountToDelete =
-                                            Map<String, dynamic>.from(account);
-                                        final scaffoldMessenger =
-                                            ScaffoldMessenger.of(context);
+                                        final accountToDelete = Map<String, dynamic>.from(account);
+                                        final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-                                        _showDeleteConfirmationDialog(
-                                          context,
-                                          account['name'],
-                                        ).then((confirmed) {
+                                        _showDeleteConfirmationDialog(context, account['name'] as String).then((confirmed) {
                                           if (confirmed && mounted) {
-                                            _deleteAccountById(
-                                              accountToDelete,
-                                              scaffoldMessenger,
-                                            );
+                                            _deleteAccountById(accountToDelete, scaffoldMessenger);
                                           }
                                         });
                                       },
@@ -459,11 +312,7 @@ class _AccountsPageState extends State<AccountsPage> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddAccountDialog(context),
-        tooltip: 'Dodaj konto',
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: FloatingActionButton(onPressed: () => _showAddAccountDialog(context), tooltip: 'Dodaj konto', child: const Icon(Icons.add)),
     );
   }
 
@@ -478,11 +327,7 @@ class _AccountsPageState extends State<AccountsPage> {
       case 'Kredytowa':
         return const Icon(Icons.credit_card, size: 20, color: Colors.white);
       default:
-        return const Icon(
-          Icons.account_balance_wallet,
-          size: 20,
-          color: Colors.white,
-        );
+        return const Icon(Icons.account_balance_wallet, size: 20, color: Colors.white);
     }
   }
 

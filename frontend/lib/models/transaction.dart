@@ -28,16 +28,8 @@ class Transaction {
       amount: (json['amount'] as num).toDouble(),
       type: json['type'] as String,
       description: json['description'] as String,
-      categoryId:
-          json['category'] != null
-              ? (json['category'] is String
-                  ? json['category'] as String
-                  : json['category']['id'] as String)
-              : '',
-      categoryName:
-          json['category'] != null && json['category'] is Map
-              ? json['category']['name'] as String?
-              : null,
+      categoryId: json['category'] != null ? (json['category'] is String ? json['category'] as String : json['category']['id'] as String) : '',
+      categoryName: json['category'] != null && json['category'] is Map ? json['category']['name'] as String? : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
