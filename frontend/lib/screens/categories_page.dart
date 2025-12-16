@@ -18,7 +18,7 @@ class CategoriesPage extends StatefulWidget {
 }
 
 class _CategoriesPageState extends State<CategoriesPage> {
-  final CategoryServiceInterface _categoryService = CategoryService();
+  final CategoryService _categoryService = RestCategoryService();
   List<CategoryWithLevel> _hierarchicalCategories = [];
   bool _isLoading = false;
 

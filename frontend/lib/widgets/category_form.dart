@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../models/http_exception.dart';
 import '../services/category_service.dart';
+import 'searchable_category_dropdown.dart';
 
 class CategoryForm extends StatefulWidget {
   final Category? category;
   final void Function(Category) onSaved;
-  final CategoryServiceInterface? categoryService;
+  final CategoryService? categoryService;
   final String? defaultType;
 
   const CategoryForm({super.key, this.category, required this.onSaved, this.categoryService, this.defaultType})
@@ -19,7 +20,7 @@ class CategoryForm extends StatefulWidget {
 
 class _CategoryFormState extends State<CategoryForm> {
   final _formKey = GlobalKey<FormState>();
-  late final CategoryServiceInterface _categoryService;
+  late final CategoryService _categoryService;
 
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
@@ -37,7 +38,7 @@ class _CategoryFormState extends State<CategoryForm> {
   void initState() {
     super.initState();
 
-    _categoryService = widget.categoryService ?? CategoryService();
+    _categoryService = widget.categoryService ?? RestCategoryService();
 
     _nameController = TextEditingController(text: widget.category?.name ?? '');
     _descriptionController = TextEditingController(text: widget.category?.description ?? '');
@@ -156,43 +157,37 @@ class _CategoryFormState extends State<CategoryForm> {
             ),
             const SizedBox(height: 16),
 
-            DropdownButtonFormField<String?>(
-              initialValue: _selectedParentId,
-              decoration: InputDecoration(
-                labelText: 'Kategoria nadrzędna',
-                border: const OutlineInputBorder(),
-                hintText: _isLoadingParentCategories ? 'Ładowanie kategorii...' : 'Wybierz kategorię nadrzędną',
-                helperText:
-                    _isLoadingParentCategories
-                        ? 'Ładowanie...'
-                        : _availableParentCategories.isEmpty
-                        ? 'Brak dostępnych kategorii nadrzędnych'
-                        : 'Dostępne: ${_availableParentCategories.length} kategorii',
-              ),
-              items: [
-                const DropdownMenuItem<String?>(value: null, child: Text('Brak (kategoria główna)')),
-                ..._availableParentCategories.map((category) {
-                  return DropdownMenuItem<String?>(
-                    value: category.id,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(color: Color(int.parse(category.color.substring(1), radix: 16) + 0xFF000000), shape: BoxShape.circle),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(category.name),
-                      ],
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _selectedParentId == null,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            _selectedParentId = null;
+                          }
+                        });
+                      },
                     ),
-                  );
-                }),
+                    const Text('Kategoria główna (brak rodzica)'),
+                  ],
+                ),
+                if (_selectedParentId != null || !_isLoadingParentCategories && _availableParentCategories.isNotEmpty)
+                  SearchableCategoryDropdown(
+                    transactionType: _selectedType,
+                    selectedCategoryId: _selectedParentId,
+                    onChanged: (categoryId) {
+                      setState(() {
+                        _selectedParentId = categoryId;
+                      });
+                    },
+                    enabled: _selectedParentId != null,
+                    categoryService: _categoryService,
+                  ),
               ],
-              onChanged: (String? value) {
-                setState(() {
-                  _selectedParentId = value;
-                });
-              },
             ),
             const SizedBox(height: 16),
 

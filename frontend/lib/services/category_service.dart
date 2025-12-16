@@ -2,7 +2,7 @@ import '../models/category.dart';
 import 'auth_service.dart';
 import 'http_client.dart';
 
-abstract class CategoryServiceInterface {
+abstract class CategoryService {
   Future<List<Category>> getCategories();
 
   Future<List<Category>> getCategoriesByType(String type);
@@ -14,10 +14,10 @@ abstract class CategoryServiceInterface {
   Future<void> deleteCategory(String categoryId);
 }
 
-class CategoryService implements CategoryServiceInterface {
+class RestCategoryService implements CategoryService {
   final ApiClient _apiClient;
 
-  CategoryService({AuthService? authService}) : _apiClient = ApiClient(authService ?? AuthService());
+  RestCategoryService({AuthService? authService}) : _apiClient = ApiClient(authService ?? AuthService());
 
   @override
   Future<List<Category>> getCategories() async {
