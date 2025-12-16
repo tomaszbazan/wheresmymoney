@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/category_type.dart';
 
 import '../services/category_service.dart';
 import 'searchable_category_dropdown.dart';
 
 class CategorySelector extends StatelessWidget {
   final String? selectedCategoryId;
-  final String transactionType;
+  final CategoryType transactionType;
   final void Function(String?) onChanged;
   final CategoryService? categoryService;
   final String? Function(String?)? validator;

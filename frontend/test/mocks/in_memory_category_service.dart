@@ -1,4 +1,5 @@
 import 'package:frontend/models/category.dart';
+import 'package:frontend/models/category_type.dart';
 import 'package:frontend/services/category_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -16,7 +17,7 @@ class InMemoryCategoryService implements CategoryService {
   }
 
   @override
-  Future<List<Category>> getCategoriesByType(String type) async {
+  Future<List<Category>> getCategoriesByType(CategoryType type) async {
     if (_apiError != null) {
       throw _apiError!;
     }
@@ -25,22 +26,13 @@ class InMemoryCategoryService implements CategoryService {
   }
 
   @override
-  Future<Category> createCategory({required String name, required String description, required String type, required String color, String? parentId}) async {
+  Future<Category> createCategory({required String name, required String description, required CategoryType type, required String color, String? parentId}) async {
     if (_apiError != null) {
       throw _apiError!;
     }
 
     final id = const Uuid().v4();
-    final category = Category(
-      id: id,
-      name: name,
-      description: description,
-      type: type.toUpperCase(),
-      color: color,
-      parentId: parentId,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
+    final category = Category(id: id, name: name, description: description, type: type, color: color, parentId: parentId, createdAt: DateTime.now(), updatedAt: DateTime.now());
     _categories[id] = category;
     return category;
   }
@@ -79,13 +71,13 @@ class InMemoryCategoryService implements CategoryService {
     _categories.remove(categoryId);
   }
 
-  Future<Category> addCategory(String name, {String? description, String? type, String? color, String? parentId}) async {
+  Future<Category> addCategory(String name, {String? description, CategoryType? type, String? color, String? parentId}) async {
     final id = const Uuid().v4();
     final category = Category(
       id: id,
       name: name,
       description: description ?? '',
-      type: type ?? 'EXPENSE',
+      type: type ?? CategoryType.expense,
       color: color ?? '#FF5722',
       parentId: parentId,
       createdAt: DateTime.now(),

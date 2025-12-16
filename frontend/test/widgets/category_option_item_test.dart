@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/category.dart';
+import 'package:frontend/models/category_type.dart';
 import 'package:frontend/widgets/category_option_item.dart';
 
 void main() {
@@ -18,7 +19,15 @@ void main() {
     }
 
     testWidgets('should render category name', (WidgetTester tester) async {
-      final category = Category(id: '1', name: 'Food', description: 'Food expenses', type: 'EXPENSE', color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now());
+      final category = Category(
+        id: '1',
+        name: 'Food',
+        description: 'Food expenses',
+        type: CategoryType.expense,
+        color: '#FF5722',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: CategoryOptionItem(category: category, level: 0, parseColor: parseColor))));
 
@@ -26,7 +35,15 @@ void main() {
     });
 
     testWidgets('should display color indicator with correct color', (WidgetTester tester) async {
-      final category = Category(id: '1', name: 'Food', description: 'Food expenses', type: 'EXPENSE', color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now());
+      final category = Category(
+        id: '1',
+        name: 'Food',
+        description: 'Food expenses',
+        type: CategoryType.expense,
+        color: '#FF5722',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: CategoryOptionItem(category: category, level: 0, parseColor: parseColor))));
 
@@ -44,7 +61,15 @@ void main() {
     });
 
     testWidgets('should apply correct indentation for level 0', (WidgetTester tester) async {
-      final category = Category(id: '1', name: 'Food', description: 'Food expenses', type: 'EXPENSE', color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now());
+      final category = Category(
+        id: '1',
+        name: 'Food',
+        description: 'Food expenses',
+        type: CategoryType.expense,
+        color: '#FF5722',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: CategoryOptionItem(category: category, level: 0, parseColor: parseColor))));
 
@@ -57,7 +82,7 @@ void main() {
         id: '2',
         name: 'Groceries',
         description: 'Grocery expenses',
-        type: 'EXPENSE',
+        type: CategoryType.expense,
         color: '#4CAF50',
         parentId: '1',
         createdAt: DateTime.now(),
@@ -75,7 +100,7 @@ void main() {
         id: '3',
         name: 'Vegetables',
         description: 'Vegetable expenses',
-        type: 'EXPENSE',
+        type: CategoryType.expense,
         color: '#8BC34A',
         parentId: '2',
         createdAt: DateTime.now(),

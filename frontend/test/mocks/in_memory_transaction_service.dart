@@ -1,4 +1,5 @@
 import 'package:frontend/models/transaction.dart';
+import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/services/transaction_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -30,7 +31,7 @@ class InMemoryTransactionService implements TransactionServiceInterface {
     required double amount,
     required String description,
     required DateTime date,
-    required String type,
+    required TransactionType type,
     required String categoryId,
     required String currency,
   }) async {

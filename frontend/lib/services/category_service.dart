@@ -1,13 +1,14 @@
 import '../models/category.dart';
+import '../models/category_type.dart';
 import 'auth_service.dart';
 import 'http_client.dart';
 
 abstract class CategoryService {
   Future<List<Category>> getCategories();
 
-  Future<List<Category>> getCategoriesByType(String type);
+  Future<List<Category>> getCategoriesByType(CategoryType type);
 
-  Future<Category> createCategory({required String name, required String description, required String type, required String color, String? parentId});
+  Future<Category> createCategory({required String name, required String description, required CategoryType type, required String color, String? parentId});
 
   Future<Category> updateCategory({required String id, required String name, required String description, required String color, String? parentId});
 
@@ -25,13 +26,19 @@ class RestCategoryService implements CategoryService {
   }
 
   @override
-  Future<List<Category>> getCategoriesByType(String type) async {
-    return await _apiClient.getList<Category>('/categories?type=$type', 'categories', Category.fromJson);
+  Future<List<Category>> getCategoriesByType(CategoryType type) async {
+    return await _apiClient.getList<Category>('/categories?type=${type.name.toUpperCase()}', 'categories', Category.fromJson);
   }
 
   @override
-  Future<Category> createCategory({required String name, required String description, required String type, required String color, String? parentId}) async {
-    final Map<String, dynamic> categoryData = {'name': name, 'description': description, 'type': type.toUpperCase(), 'color': color, if (parentId != null) 'parentId': parentId};
+  Future<Category> createCategory({required String name, required String description, required CategoryType type, required String color, String? parentId}) async {
+    final Map<String, dynamic> categoryData = {
+      'name': name,
+      'description': description,
+      'type': type.name.toUpperCase(),
+      'color': color,
+      if (parentId != null) 'parentId': parentId,
+    };
 
     return await _apiClient.post<Category>('/categories', categoryData, Category.fromJson);
   }

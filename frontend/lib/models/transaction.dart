@@ -1,8 +1,10 @@
+import 'package:frontend/models/transaction_type.dart';
+
 class Transaction {
   final String id;
   final String accountId;
   final double amount;
-  final String type;
+  final TransactionType type;
   final String description;
   final String categoryId;
   final String? categoryName;
@@ -26,7 +28,7 @@ class Transaction {
       id: json['id'] as String,
       accountId: json['accountId'] as String,
       amount: (json['amount'] as num).toDouble(),
-      type: json['type'] as String,
+      type: json['type'] as String == 'INCOME' ? TransactionType.income : TransactionType.expense,
       description: json['description'] as String,
       categoryId: json['category'] != null ? (json['category'] is String ? json['category'] as String : json['category']['id'] as String) : '',
       categoryName: json['category'] != null && json['category'] is Map ? json['category']['name'] as String? : null,
@@ -49,7 +51,7 @@ class Transaction {
     };
   }
 
-  bool get isIncome => type == 'INCOME';
+  bool get isIncome => type == TransactionType.income;
 
-  bool get isExpense => type == 'EXPENSE';
+  bool get isExpense => type == TransactionType.expense;
 }

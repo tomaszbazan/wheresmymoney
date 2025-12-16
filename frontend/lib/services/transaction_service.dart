@@ -1,3 +1,4 @@
+import 'package:frontend/models/transaction_type.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/transaction.dart';
@@ -14,7 +15,7 @@ abstract class TransactionServiceInterface {
     required double amount,
     required String description,
     required DateTime date,
-    required String type,
+    required TransactionType type,
     required String categoryId,
     required String currency,
   });
@@ -44,7 +45,7 @@ class TransactionService implements TransactionServiceInterface {
     required double amount,
     required String description,
     required DateTime date,
-    required String type,
+    required TransactionType type,
     required String categoryId,
     required String currency,
   }) async {
@@ -53,7 +54,7 @@ class TransactionService implements TransactionServiceInterface {
       'amount': {'value': amount, 'currency': currency.toUpperCase()},
       'description': description,
       'date': date.toUtc().toIso8601String(),
-      'type': type.toUpperCase(),
+      'type': type.name.toUpperCase(),
       'categoryId': categoryId,
     };
 

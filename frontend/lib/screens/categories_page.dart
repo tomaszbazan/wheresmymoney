@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../models/category.dart';
+import '../models/category_type.dart';
 import '../models/http_exception.dart';
-import '../models/transaction_type.dart';
 import '../services/category_service.dart';
 import '../utils/category_hierarchy.dart';
 import '../widgets/category_form.dart';
 import '../widgets/category_list_item.dart';
 
 class CategoriesPage extends StatefulWidget {
-  final TransactionType transactionType;
+  final CategoryType transactionType;
 
   const CategoriesPage({super.key, required this.transactionType});
 
@@ -22,9 +22,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   List<CategoryWithLevel> _hierarchicalCategories = [];
   bool _isLoading = false;
 
-  bool get _isExpense => widget.transactionType == TransactionType.expense;
-
-  String get _categoryTypeString => _isExpense ? 'EXPENSE' : 'INCOME';
+  bool get _isExpense => widget.transactionType == CategoryType.expense;
 
   @override
   void initState() {
@@ -36,7 +34,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
     setState(() => _isLoading = true);
 
     try {
-      final categories = await _categoryService.getCategoriesByType(_categoryTypeString);
+      final categories = await _categoryService.getCategoriesByType(widget.transactionType);
       setState(() {
         _hierarchicalCategories = CategoryHierarchy.buildHierarchy(categories);
       });
@@ -63,7 +61,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
               constraints: const BoxConstraints(maxHeight: 600),
               child: CategoryForm(
                 category: category,
-                defaultType: _categoryTypeString,
+                defaultType: CategoryType.expense,
                 onSaved: (newCategory) {
                   Navigator.of(context).pop();
                   _loadCategories();

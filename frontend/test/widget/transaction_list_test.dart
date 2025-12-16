@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
 import 'package:frontend/models/transaction.dart';
+import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/widgets/transaction_list.dart';
 
 void main() {
@@ -21,7 +22,7 @@ void main() {
           id: 't1',
           accountId: '1',
           amount: 100.0,
-          type: 'INCOME',
+          type: TransactionType.income,
           description: 'PLN Transaction',
           categoryId: 'salary-id',
           categoryName: 'Salary',
@@ -32,7 +33,7 @@ void main() {
           id: 't2',
           accountId: '2',
           amount: -50.0,
-          type: 'EXPENSE',
+          type: TransactionType.expense,
           description: 'USD Transaction',
           categoryId: 'food-id',
           categoryName: 'Food',
@@ -43,7 +44,7 @@ void main() {
           id: 't3',
           accountId: '3',
           amount: 75.0,
-          type: 'INCOME',
+          type: TransactionType.income,
           description: 'EUR Transaction',
           categoryId: 'freelance-id',
           categoryName: 'Freelance',
@@ -68,7 +69,7 @@ void main() {
         id: 't4',
         accountId: '4',
         amount: 200.0,
-        type: 'INCOME',
+        type: TransactionType.income,
         description: 'No Currency Transaction',
         categoryId: 'bonus-id',
         categoryName: 'Bonus',
@@ -88,7 +89,7 @@ void main() {
         id: 't5',
         accountId: 'unknown-account-id',
         amount: 150.0,
-        type: 'INCOME',
+        type: TransactionType.income,
         description: 'Orphan Transaction',
         categoryId: 'unknown-id',
         categoryName: 'Unknown',

@@ -1,8 +1,10 @@
+import 'package:frontend/models/category_type.dart';
+
 class Category {
   final String id;
   final String name;
   final String description;
-  final String type;
+  final CategoryType type;
   final String color;
   final String? parentId;
   final DateTime createdAt;
@@ -24,7 +26,7 @@ class Category {
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
-      type: json['type'] as String,
+      type: json['type'] as String == 'INCOME' ? CategoryType.income : CategoryType.expense,
       color: json['color'] as String,
       parentId: json['parentId'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -45,9 +47,9 @@ class Category {
     };
   }
 
-  bool get isIncome => type == 'INCOME';
+  bool get isIncome => type == CategoryType.income;
 
-  bool get isExpense => type == 'EXPENSE';
+  bool get isExpense => type == CategoryType.expense;
 
   bool get hasParent => parentId != null;
 

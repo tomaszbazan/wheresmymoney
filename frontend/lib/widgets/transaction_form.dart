@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/category_type.dart';
+import 'package:frontend/models/transaction_type.dart';
 
 import '../models/account.dart';
 import '../models/http_exception.dart';
@@ -9,7 +11,7 @@ import 'category_selector.dart';
 class TransactionForm extends StatefulWidget {
   final List<Account> accounts;
   final Transaction? transaction;
-  final String? type;
+  final TransactionType? type;
   final void Function(Transaction) onSaved;
   final TransactionServiceInterface? transactionService;
 
@@ -42,7 +44,7 @@ class _TransactionFormState extends State<TransactionForm> {
   late TextEditingController _descriptionController;
 
   String? _selectedAccountId;
-  String? _selectedType;
+  TransactionType? _selectedType;
   String? _selectedCategoryId;
   String _selectedCurrency = 'PLN';
   DateTime _selectedDate = DateTime.now();
@@ -209,7 +211,7 @@ class _TransactionFormState extends State<TransactionForm> {
 
             CategorySelector(
               selectedCategoryId: _selectedCategoryId,
-              transactionType: _selectedType ?? 'EXPENSE',
+              transactionType: (_selectedType ?? TransactionType.expense) == TransactionType.income ? CategoryType.income : CategoryType.expense,
               onChanged: (categoryId) {
                 setState(() {
                   _selectedCategoryId = categoryId;

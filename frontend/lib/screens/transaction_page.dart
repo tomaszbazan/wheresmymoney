@@ -65,7 +65,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               width: 500,
               child: TransactionForm(
                 accounts: _accounts,
-                type: widget.type == TransactionType.income ? 'INCOME' : 'EXPENSE',
+                type: widget.type,
                 onSaved: (transaction) {
                   Navigator.of(context).pop();
                   _loadData();
