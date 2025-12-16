@@ -31,8 +31,8 @@ class ApiClient {
   late final AuthenticatedHttpClient _httpClient;
   final AuthService _authService;
 
-  ApiClient(AuthService authService) : _authService = authService {
-    _httpClient = AuthenticatedHttpClient(http.Client(), _authService);
+  ApiClient(AuthService authService, {http.Client? httpClient}) : _authService = authService {
+    _httpClient = AuthenticatedHttpClient(httpClient ?? http.Client(), _authService);
   }
 
   Future<T> get<T>(String endpoint, T Function(Map<String, dynamic>) fromJson) async {

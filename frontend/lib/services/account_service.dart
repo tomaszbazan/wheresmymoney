@@ -1,3 +1,5 @@
+import 'package:http/http.dart' as http;
+
 import '../models/account.dart';
 import 'auth_service.dart';
 import 'http_client.dart';
@@ -11,7 +13,7 @@ abstract class AccountService {
 class RestAccountService implements AccountService {
   final ApiClient _apiClient;
 
-  RestAccountService({AuthService? authService}) : _apiClient = ApiClient(authService ?? AuthService());
+  RestAccountService({AuthService? authService, http.Client? httpClient}) : _apiClient = ApiClient(authService ?? AuthService(), httpClient: httpClient);
 
   @override
   Future<List<Account>> getAccounts() async {

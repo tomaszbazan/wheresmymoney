@@ -89,30 +89,6 @@ class InMemoryTransactionService implements TransactionServiceInterface {
     _transactions.remove(transactionId);
   }
 
-  Future<Transaction> addTransaction({
-    required String accountId,
-    required double amount,
-    required String description,
-    required DateTime date,
-    required String type,
-    required String categoryId,
-  }) async {
-    final id = const Uuid().v4();
-    final transaction = Transaction(
-      id: id,
-      accountId: accountId,
-      amount: amount,
-      description: description,
-      createdAt: date,
-      updatedAt: date,
-      type: type,
-      categoryId: categoryId,
-      categoryName: null,
-    );
-    _transactions[id] = transaction;
-    return transaction;
-  }
-
   void clear() {
     _transactions.clear();
     _apiError = null;
