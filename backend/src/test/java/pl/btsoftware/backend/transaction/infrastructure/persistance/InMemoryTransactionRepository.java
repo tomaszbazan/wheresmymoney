@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.infrastructure.persistance;
 
 import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
@@ -47,5 +48,13 @@ public class InMemoryTransactionRepository implements TransactionRepository {
                 .filter(transaction -> transaction.ownedBy().equals(groupId))
                 .filter(transaction -> !transaction.tombstone().isDeleted())
                 .toList();
+    }
+
+    @Override
+    public boolean existsByCategoryId(CategoryId categoryId, GroupId groupId) {
+        return database.values().stream()
+                .anyMatch(transaction -> transaction.categoryId().equals(categoryId)
+                        && transaction.ownedBy().equals(groupId)
+                        && !transaction.tombstone().isDeleted());
     }
 }

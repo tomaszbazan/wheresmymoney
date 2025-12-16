@@ -15,6 +15,7 @@ import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.application.CreateCategoryCommand;
 import pl.btsoftware.backend.category.application.UpdateCategoryCommand;
 import pl.btsoftware.backend.category.domain.Category;
+import pl.btsoftware.backend.category.domain.error.CategoryHasTransactionsException;
 import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.shared.CategoryId;
@@ -243,6 +244,23 @@ public class CategoryControllerTest {
                         .with(createTokenFor(userId.value())))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Category not found with id: " + nonExistentId)));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenDeletingCategoryWithTransactions() throws Exception {
+        // given
+        var userId = UserId.generate();
+        var categoryId = randomUUID();
+
+        doThrow(new CategoryHasTransactionsException(CategoryId.of(categoryId)))
+                .when(categoryModuleFacade).deleteCategory(categoryId, userId);
+
+        // when & then
+        mockMvc.perform(delete("/api/categories/" + categoryId)
+                        .contentType(APPLICATION_JSON)
+                        .with(createTokenFor(userId.value())))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Category cannot be deleted because it has associated transactions")));
     }
 
     private Category createCategory(CategoryId categoryId, String name, CategoryType type, String color) {

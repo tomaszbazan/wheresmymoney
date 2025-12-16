@@ -2,12 +2,15 @@ package pl.btsoftware.backend.transaction;
 
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.users.UsersModuleFacade;
+import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.List;
@@ -17,6 +20,7 @@ import java.util.UUID;
 public class TransactionModuleFacade {
     private final TransactionService transactionService;
     private final UsersModuleFacade usersModuleFacade;
+    private final TransactionRepository transactionRepository;
 
     public Transaction createTransaction(CreateTransactionCommand command) {
         return transactionService.createTransaction(command);
@@ -43,5 +47,9 @@ public class TransactionModuleFacade {
 
     public void deleteTransaction(UUID transactionId, UserId userId) {
         transactionService.deleteTransaction(TransactionId.of(transactionId), userId);
+    }
+
+    public boolean categoryHasTransactions(CategoryId categoryId, GroupId groupId) {
+        return transactionRepository.existsByCategoryId(categoryId, groupId);
     }
 }

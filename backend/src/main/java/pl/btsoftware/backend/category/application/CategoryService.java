@@ -6,10 +6,12 @@ import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.category.domain.CategoryRepository;
 import pl.btsoftware.backend.category.domain.error.CategoryAccessDeniedException;
+import pl.btsoftware.backend.category.domain.error.CategoryHasTransactionsException;
 import pl.btsoftware.backend.category.domain.error.CategoryHierarchyTooDeepException;
 import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
+import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -20,6 +22,7 @@ import java.util.List;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final UsersModuleFacade usersModuleFacade;
+    private final TransactionModuleFacade transactionModuleFacade;
 
     @Transactional
     public Category createCategory(CreateCategoryCommand command) {
@@ -67,6 +70,10 @@ public class CategoryService {
 
         if (!category.ownedBy().equals(user.groupId())) {
             throw new CategoryAccessDeniedException();
+        }
+
+        if (transactionModuleFacade.categoryHasTransactions(categoryId, user.groupId())) {
+            throw new CategoryHasTransactionsException(categoryId);
         }
 
         var deletedCategory = category.delete();

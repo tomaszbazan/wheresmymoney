@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.domain;
 
 import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.users.domain.GroupId;
 
@@ -13,4 +14,5 @@ public interface TransactionRepository {
     Optional<Transaction> findByIdIncludingDeleted(TransactionId id, GroupId groupId);
     List<Transaction> findAll(GroupId groupId);
     List<Transaction> findByAccountId(AccountId accountId, GroupId groupId);
+    boolean existsByCategoryId(CategoryId categoryId, GroupId groupId);
 }

@@ -27,8 +27,10 @@ public class TransactionModuleConfiguration {
     }
 
     @Bean
-    public TransactionModuleFacade transactionModuleFacade(TransactionService transactionService, UsersModuleFacade usersModuleFacade) {
-        return new TransactionModuleFacade(transactionService, usersModuleFacade);
+    public TransactionModuleFacade transactionModuleFacade(TransactionService transactionService,
+                                                           UsersModuleFacade usersModuleFacade,
+                                                           TransactionRepository transactionRepository) {
+        return new TransactionModuleFacade(transactionService, usersModuleFacade, transactionRepository);
     }
 
     @Bean

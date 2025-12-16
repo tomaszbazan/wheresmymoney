@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.category.domain.Category;
+import pl.btsoftware.backend.category.domain.error.CategoryHasTransactionsException;
 import pl.btsoftware.backend.category.domain.error.CategoryHierarchyTooDeepException;
 import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.category.infrastructure.persistance.InMemoryCategoryRepository;
@@ -11,6 +12,7 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.shared.Color;
 import pl.btsoftware.backend.shared.Tombstone;
+import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
@@ -26,6 +28,7 @@ class CategoryServiceTest {
     private CategoryService categoryService;
     private InMemoryCategoryRepository categoryRepository;
     private UsersModuleFacade usersModuleFacade;
+    private TransactionModuleFacade transactionModuleFacade;
     private User testUser;
     private GroupId testGroupId;
 
@@ -33,7 +36,8 @@ class CategoryServiceTest {
     void setUp() {
         categoryRepository = new InMemoryCategoryRepository();
         usersModuleFacade = mock(UsersModuleFacade.class);
-        categoryService = new CategoryService(categoryRepository, usersModuleFacade);
+        transactionModuleFacade = mock(TransactionModuleFacade.class);
+        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionModuleFacade);
 
         testGroupId = GroupId.generate();
         testUser = createUser(UserId.generate(), testGroupId);
@@ -419,5 +423,32 @@ class CategoryServiceTest {
             }
             return null;
         });
+    }
+
+    @Test
+    void shouldThrowCategoryHasTransactionsExceptionWhenDeletingCategoryWithActiveTransactions() {
+        var categoryId = CategoryId.generate();
+        var category = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
+        categoryRepository.store(category);
+
+        when(transactionModuleFacade.categoryHasTransactions(categoryId, testGroupId)).thenReturn(true);
+
+        assertThatThrownBy(() -> categoryService.deleteCategory(categoryId, testUser.id()))
+                .isInstanceOf(CategoryHasTransactionsException.class);
+    }
+
+    @Test
+    void shouldAllowDeletingCategoryWithoutTransactions() {
+        var categoryId = CategoryId.generate();
+        var category = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
+        categoryRepository.store(category);
+
+        when(transactionModuleFacade.categoryHasTransactions(categoryId, testGroupId)).thenReturn(false);
+
+        categoryService.deleteCategory(categoryId, testUser.id());
+
+        var deletedCategory = categoryRepository.findByIdIncludingDeleted(categoryId, testGroupId);
+        assertThat(deletedCategory).isPresent();
+        assertThat(deletedCategory.get().isDeleted()).isTrue();
     }
 }
