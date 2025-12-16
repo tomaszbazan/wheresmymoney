@@ -16,8 +16,7 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen>
-    with SingleTickerProviderStateMixin {
+class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   bool _isMenuExpanded = true;
   late TabController _tabController;
@@ -68,47 +67,24 @@ class _MainScreenState extends State<MainScreen>
       return Scaffold(
         appBar: AppBar(
           title: const Text('Where\'s My Money'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout, color: Colors.red),
-              onPressed: () => _showLogoutDialog(context),
-            ),
-          ],
+          actions: [IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: () => _showLogoutDialog(context))],
         ),
-        body: TabBarView(
-          controller: _tabController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: _pages,
-        ),
-        bottomNavigationBar: BottomNavigation(
-          selectedIndex: _selectedIndex,
-          onItemTapped: _onItemTapped,
-        ),
+        body: TabBarView(controller: _tabController, physics: const NeverScrollableScrollPhysics(), children: _pages),
+        bottomNavigationBar: BottomNavigation(selectedIndex: _selectedIndex, onItemTapped: _onItemTapped),
       );
     }
 
     return Scaffold(
       body: Row(
         children: [
-          SideMenu(
-            isExpanded: _isMenuExpanded,
-            selectedIndex: _selectedIndex,
-            onItemTapped: _onItemTapped,
-            onToggle: _toggleMenu,
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: _pages,
-            ),
-          ),
+          SideMenu(isExpanded: _isMenuExpanded, selectedIndex: _selectedIndex, onItemTapped: _onItemTapped, onToggle: _toggleMenu),
+          Expanded(child: TabBarView(controller: _tabController, physics: const NeverScrollableScrollPhysics(), children: _pages)),
         ],
       ),
     );
   }
 
   void _showLogoutDialog(BuildContext context) {
-    showDialog(context: context, builder: (context) => const LogoutDialog());
+    showDialog<void>(context: context, builder: (context) => const LogoutDialog());
   }
 }

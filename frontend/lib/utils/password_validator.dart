@@ -23,9 +23,7 @@ class PasswordValidator {
       return 'Password must contain at least one digit';
     }
 
-    final hasSpecialChar = password.contains(
-      RegExp('[!@#\$%^&*()_+\\-=\\[\\]{};\':"\\\\|<>?,./`~]'),
-    );
+    final hasSpecialChar = password.contains(RegExp('[!@#\$%^&*()_+\\-=\\[\\]{};\':"\\\\|<>?,./`~]'));
     if (!hasSpecialChar) {
       return 'Password must contain at least one special character';
     }

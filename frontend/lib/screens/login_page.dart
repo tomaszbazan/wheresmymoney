@@ -32,16 +32,11 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _authService.signInWithEmail(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+      await _authService.signInWithEmail(_emailController.text.trim(), _passwordController.text);
     } catch (error) {
       if (mounted) {
         String errorMessage = _getErrorMessage(error);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     } finally {
       if (mounted) {
@@ -88,26 +83,14 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Where\'s My Money',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
+                  const Text('Where\'s My Money', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Sign in to your account',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
+                  const Text('Sign in to your account', style: TextStyle(fontSize: 16, color: Colors.grey), textAlign: TextAlign.center),
                   const SizedBox(height: 48),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
-                    ),
+                    decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
@@ -128,11 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
+                        icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
                         onPressed: () {
                           setState(() {
                             _obscurePassword = !_obscurePassword;
@@ -150,16 +129,8 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                    ),
-                    child:
-                        _isLoading
-                            ? const CircularProgressIndicator()
-                            : const Text(
-                              'Sign In',
-                              style: TextStyle(fontSize: 16),
-                            ),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
+                    child: _isLoading ? const CircularProgressIndicator() : const Text('Sign In', style: TextStyle(fontSize: 16)),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -168,9 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                       const Text('Don\'t have an account? '),
                       TextButton(
                         onPressed: () {
-                          Navigator.of(
-                            context,
-                          ).pushReplacementNamed('/register');
+                          Navigator.of(context).pushReplacementNamed('/register');
                         },
                         child: const Text('Sign Up'),
                       ),

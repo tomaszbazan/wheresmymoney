@@ -2,33 +2,24 @@ import '../models/account.dart';
 import 'auth_service.dart';
 import 'http_client.dart';
 
-abstract class AccountServiceInterface {
+abstract class AccountService {
   Future<List<Account>> getAccounts();
   Future<Account> createAccount(String name, {String? type, String? currency});
   Future<void> deleteAccount(String accountId);
 }
 
-class AccountService implements AccountServiceInterface {
+class RestAccountService implements AccountService {
   final ApiClient _apiClient;
 
-  AccountService({AuthService? authService})
-    : _apiClient = ApiClient(authService ?? AuthService());
+  RestAccountService({AuthService? authService}) : _apiClient = ApiClient(authService ?? AuthService());
 
   @override
   Future<List<Account>> getAccounts() async {
-    return await _apiClient.getList<Account>(
-      '/accounts',
-      'accounts',
-      Account.fromJson,
-    );
+    return await _apiClient.getList<Account>('/accounts', 'accounts', Account.fromJson);
   }
 
   @override
-  Future<Account> createAccount(
-    String name, {
-    String? type,
-    String? currency,
-  }) async {
+  Future<Account> createAccount(String name, {String? type, String? currency}) async {
     final Map<String, dynamic> accountData = {'name': name};
 
     if (type != null) {
@@ -39,11 +30,7 @@ class AccountService implements AccountServiceInterface {
       accountData['currency'] = currency;
     }
 
-    return await _apiClient.post<Account>(
-      '/accounts',
-      accountData,
-      Account.fromJson,
-    );
+    return await _apiClient.post<Account>('/accounts', accountData, Account.fromJson);
   }
 
   @override

@@ -23,16 +23,13 @@ class AuthService {
       final userJson = prefs.getString(_userKey);
 
       if (userJson != null) {
-        return app_user.User.fromJson(jsonDecode(userJson));
+        return app_user.User.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
       }
 
       return _fetchUserFromBackend();
     } catch (e) {
       if (e is AuthApiException && e.code == 'refresh_token_not_found') {
-        developer.log(
-          'Refresh token not found. Logging out.',
-          name: 'AuthService',
-        );
+        developer.log('Refresh token not found. Logging out.', name: 'AuthService');
         await signOut();
         return null;
       }
@@ -45,37 +42,18 @@ class AuthService {
     return session?.accessToken;
   }
 
-  Future<void> signUp({
-    required String email,
-    required String password,
-    required String displayName,
-    required String groupName,
-    String? invitationToken,
-  }) async {
-    final response = await _supabase.auth.signUp(
-      email: email,
-      password: password,
-      data: {'display_name': displayName},
-    );
+  Future<void> signUp({required String email, required String password, required String displayName, required String groupName, String? invitationToken}) async {
+    final response = await _supabase.auth.signUp(email: email, password: password, data: {'display_name': displayName});
 
     if (response.user == null) {
       throw Exception('Failed to create user account');
     }
 
-    await _registerUserWithoutToken(
-      externalAuthId: response.user!.id,
-      email: email,
-      displayName: displayName,
-      groupName: groupName,
-      invitationToken: invitationToken,
-    );
+    await _registerUserWithoutToken(externalAuthId: response.user!.id, email: email, displayName: displayName, groupName: groupName, invitationToken: invitationToken);
   }
 
   Future<app_user.User> signInWithEmail(String email, String password) async {
-    final response = await _supabase.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
+    final response = await _supabase.auth.signInWithPassword(email: email, password: password);
 
     if (response.user == null) {
       throw Exception('Invalid email or password');
@@ -110,11 +88,7 @@ class AuthService {
       if (invitationToken != null) 'invitationToken': invitationToken,
     };
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+    final response = await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode(body));
 
     if (response.statusCode != 201) {
       throw Exception('Failed to register user: ${response.body}');
@@ -127,16 +101,13 @@ class AuthService {
 
     final url = Uri.parse('${ApiConfig.backendUrl}/users/profile');
 
-    final response = await http.get(
-      url,
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    final response = await http.get(url, headers: {'Authorization': 'Bearer $token'});
 
     if (response.statusCode != 200) {
       throw Exception('Failed to fetch user profile: ${response.body}');
     }
 
-    return app_user.User.fromJson(jsonDecode(response.body));
+    return app_user.User.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   Future<void> _saveUserLocally(app_user.User user) async {

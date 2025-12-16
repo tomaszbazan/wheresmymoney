@@ -15,10 +15,7 @@ void main() async {
 
   final supabaseConfig = await SupabaseConfig.load();
 
-  await Supabase.initialize(
-    url: supabaseConfig.url,
-    anonKey: supabaseConfig.anonKey,
-  );
+  await Supabase.initialize(url: supabaseConfig.url, anonKey: supabaseConfig.anonKey);
 
   runApp(const MyApp());
 }
@@ -69,13 +66,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
           }
         });
       },
-      onError: (error) {
-        if (error is AuthApiException &&
-            error.code == 'refresh_token_not_found') {
-          developer.log(
-            'Refresh token not found. Logging out.',
-            name: 'AuthWrapper',
-          );
+      onError: (Object error) {
+        if (error is AuthApiException && error.code == 'refresh_token_not_found') {
+          developer.log('Refresh token not found. Logging out.', name: 'AuthWrapper');
           if (mounted) {
             setState(() {
               _isAuthenticated = false;
@@ -97,10 +90,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       }
     } catch (e) {
       if (e is AuthApiException && e.code == 'refresh_token_not_found') {
-        developer.log(
-          'Refresh token not found. Logging out.',
-          name: 'AuthWrapper',
-        );
+        developer.log('Refresh token not found. Logging out.', name: 'AuthWrapper');
       }
       if (mounted) {
         setState(() {

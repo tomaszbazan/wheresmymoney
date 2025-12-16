@@ -60,9 +60,7 @@ void main() {
     });
 
     test('should handle missing description in JSON', () {
-      final jsonWithoutDescription = Map<String, dynamic>.from(
-        sampleCategoryJson,
-      );
+      final jsonWithoutDescription = Map<String, dynamic>.from(sampleCategoryJson);
       jsonWithoutDescription.remove('description');
 
       final category = Category.fromJson(jsonWithoutDescription);

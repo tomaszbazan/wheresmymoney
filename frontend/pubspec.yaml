@@ -38,6 +38,7 @@ dependencies:
   intl: ^0.18.0
   supabase_flutter: ^2.3.4
   shared_preferences: ^2.2.2
+  uuid: ^4.4.2
 
 dev_dependencies:
   flutter_test:

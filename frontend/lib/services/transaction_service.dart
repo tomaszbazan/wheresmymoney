@@ -17,13 +17,7 @@ abstract class TransactionServiceInterface {
     required String currency,
   });
 
-  Future<Transaction> updateTransaction({
-    required String id,
-    required double amount,
-    required String description,
-    required String categoryId,
-    required String currency,
-  });
+  Future<Transaction> updateTransaction({required String id, required double amount, required String description, required String categoryId, required String currency});
 
   Future<void> deleteTransaction(String transactionId);
 }
@@ -31,24 +25,15 @@ abstract class TransactionServiceInterface {
 class TransactionService implements TransactionServiceInterface {
   final ApiClient _apiClient;
 
-  TransactionService({AuthService? authService})
-    : _apiClient = ApiClient(authService ?? AuthService());
+  TransactionService({AuthService? authService}) : _apiClient = ApiClient(authService ?? AuthService());
   @override
   Future<List<Transaction>> getTransactions() async {
-    return await _apiClient.getList<Transaction>(
-      '/transactions',
-      'transactions',
-      Transaction.fromJson,
-    );
+    return await _apiClient.getList<Transaction>('/transactions', 'transactions', Transaction.fromJson);
   }
 
   @override
   Future<List<Transaction>> getTransactionsByAccountId(String accountId) async {
-    return await _apiClient.getList<Transaction>(
-      '/accounts/$accountId/transactions',
-      'transactions',
-      Transaction.fromJson,
-    );
+    return await _apiClient.getList<Transaction>('/accounts/$accountId/transactions', 'transactions', Transaction.fromJson);
   }
 
   @override
@@ -70,32 +55,18 @@ class TransactionService implements TransactionServiceInterface {
       'categoryId': categoryId,
     };
 
-    return await _apiClient.post<Transaction>(
-      '/transactions',
-      transactionData,
-      Transaction.fromJson,
-    );
+    return await _apiClient.post<Transaction>('/transactions', transactionData, Transaction.fromJson);
   }
 
   @override
-  Future<Transaction> updateTransaction({
-    required String id,
-    required double amount,
-    required String description,
-    required String categoryId,
-    required String currency,
-  }) async {
+  Future<Transaction> updateTransaction({required String id, required double amount, required String description, required String categoryId, required String currency}) async {
     final Map<String, dynamic> transactionData = {
       'amount': {'value': amount, 'currency': currency.toUpperCase()},
       'description': description,
       'categoryId': categoryId,
     };
 
-    return await _apiClient.put<Transaction>(
-      '/transactions/$id',
-      transactionData,
-      Transaction.fromJson,
-    );
+    return await _apiClient.put<Transaction>('/transactions/$id', transactionData, Transaction.fromJson);
   }
 
   @override

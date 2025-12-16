@@ -2,21 +2,14 @@ class Account {
   final String id;
   final String name;
   final double balance;
-  final String? number;
-  final String? type;
   final String? currency;
+  final String? type;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-  Account({
-    required this.id,
-    required this.name,
-    required this.balance,
-    this.number,
-    this.type,
-    this.currency,
-  });
+  Account({required this.id, required this.name, required this.balance, this.currency, this.type, this.createdAt, this.updatedAt});
 
   factory Account.fromJson(Map<String, dynamic> json) {
-    // Konwersja wartości typu int do double jeśli potrzeba
     double balanceValue;
     if (json['balance'] is int) {
       balanceValue = (json['balance'] as int).toDouble();
@@ -28,20 +21,14 @@ class Account {
       id: json['id'] as String,
       name: json['name'] as String,
       balance: balanceValue,
-      number: json['number'] as String?,
-      // Domyślny typ konta, jeśli nie istnieje w odpowiedzi API
-      type: json['type'] as String? ?? 'Rachunek bieżący',
       currency: json['currency'] as String?,
+      type: json['type'] as String? ?? 'Rachunek bieżący',
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'balance': balance,
-      'number': number,
-      'type': type,
-    };
+    return {'id': id, 'name': name, 'balance': balance, 'currency': currency, 'type': type, 'created_at': createdAt, 'updated_at': updatedAt};
   }
 }

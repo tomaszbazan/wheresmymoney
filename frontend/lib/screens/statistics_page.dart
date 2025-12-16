@@ -10,10 +10,7 @@ class StatisticsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Statystyki wydatków',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
+          const Text('Statystyki wydatków', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
           Card(
             child: Padding(
@@ -21,10 +18,7 @@ class StatisticsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Podsumowanie miesiąca',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Podsumowanie miesiąca', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   _buildStatRow('Suma wydatków', '475.50 zł'),
                   _buildStatRow('Największy wydatek', '230.00 zł (Mieszkanie)'),
@@ -34,10 +28,7 @@ class StatisticsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Wydatki według kategorii',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          const Text('Wydatki według kategorii', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           _buildCategoryBar('Jedzenie', 0.25, Colors.green),
           _buildCategoryBar('Mieszkanie', 0.48, Colors.blue),
@@ -53,13 +44,7 @@ class StatisticsPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ],
+        children: [Text(label, style: const TextStyle(fontSize: 16)), Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))],
       ),
     );
   }
@@ -70,17 +55,9 @@ class StatisticsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$category - ${(percentage * 100).toInt()}%',
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text('$category - ${(percentage * 100).toInt()}%', style: const TextStyle(fontSize: 16)),
           const SizedBox(height: 4),
-          LinearProgressIndicator(
-            value: percentage,
-            minHeight: 10,
-            backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
+          LinearProgressIndicator(value: percentage, minHeight: 10, backgroundColor: Colors.grey[300], valueColor: AlwaysStoppedAnimation<Color>(color)),
         ],
       ),
     );
