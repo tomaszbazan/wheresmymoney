@@ -42,7 +42,6 @@ services:
       supabase-auth:
         condition: service_healthy
 
-
   postgres:
     image: postgres:17
     container_name: WheresMyMoney-db
@@ -52,6 +51,8 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U wheresmymoney" ]
       interval: 5s

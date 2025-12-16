@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/category.dart';
+import 'package:frontend/models/category_type.dart';
 
 void main() {
   group('Category Model', () {
@@ -31,7 +32,7 @@ void main() {
       expect(category.id, equals('test-id-123'));
       expect(category.name, equals('Food'));
       expect(category.description, equals('Food expenses'));
-      expect(category.type, equals('EXPENSE'));
+      expect(category.type, equals(CategoryType.expense));
       expect(category.color, equals('#FF5722'));
       expect(category.parentId, isNull);
       expect(category.isTopLevel, isTrue);
@@ -55,7 +56,7 @@ void main() {
       expect(json['id'], equals('test-child-123'));
       expect(json['name'], equals('Restaurants'));
       expect(json['parentId'], equals('test-parent-123'));
-      expect(json['type'], equals('EXPENSE'));
+      expect(json['type'], equals(CategoryType.expense));
       expect(json['color'], equals('#FF9800'));
     });
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/http_exception.dart';
+import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/services/transaction_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -49,7 +50,7 @@ void main() {
       expect(transactions, hasLength(1));
       expect(transactions.first.id, 'trans-1');
       expect(transactions.first.amount, 100.0);
-      expect(transactions.first.type, 'INCOME');
+      expect(transactions.first.type, TransactionType.income);
     });
 
     test('getTransactions returns empty list when no transactions key', () async {
@@ -144,7 +145,7 @@ void main() {
         amount: 100.0,
         description: 'Test transaction',
         date: DateTime(2024, 1, 1),
-        type: 'income',
+        type: TransactionType.income,
         categoryId: 'cat-1',
         currency: 'pln',
       );
@@ -181,7 +182,7 @@ void main() {
         amount: 50.0,
         description: 'Coffee',
         date: DateTime(2024, 1, 1),
-        type: 'expense',
+        type: TransactionType.expense,
         categoryId: 'cat-1',
         currency: 'usd',
       );
@@ -200,7 +201,7 @@ void main() {
           amount: 100.0,
           description: 'Test',
           date: DateTime.now(),
-          type: 'income',
+          type: TransactionType.income,
           categoryId: 'cat-1',
           currency: 'pln',
         ),

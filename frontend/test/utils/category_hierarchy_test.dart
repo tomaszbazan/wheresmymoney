@@ -1,14 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/category.dart';
+import 'package:frontend/models/category_type.dart';
 import 'package:frontend/utils/category_hierarchy.dart';
 
 void main() {
   group('CategoryHierarchy', () {
     test('should sort top-level categories alphabetically', () {
       final categories = [
-        Category(id: '3', name: 'Transport', description: '', type: 'EXPENSE', color: '#2196F3', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Category(id: '1', name: 'Food', description: '', type: 'EXPENSE', color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Category(id: '2', name: 'Entertainment', description: '', type: 'EXPENSE', color: '#9C27B0', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Category(id: '3', name: 'Transport', description: '', type: CategoryType.expense, color: '#2196F3', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Category(id: '1', name: 'Food', description: '', type: CategoryType.expense, color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Category(id: '2', name: 'Entertainment', description: '', type: CategoryType.expense, color: '#9C27B0', createdAt: DateTime.now(), updatedAt: DateTime.now()),
       ];
 
       final hierarchy = CategoryHierarchy.buildHierarchy(categories);
@@ -26,11 +27,38 @@ void main() {
 
     test('should group children under parents and sort them alphabetically', () {
       final categories = [
-        Category(id: 'parent1', name: 'Food', description: '', type: 'EXPENSE', color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Category(id: 'child3', name: 'Restaurants', description: '', type: 'EXPENSE', color: '#FF9800', parentId: 'parent1', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Category(id: 'child1', name: 'Groceries', description: '', type: 'EXPENSE', color: '#4CAF50', parentId: 'parent1', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Category(id: 'child2', name: 'Takeout', description: '', type: 'EXPENSE', color: '#FF6B6B', parentId: 'parent1', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Category(id: 'parent2', name: 'Transport', description: '', type: 'EXPENSE', color: '#2196F3', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Category(id: 'parent1', name: 'Food', description: '', type: CategoryType.expense, color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Category(
+          id: 'child3',
+          name: 'Restaurants',
+          description: '',
+          type: CategoryType.expense,
+          color: '#FF9800',
+          parentId: 'parent1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Category(
+          id: 'child1',
+          name: 'Groceries',
+          description: '',
+          type: CategoryType.expense,
+          color: '#4CAF50',
+          parentId: 'parent1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Category(
+          id: 'child2',
+          name: 'Takeout',
+          description: '',
+          type: CategoryType.expense,
+          color: '#FF6B6B',
+          parentId: 'parent1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Category(id: 'parent2', name: 'Transport', description: '', type: CategoryType.expense, color: '#2196F3', createdAt: DateTime.now(), updatedAt: DateTime.now()),
       ];
 
       final hierarchy = CategoryHierarchy.buildHierarchy(categories);
@@ -60,7 +88,9 @@ void main() {
     });
 
     test('should handle categories with no children', () {
-      final categories = [Category(id: '1', name: 'Single Category', description: '', type: 'EXPENSE', color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now())];
+      final categories = [
+        Category(id: '1', name: 'Single Category', description: '', type: CategoryType.expense, color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+      ];
 
       final hierarchy = CategoryHierarchy.buildHierarchy(categories);
 
@@ -71,13 +101,22 @@ void main() {
 
     test('should handle multiple levels of nesting (grandchildren)', () {
       final categories = [
-        Category(id: 'parent1', name: 'Food', description: '', type: 'EXPENSE', color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Category(id: 'child1', name: 'Restaurants', description: '', type: 'EXPENSE', color: '#FF9800', parentId: 'parent1', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Category(id: 'parent1', name: 'Food', description: '', type: CategoryType.expense, color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Category(
+          id: 'child1',
+          name: 'Restaurants',
+          description: '',
+          type: CategoryType.expense,
+          color: '#FF9800',
+          parentId: 'parent1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
         Category(
           id: 'grandchild1',
           name: 'Fast Food',
           description: '',
-          type: 'EXPENSE',
+          type: CategoryType.expense,
           color: '#FF6B6B',
           parentId: 'child1',
           createdAt: DateTime.now(),
@@ -87,7 +126,7 @@ void main() {
           id: 'grandchild2',
           name: 'Fine Dining',
           description: '',
-          type: 'EXPENSE',
+          type: CategoryType.expense,
           color: '#9C27B0',
           parentId: 'child1',
           createdAt: DateTime.now(),
@@ -115,7 +154,7 @@ void main() {
     });
 
     test('CategoryWithLevel should correctly identify levels', () {
-      final category = Category(id: '1', name: 'Test', description: '', type: 'EXPENSE', color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now());
+      final category = Category(id: '1', name: 'Test', description: '', type: CategoryType.expense, color: '#FF5722', createdAt: DateTime.now(), updatedAt: DateTime.now());
 
       final topLevel = CategoryWithLevel(category, 0);
       final childLevel = CategoryWithLevel(category, 1);

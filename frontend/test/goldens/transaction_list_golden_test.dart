@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
 import 'package:frontend/models/transaction.dart';
+import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/widgets/transaction_list.dart';
 
 void main() {
@@ -48,7 +49,7 @@ void main() {
                             id: 't1',
                             accountId: '1',
                             amount: 100.0,
-                            type: 'INCOME',
+                            type: TransactionType.income,
                             description: 'Salary Payment',
                             categoryId: 'salary-id',
                             categoryName: 'Salary',
@@ -59,7 +60,7 @@ void main() {
                             id: 't2',
                             accountId: '2',
                             amount: -50.0,
-                            type: 'EXPENSE',
+                            type: TransactionType.expense,
                             description: 'Grocery Shopping',
                             categoryId: 'food-id',
                             categoryName: 'Food',
@@ -70,7 +71,7 @@ void main() {
                             id: 't3',
                             accountId: '1',
                             amount: 75.0,
-                            type: 'INCOME',
+                            type: TransactionType.income,
                             description: 'Freelance Project',
                             categoryId: 'freelance-id',
                             categoryName: 'Freelance',

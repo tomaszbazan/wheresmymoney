@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/category_type.dart';
 
 import '../services/category_service.dart';
 import '../utils/category_hierarchy.dart';
 import 'category_option_item.dart';
 
 class SearchableCategoryDropdown extends StatefulWidget {
-  final String transactionType;
+  final CategoryType transactionType;
   final String? selectedCategoryId;
   final void Function(String?) onChanged;
   final String? Function(String?)? validator;
@@ -67,7 +68,7 @@ class _SearchableCategoryDropdownState extends State<SearchableCategoryDropdown>
     });
 
     try {
-      final categories = await _categoryService.getCategoriesByType(widget.transactionType.toUpperCase());
+      final categories = await _categoryService.getCategoriesByType(widget.transactionType);
       setState(() {
         _categoriesWithLevel = CategoryHierarchy.buildHierarchy(categories);
         _isLoading = false;

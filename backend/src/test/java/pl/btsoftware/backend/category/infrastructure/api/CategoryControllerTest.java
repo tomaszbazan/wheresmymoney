@@ -263,6 +263,20 @@ public class CategoryControllerTest {
                 .andExpect(content().string(containsString("Category cannot be deleted because it has associated transactions")));
     }
 
+    @Test
+    void shouldReturnBadRequestWhenInvalidCategoryTypeProvided() throws Exception {
+        // given
+        var userId = UserId.generate();
+
+        // when & then
+        mockMvc.perform(get("/api/categories")
+                        .param("type", "XXX")
+                        .contentType(APPLICATION_JSON)
+                        .with(createTokenFor(userId.value())))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Invalid category type")));
+    }
+
     private Category createCategory(CategoryId categoryId, String name, CategoryType type, String color) {
         return new Category(
                 categoryId,

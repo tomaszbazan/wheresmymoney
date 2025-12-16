@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/category_type.dart';
 import '../models/transaction_type.dart';
 import '../widgets/bottom_navigation.dart';
 import '../widgets/logout_dialog.dart';
@@ -26,8 +27,8 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     const AccountsPage(),
     const TransactionsPage(type: TransactionType.expense),
     const TransactionsPage(type: TransactionType.income),
-    const CategoriesPage(transactionType: TransactionType.expense),
-    const CategoriesPage(transactionType: TransactionType.income),
+    const CategoriesPage(transactionType: CategoryType.expense),
+    const CategoriesPage(transactionType: CategoryType.income),
   ];
 
   @override

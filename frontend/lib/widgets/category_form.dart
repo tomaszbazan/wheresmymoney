@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/category.dart';
+import '../models/category_type.dart';
 import '../models/http_exception.dart';
 import '../services/category_service.dart';
 import 'searchable_category_dropdown.dart';
@@ -9,7 +10,7 @@ class CategoryForm extends StatefulWidget {
   final Category? category;
   final void Function(Category) onSaved;
   final CategoryService? categoryService;
-  final String? defaultType;
+  final CategoryType? defaultType;
 
   const CategoryForm({super.key, this.category, required this.onSaved, this.categoryService, this.defaultType})
     : assert(category != null || defaultType != null, 'defaultType is required when creating new category');
@@ -25,7 +26,7 @@ class _CategoryFormState extends State<CategoryForm> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
 
-  String _selectedType = 'EXPENSE';
+  CategoryType _selectedType = CategoryType.expense;
   String _selectedColor = '#FF5722';
   String? _selectedParentId;
   bool _isLoading = false;
