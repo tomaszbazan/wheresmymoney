@@ -6,20 +6,12 @@ import '../services/category_service.dart';
 
 class CategoryForm extends StatefulWidget {
   final Category? category;
-  final Function(Category) onSaved;
+  final void Function(Category) onSaved;
   final CategoryServiceInterface? categoryService;
   final String? defaultType;
 
-  const CategoryForm({
-    super.key,
-    this.category,
-    required this.onSaved,
-    this.categoryService,
-    this.defaultType,
-  }) : assert(
-         category != null || defaultType != null,
-         'defaultType is required when creating new category',
-       );
+  const CategoryForm({super.key, this.category, required this.onSaved, this.categoryService, this.defaultType})
+    : assert(category != null || defaultType != null, 'defaultType is required when creating new category');
 
   @override
   State<CategoryForm> createState() => _CategoryFormState();
@@ -39,18 +31,7 @@ class _CategoryFormState extends State<CategoryForm> {
   bool _isLoadingParentCategories = false;
   List<Category> _availableParentCategories = [];
 
-  static const List<String> _availableColors = [
-    '#FF5722',
-    '#2196F3',
-    '#4CAF50',
-    '#FF9800',
-    '#9C27B0',
-    '#F44336',
-    '#00BCD4',
-    '#8BC34A',
-    '#FFC107',
-    '#E91E63',
-  ];
+  static const List<String> _availableColors = ['#FF5722', '#2196F3', '#4CAF50', '#FF9800', '#9C27B0', '#F44336', '#00BCD4', '#8BC34A', '#FFC107', '#E91E63'];
 
   @override
   void initState() {
@@ -59,9 +40,7 @@ class _CategoryFormState extends State<CategoryForm> {
     _categoryService = widget.categoryService ?? CategoryService();
 
     _nameController = TextEditingController(text: widget.category?.name ?? '');
-    _descriptionController = TextEditingController(
-      text: widget.category?.description ?? '',
-    );
+    _descriptionController = TextEditingController(text: widget.category?.description ?? '');
 
     if (widget.category != null) {
       _selectedType = widget.category!.type;
@@ -87,20 +66,10 @@ class _CategoryFormState extends State<CategoryForm> {
     });
 
     try {
-      final categories = await _categoryService.getCategoriesByType(
-        _selectedType,
-      );
+      final categories = await _categoryService.getCategoriesByType(_selectedType);
 
       final filteredCategories =
-          widget.category == null
-              ? categories
-              : categories
-                  .where(
-                    (category) =>
-                        category.id != widget.category!.id &&
-                        category.parentId != widget.category!.id,
-                  )
-                  .toList();
+          widget.category == null ? categories : categories.where((category) => category.id != widget.category!.id && category.parentId != widget.category!.id).toList();
 
       setState(() {
         _availableParentCategories = filteredCategories;
@@ -143,21 +112,11 @@ class _CategoryFormState extends State<CategoryForm> {
       widget.onSaved(category);
     } on HttpException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.userFriendlyMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Nieoczekiwany błąd: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -176,18 +135,12 @@ class _CategoryFormState extends State<CategoryForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              isEditing ? 'Edytuj kategorię' : 'Dodaj kategorię',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text(isEditing ? 'Edytuj kategorię' : 'Dodaj kategorię', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 24),
 
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nazwa',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Nazwa', border: OutlineInputBorder()),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Wprowadź nazwę kategorii';
@@ -208,10 +161,7 @@ class _CategoryFormState extends State<CategoryForm> {
               decoration: InputDecoration(
                 labelText: 'Kategoria nadrzędna',
                 border: const OutlineInputBorder(),
-                hintText:
-                    _isLoadingParentCategories
-                        ? 'Ładowanie kategorii...'
-                        : 'Wybierz kategorię nadrzędną',
+                hintText: _isLoadingParentCategories ? 'Ładowanie kategorii...' : 'Wybierz kategorię nadrzędną',
                 helperText:
                     _isLoadingParentCategories
                         ? 'Ładowanie...'
@@ -220,10 +170,7 @@ class _CategoryFormState extends State<CategoryForm> {
                         : 'Dostępne: ${_availableParentCategories.length} kategorii',
               ),
               items: [
-                const DropdownMenuItem<String?>(
-                  value: null,
-                  child: Text('Brak (kategoria główna)'),
-                ),
+                const DropdownMenuItem<String?>(value: null, child: Text('Brak (kategoria główna)')),
                 ..._availableParentCategories.map((category) {
                   return DropdownMenuItem<String?>(
                     value: category.id,
@@ -232,16 +179,7 @@ class _CategoryFormState extends State<CategoryForm> {
                         Container(
                           width: 16,
                           height: 16,
-                          decoration: BoxDecoration(
-                            color: Color(
-                              int.parse(
-                                    category.color.substring(1),
-                                    radix: 16,
-                                  ) +
-                                  0xFF000000,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
+                          decoration: BoxDecoration(color: Color(int.parse(category.color.substring(1), radix: 16) + 0xFF000000), shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 8),
                         Text(category.name),
@@ -268,9 +206,7 @@ class _CategoryFormState extends State<CategoryForm> {
                   runSpacing: 8,
                   children:
                       _availableColors.map((color) {
-                        final colorValue = Color(
-                          int.parse(color.substring(1), radix: 16) + 0xFF000000,
-                        );
+                        final colorValue = Color(int.parse(color.substring(1), radix: 16) + 0xFF000000);
                         final isSelected = _selectedColor == color;
 
                         return GestureDetector(
@@ -282,25 +218,8 @@ class _CategoryFormState extends State<CategoryForm> {
                           child: Container(
                             width: 40,
                             height: 40,
-                            decoration: BoxDecoration(
-                              color: colorValue,
-                              shape: BoxShape.circle,
-                              border:
-                                  isSelected
-                                      ? Border.all(
-                                        color: Colors.black,
-                                        width: 3,
-                                      )
-                                      : null,
-                            ),
-                            child:
-                                isSelected
-                                    ? const Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 20,
-                                    )
-                                    : null,
+                            decoration: BoxDecoration(color: colorValue, shape: BoxShape.circle, border: isSelected ? Border.all(color: Colors.black, width: 3) : null),
+                            child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
                           ),
                         );
                       }).toList(),
@@ -312,21 +231,11 @@ class _CategoryFormState extends State<CategoryForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Anuluj'),
-                ),
+                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Anuluj')),
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _saveCategory,
-                  child:
-                      _isLoading
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                          : Text(isEditing ? 'Zapisz' : 'Dodaj'),
+                  child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(isEditing ? 'Zapisz' : 'Dodaj'),
                 ),
               ],
             ),

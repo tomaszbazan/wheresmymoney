@@ -6,18 +6,11 @@ import '../services/category_service.dart';
 class CategorySelector extends StatefulWidget {
   final String? selectedCategoryId;
   final String transactionType;
-  final Function(String?) onChanged;
+  final void Function(String?) onChanged;
   final CategoryServiceInterface? categoryService;
   final String? Function(String?)? validator;
 
-  const CategorySelector({
-    super.key,
-    this.selectedCategoryId,
-    required this.transactionType,
-    required this.onChanged,
-    this.categoryService,
-    this.validator,
-  });
+  const CategorySelector({super.key, this.selectedCategoryId, required this.transactionType, required this.onChanged, this.categoryService, this.validator});
 
   @override
   State<CategorySelector> createState() => _CategorySelectorState();
@@ -51,9 +44,7 @@ class _CategorySelectorState extends State<CategorySelector> {
     });
 
     try {
-      final categories = await _categoryService.getCategoriesByType(
-        widget.transactionType.toUpperCase(),
-      );
+      final categories = await _categoryService.getCategoriesByType(widget.transactionType.toUpperCase());
       setState(() {
         _categories = categories;
         _isLoading = false;
@@ -69,10 +60,7 @@ class _CategorySelectorState extends State<CategorySelector> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const SizedBox(
-        height: 56,
-        child: Center(child: CircularProgressIndicator()),
-      );
+      return const SizedBox(height: 56, child: Center(child: CircularProgressIndicator()));
     }
 
     if (_error != null) {
@@ -82,30 +70,18 @@ class _CategorySelectorState extends State<CategorySelector> {
           Container(
             height: 56,
             width: double.infinity,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.red),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Center(
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
-            ),
+            decoration: BoxDecoration(border: Border.all(color: Colors.red), borderRadius: BorderRadius.circular(4)),
+            child: Center(child: Text(_error!, style: const TextStyle(color: Colors.red))),
           ),
           const SizedBox(height: 8),
-          TextButton(
-            onPressed: _loadCategories,
-            child: const Text('Spróbuj ponownie'),
-          ),
+          TextButton(onPressed: _loadCategories, child: const Text('Spróbuj ponownie')),
         ],
       );
     }
 
     return DropdownButtonFormField<String>(
       initialValue: widget.selectedCategoryId,
-      decoration: const InputDecoration(
-        labelText: 'Kategoria',
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      ),
+      decoration: const InputDecoration(labelText: 'Kategoria', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16)),
       hint: const Text('Wybierz kategorię'),
       items:
           _categories.map((category) {
@@ -113,18 +89,9 @@ class _CategorySelectorState extends State<CategorySelector> {
               value: category.id,
               child: Row(
                 children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: _parseColor(category.color),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+                  Container(width: 16, height: 16, decoration: BoxDecoration(color: _parseColor(category.color), shape: BoxShape.circle)),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(category.name, overflow: TextOverflow.ellipsis),
-                  ),
+                  Expanded(child: Text(category.name, overflow: TextOverflow.ellipsis)),
                 ],
               ),
             );

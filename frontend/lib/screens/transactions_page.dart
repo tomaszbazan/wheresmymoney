@@ -15,10 +15,9 @@ class TransactionsPage extends StatefulWidget {
   State<TransactionsPage> createState() => _TransactionsPageState();
 }
 
-class _TransactionsPageState extends State<TransactionsPage>
-    with TickerProviderStateMixin {
+class _TransactionsPageState extends State<TransactionsPage> with TickerProviderStateMixin {
   final TransactionService _transactionService = TransactionService();
-  final AccountService _accountService = AccountService();
+  final RestAccountService _accountService = RestAccountService();
 
   late TabController _tabController;
   List<Transaction> _allTransactions = [];
@@ -51,35 +50,23 @@ class _TransactionsPageState extends State<TransactionsPage>
       });
     } on HttpException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.userFriendlyMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Nieoczekiwany błąd: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
       }
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  List<Transaction> get _incomeTransactions =>
-      _allTransactions.where((t) => t.isIncome).toList();
+  List<Transaction> get _incomeTransactions => _allTransactions.where((t) => t.isIncome).toList();
 
-  List<Transaction> get _expenseTransactions =>
-      _allTransactions.where((t) => t.isExpense).toList();
+  List<Transaction> get _expenseTransactions => _allTransactions.where((t) => t.isExpense).toList();
 
   void _showAddTransactionDialog(String type) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder:
           (context) => Dialog(
@@ -99,7 +86,7 @@ class _TransactionsPageState extends State<TransactionsPage>
   }
 
   void _showEditTransactionDialog(Transaction transaction) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder:
           (context) => Dialog(
@@ -124,18 +111,10 @@ class _TransactionsPageState extends State<TransactionsPage>
       builder:
           (context) => AlertDialog(
             title: const Text('Usuń transakcję'),
-            content: Text(
-              'Czy na pewno chcesz usunąć transakcję "${transaction.description}"?',
-            ),
+            content: Text('Czy na pewno chcesz usunąć transakcję "${transaction.description}"?'),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Anuluj'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Usuń'),
-              ),
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Anuluj')),
+              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Usuń')),
             ],
           ),
     );
@@ -145,27 +124,15 @@ class _TransactionsPageState extends State<TransactionsPage>
         await _transactionService.deleteTransaction(transaction.id);
         _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Transakcja została usunięta')),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transakcja została usunięta')));
         }
       } on HttpException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.userFriendlyMessage),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Nieoczekiwany błąd: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
         }
       }
     }
@@ -176,13 +143,7 @@ class _TransactionsPageState extends State<TransactionsPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transakcje'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.arrow_upward), text: 'Przychody'),
-            Tab(icon: Icon(Icons.arrow_downward), text: 'Wydatki'),
-          ],
-        ),
+        bottom: TabBar(controller: _tabController, tabs: const [Tab(icon: Icon(Icons.arrow_upward), text: 'Przychody'), Tab(icon: Icon(Icons.arrow_downward), text: 'Wydatki')]),
       ),
       body:
           _isLoading
@@ -190,18 +151,8 @@ class _TransactionsPageState extends State<TransactionsPage>
               : TabBarView(
                 controller: _tabController,
                 children: [
-                  TransactionList(
-                    transactions: _incomeTransactions,
-                    accounts: _accounts,
-                    onEdit: _showEditTransactionDialog,
-                    onDelete: _deleteTransaction,
-                  ),
-                  TransactionList(
-                    transactions: _expenseTransactions,
-                    accounts: _accounts,
-                    onEdit: _showEditTransactionDialog,
-                    onDelete: _deleteTransaction,
-                  ),
+                  TransactionList(transactions: _incomeTransactions, accounts: _accounts, onEdit: _showEditTransactionDialog, onDelete: _deleteTransaction),
+                  TransactionList(transactions: _expenseTransactions, accounts: _accounts, onEdit: _showEditTransactionDialog, onDelete: _deleteTransaction),
                 ],
               ),
       floatingActionButton: FloatingActionButton(

@@ -10,17 +10,10 @@ class TransactionForm extends StatefulWidget {
   final List<Account> accounts;
   final Transaction? transaction;
   final String? type;
-  final Function(Transaction) onSaved;
+  final void Function(Transaction) onSaved;
   final TransactionServiceInterface? transactionService;
 
-  const TransactionForm({
-    super.key,
-    required this.accounts,
-    this.transaction,
-    this.type,
-    required this.onSaved,
-    this.transactionService,
-  });
+  const TransactionForm({super.key, required this.accounts, this.transaction, this.type, required this.onSaved, this.transactionService});
 
   static String normalizeAmount(String amount) {
     String normalized = amount.trim().replaceAll(',', '.');
@@ -61,12 +54,8 @@ class _TransactionFormState extends State<TransactionForm> {
 
     _transactionService = widget.transactionService ?? TransactionService();
 
-    _amountController = TextEditingController(
-      text: widget.transaction?.amount.abs().toStringAsFixed(2) ?? '',
-    );
-    _descriptionController = TextEditingController(
-      text: widget.transaction?.description ?? '',
-    );
+    _amountController = TextEditingController(text: widget.transaction?.amount.abs().toStringAsFixed(2) ?? '');
+    _descriptionController = TextEditingController(text: widget.transaction?.description ?? '');
 
     if (widget.transaction != null) {
       _selectedAccountId = widget.transaction!.accountId;
@@ -76,8 +65,7 @@ class _TransactionFormState extends State<TransactionForm> {
       _updateCurrencyFromAccount();
     } else {
       _selectedType = widget.type;
-      _selectedAccountId =
-          widget.accounts.isNotEmpty ? widget.accounts.first.id : null;
+      _selectedAccountId = widget.accounts.isNotEmpty ? widget.accounts.first.id : null;
       _updateCurrencyFromAccount();
     }
   }
@@ -91,10 +79,7 @@ class _TransactionFormState extends State<TransactionForm> {
 
   void _updateCurrencyFromAccount() {
     if (_selectedAccountId != null) {
-      final selectedAccount = widget.accounts.firstWhere(
-        (account) => account.id == _selectedAccountId,
-        orElse: () => widget.accounts.first,
-      );
+      final selectedAccount = widget.accounts.firstWhere((account) => account.id == _selectedAccountId, orElse: () => widget.accounts.first);
       _selectedCurrency = selectedAccount.currency ?? 'PLN';
     }
   }
@@ -107,9 +92,7 @@ class _TransactionFormState extends State<TransactionForm> {
     setState(() => _isLoading = true);
 
     try {
-      final normalizedAmount = TransactionForm.normalizeAmount(
-        _amountController.text,
-      );
+      final normalizedAmount = TransactionForm.normalizeAmount(_amountController.text);
       final Transaction transaction;
 
       if (widget.transaction != null) {
@@ -135,21 +118,11 @@ class _TransactionFormState extends State<TransactionForm> {
       widget.onSaved(transaction);
     } on HttpException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.userFriendlyMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Nieoczekiwany błąd: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -157,12 +130,7 @@ class _TransactionFormState extends State<TransactionForm> {
   }
 
   Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
+    final DateTime? picked = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2020), lastDate: DateTime.now().add(const Duration(days: 365)));
 
     if (picked != null && picked != _selectedDate) {
       setState(() => _selectedDate = picked);
@@ -181,24 +149,15 @@ class _TransactionFormState extends State<TransactionForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              isEditing ? 'Edytuj transakcję' : 'Dodaj transakcję',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text(isEditing ? 'Edytuj transakcję' : 'Dodaj transakcję', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 24),
             if (!isEditing) ...[
               DropdownButtonFormField<String>(
                 initialValue: _selectedAccountId,
-                decoration: const InputDecoration(
-                  labelText: 'Konto',
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(labelText: 'Konto', border: OutlineInputBorder()),
                 items:
                     widget.accounts.map((account) {
-                      return DropdownMenuItem(
-                        value: account.id,
-                        child: Text('${account.name} (${account.currency})'),
-                      );
+                      return DropdownMenuItem(value: account.id, child: Text('${account.name} (${account.currency})'));
                     }).toList(),
                 onChanged: (value) {
                   setState(() {
@@ -218,15 +177,8 @@ class _TransactionFormState extends State<TransactionForm> {
 
             TextFormField(
               controller: _amountController,
-              decoration: InputDecoration(
-                labelText: 'Kwota',
-                border: const OutlineInputBorder(),
-                prefixText: '$_selectedCurrency ',
-                hintText: '0.00',
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
+              decoration: InputDecoration(labelText: 'Kwota', border: const OutlineInputBorder(), prefixText: '$_selectedCurrency ', hintText: '0.00'),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Wprowadź kwotę';
@@ -252,13 +204,7 @@ class _TransactionFormState extends State<TransactionForm> {
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Opis',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            TextFormField(controller: _descriptionController, decoration: const InputDecoration(labelText: 'Opis', border: OutlineInputBorder())),
             const SizedBox(height: 16),
 
             CategorySelector(
@@ -282,9 +228,7 @@ class _TransactionFormState extends State<TransactionForm> {
               ListTile(
                 leading: const Icon(Icons.calendar_today),
                 title: const Text('Data'),
-                subtitle: Text(
-                  '${_selectedDate.day}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.year}',
-                ),
+                subtitle: Text('${_selectedDate.day}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.year}'),
                 onTap: _selectDate,
                 contentPadding: EdgeInsets.zero,
               ),
@@ -294,21 +238,11 @@ class _TransactionFormState extends State<TransactionForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Anuluj'),
-                ),
+                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Anuluj')),
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _saveTransaction,
-                  child:
-                      _isLoading
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                          : Text(isEditing ? 'Zapisz' : 'Dodaj'),
+                  child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(isEditing ? 'Zapisz' : 'Dodaj'),
                 ),
               ],
             ),

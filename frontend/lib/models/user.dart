@@ -7,15 +7,7 @@ class User {
   final DateTime? lastLoginAt;
   final DateTime joinedGroupAt;
 
-  const User({
-    required this.id,
-    required this.email,
-    required this.displayName,
-    required this.groupId,
-    required this.createdAt,
-    this.lastLoginAt,
-    required this.joinedGroupAt,
-  });
+  const User({required this.id, required this.email, required this.displayName, required this.groupId, required this.createdAt, this.lastLoginAt, required this.joinedGroupAt});
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -24,10 +16,7 @@ class User {
       displayName: json['displayName'] as String,
       groupId: json['groupId'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      lastLoginAt:
-          json['lastLoginAt'] != null
-              ? DateTime.parse(json['lastLoginAt'] as String)
-              : null,
+      lastLoginAt: json['lastLoginAt'] != null ? DateTime.parse(json['lastLoginAt'] as String) : null,
       joinedGroupAt: DateTime.parse(json['joinedGroupAt'] as String),
     );
   }

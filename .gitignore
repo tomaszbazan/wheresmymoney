@@ -36,3 +36,4 @@ pom.xml
 ### AI ###
 .aider*
 .qodo/
+local.properties
