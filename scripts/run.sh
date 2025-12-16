@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-# Set default values for Supabase if not provided
-export SUPABASE_URL=${SUPABASE_URL:-""}
-export SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-""}
-
-# Check if backend parameter is provided
 if [ "$1" = "backend" ]; then
     echo "🚀 Building and starting Where's My Money backend only..."
     
@@ -19,7 +14,7 @@ if [ "$1" = "backend" ]; then
     
     echo "✅ Backend services started!"
     echo "Backend: http://localhost:9080"
-    echo "Database: localhost:5433"
+    echo "Database: localhost:5432"
 else
     echo "🚀 Building and starting Where's My Money application..."
     
@@ -33,10 +28,6 @@ else
     
     echo "✅ Application started!"
     echo "Backend: http://localhost:9080"
-    echo "Frontend: http://localhost:9081"
-    echo "Database: localhost:5433"
-    echo ""
-    echo "💡 To configure Supabase, set environment variables:"
-    echo "   export SUPABASE_URL=your_supabase_url"
-    echo "   export SUPABASE_ANON_KEY=your_supabase_anon_key"
+    echo "Frontend: http://localhost:8000"
+    echo "Database: localhost:5432"
 fi
