@@ -9,6 +9,7 @@ import pl.btsoftware.backend.category.domain.CategoryRepository;
 import pl.btsoftware.backend.category.infrastructure.api.CategoryController;
 import pl.btsoftware.backend.category.infrastructure.persistance.CategoryJpaRepository;
 import pl.btsoftware.backend.category.infrastructure.persistance.JpaCategoryRepository;
+import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 
 @Configuration
@@ -21,8 +22,10 @@ public class CategoryModuleConfiguration {
     }
 
     @Bean
-    public CategoryService categoryService(CategoryRepository categoryRepository, UsersModuleFacade usersModuleFacade) {
-        return new CategoryService(categoryRepository, usersModuleFacade);
+    public CategoryService categoryService(CategoryRepository categoryRepository,
+                                           UsersModuleFacade usersModuleFacade,
+                                           TransactionModuleFacade transactionModuleFacade) {
+        return new CategoryService(categoryRepository, usersModuleFacade, transactionModuleFacade);
     }
 
     @Bean

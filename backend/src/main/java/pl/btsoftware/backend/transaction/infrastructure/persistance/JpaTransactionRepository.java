@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
@@ -49,5 +50,10 @@ public class JpaTransactionRepository implements TransactionRepository {
         return repository.findByAccountIdAndCreatedByGroupAndIsDeletedFalse(accountId.value(), groupId.value()).stream()
                 .map(TransactionEntity::toDomain)
                 .toList();
+    }
+
+    @Override
+    public boolean existsByCategoryId(CategoryId categoryId, GroupId groupId) {
+        return repository.existsByCategoryIdAndCreatedByGroupAndIsDeletedFalse(categoryId.value(), groupId.value());
     }
 }

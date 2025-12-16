@@ -303,4 +303,63 @@ public class JpaTransactionRepositoryTest {
         assertThat(accountTransactions).hasSize(2);
         assertThat(accountTransactions).extracting("type").containsExactlyInAnyOrder(INCOME, EXPENSE);
     }
+
+    @Test
+    void shouldReturnTrueWhenTransactionsExistForCategory() {
+        // given
+        var categoryId = CategoryId.generate();
+        var accountId = AccountId.generate();
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var transaction = Transaction.create(
+                accountId,
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Test transaction",
+                EXPENSE,
+                categoryId,
+                auditInfo
+        );
+        transactionRepository.store(transaction);
+
+        // when
+        var exists = transactionRepository.existsByCategoryId(categoryId, testGroupId);
+
+        // then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    void shouldReturnFalseWhenOnlyDeletedTransactionsExistForCategory() {
+        // given
+        var categoryId = CategoryId.generate();
+        var accountId = AccountId.generate();
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var transaction = Transaction.create(
+                accountId,
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Test transaction",
+                EXPENSE,
+                categoryId,
+                auditInfo
+        );
+        var deletedTransaction = transaction.delete();
+        transactionRepository.store(deletedTransaction);
+
+        // when
+        var exists = transactionRepository.existsByCategoryId(categoryId, testGroupId);
+
+        // then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    void shouldReturnFalseWhenNoTransactionsExistForCategory() {
+        // given
+        var categoryId = CategoryId.generate();
+
+        // when
+        var exists = transactionRepository.existsByCategoryId(categoryId, testGroupId);
+
+        // then
+        assertThat(exists).isFalse();
+    }
 }
