@@ -27,13 +27,13 @@ class InMemoryAccountService implements AccountService {
     return account;
   }
 
-  Future<Account> addAccount(String name, {double? balance, String? currency}) async {
+  Future<Account> addAccount(String name, {double? balance, String? currency, String? type}) async {
     final id = Uuid().v4();
     final account = Account(
       id: id,
       name: name,
       balance: balance ?? 0.0,
-      type: 'Rachunek bieżący',
+      type: type ?? 'Rachunek bieżący',
       currency: currency ?? 'PLN',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
