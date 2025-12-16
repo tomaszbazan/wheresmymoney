@@ -40,7 +40,7 @@
 | TASK-0032 | Category tree validation     | Validate category depth (max 5 levels) and unique names within parent | [x]  |
 | TASK-0033 | Category deletion validation | Block deletion of categories with assigned transactions               | [x]  |
 | TASK-0034 | Category management UI       | Create Flutter screen for managing category tree                      | [x]  |
-| TASK-0035 | Searchable category dropdown | Implement searchable dropdown component for category selection        | [ ]  |
+| TASK-0035 | Searchable category dropdown | Implement searchable dropdown component for category selection        | [x]  |
 | TASK-0036 | Empty category list blocking | Disable transaction operations when no categories are defined         | [ ]  |
 
 ## CSV Import and Parsing
