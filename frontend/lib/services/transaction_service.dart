@@ -1,3 +1,5 @@
+import 'package:http/http.dart' as http;
+
 import '../models/transaction.dart';
 import 'auth_service.dart';
 import 'http_client.dart';
@@ -25,7 +27,7 @@ abstract class TransactionServiceInterface {
 class TransactionService implements TransactionServiceInterface {
   final ApiClient _apiClient;
 
-  TransactionService({AuthService? authService}) : _apiClient = ApiClient(authService ?? AuthService());
+  TransactionService({AuthService? authService, http.Client? httpClient}) : _apiClient = ApiClient(authService ?? AuthService(), httpClient: httpClient);
   @override
   Future<List<Transaction>> getTransactions() async {
     return await _apiClient.getList<Transaction>('/transactions', 'transactions', Transaction.fromJson);
