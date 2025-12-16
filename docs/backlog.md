@@ -8,7 +8,7 @@
 | TASK-0002 | Frontend project initialization | Initialize Flutter web project with basic structure and navigation                                       | [x]  |
 | TASK-0003 | Database setup                  | Configure PostgreSQL connection, create database schema and migrations                                   | [x]  |
 | TASK-0004 | CI/CD pipeline setup            | Configure build, test and deployment pipelines for frontend and backend                                  | [x]  |
-| TASK-0005 | Golden test                     | Configure first golden test                                                                              | [ ]  |
+| TASK-0005 | Golden test                     | Configure first golden test                                                                              | [x]  |
 
 ## Authentication and User Management
 
