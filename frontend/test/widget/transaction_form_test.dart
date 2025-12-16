@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
 import 'package:frontend/widgets/transaction_form.dart';
 
-import '../mocks/mock_transaction_service.dart';
+import '../mocks/in_memory_transaction_service.dart';
 import '../test_setup.dart';
 
 void main() {
@@ -35,11 +35,11 @@ void main() {
 
   group('TransactionForm Currency Change', () {
     late List<Account> testAccounts;
-    late MockTransactionServiceInterface mockTransactionService;
+    late InMemoryTransactionService transactionService;
 
     setUp(() async {
       await TestSetup.initializeSupabase();
-      mockTransactionService = MockTransactionServiceInterface();
+      transactionService = InMemoryTransactionService();
       testAccounts = [
         Account(id: '1', name: 'PLN Account', balance: 1000.0, currency: 'PLN'),
         Account(id: '2', name: 'USD Account', balance: 500.0, currency: 'USD'),
@@ -48,13 +48,13 @@ void main() {
     });
 
     testWidgets('should show PLN currency by default for first account', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionForm(accounts: testAccounts, onSaved: (_) {}, transactionService: mockTransactionService))));
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionForm(accounts: testAccounts, onSaved: (_) {}, transactionService: transactionService))));
 
       expect(find.text('PLN '), findsOneWidget);
     });
 
     testWidgets('should change currency when different account is selected', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionForm(accounts: testAccounts, onSaved: (_) {}, transactionService: mockTransactionService))));
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionForm(accounts: testAccounts, onSaved: (_) {}, transactionService: transactionService))));
 
       await tester.tap(find.text('PLN Account (PLN)'));
       await tester.pumpAndSettle();
@@ -66,7 +66,7 @@ void main() {
     });
 
     testWidgets('should show EUR currency when EUR account is selected', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionForm(accounts: testAccounts, onSaved: (_) {}, transactionService: mockTransactionService))));
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionForm(accounts: testAccounts, onSaved: (_) {}, transactionService: transactionService))));
 
       await tester.tap(find.text('PLN Account (PLN)'));
       await tester.pumpAndSettle();
