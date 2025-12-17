@@ -4,9 +4,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.domain.AuditInfo;
-import pl.btsoftware.backend.shared.AccountId;
-import pl.btsoftware.backend.shared.Currency;
-import pl.btsoftware.backend.shared.TransactionId;
+import pl.btsoftware.backend.category.CategoryModuleFacade;
+import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
+import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
@@ -22,6 +22,7 @@ import java.util.List;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountModuleFacade accountModuleFacade;
+    private final CategoryModuleFacade categoryModuleFacade;
     private final UsersModuleFacade usersModuleFacade;
 
     @Transactional // TODO: Verify if transactional works correctly in integration tests
@@ -29,6 +30,7 @@ public class TransactionService {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
         var account = accountModuleFacade.getAccount(command.accountId(), user.groupId());
         validateCurrencyMatch(command.amount().currency(), account.balance().currency());
+        validateCategoriesExist(command.type(), user.groupId());
 
         var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value(), command.date());
         var transaction = command.toDomain(auditInfo);
@@ -41,6 +43,13 @@ public class TransactionService {
     private void validateCurrencyMatch(Currency transactionCurrency, Currency accountCurrency) {
         if (!transactionCurrency.equals(accountCurrency)) {
             throw new TransactionCurrencyMismatchException(transactionCurrency, accountCurrency);
+        }
+    }
+
+    private void validateCategoriesExist(TransactionType type, GroupId groupId) {
+        var categoryType = type == TransactionType.INCOME ? CategoryType.INCOME : CategoryType.EXPENSE;
+        if (!categoryModuleFacade.hasCategories(categoryType, groupId)) {
+            throw new NoCategoriesAvailableException(categoryType);
         }
     }
 
@@ -62,6 +71,8 @@ public class TransactionService {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var transaction = transactionRepository.findById(command.transactionId(), user.groupId())
                 .orElseThrow(() -> new TransactionNotFoundException(command.transactionId()));
+
+        validateCategoriesExist(transaction.type(), user.groupId());
 
         var updatedTransaction = transaction;
 

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../models/account.dart';
+import '../models/category_type.dart';
 import '../models/http_exception.dart';
 import '../models/transaction.dart';
 import '../models/transaction_type.dart';
 import '../services/account_service.dart';
+import '../services/category_service.dart';
 import '../services/transaction_service.dart';
+import '../widgets/no_categories_dialog.dart';
 import '../widgets/transaction_form.dart';
 import '../widgets/transaction_list.dart';
 
@@ -21,6 +24,7 @@ class TransactionsPage extends StatefulWidget {
 class _TransactionsPageState extends State<TransactionsPage> {
   final TransactionService _transactionService = TransactionService();
   final RestAccountService _accountService = RestAccountService();
+  final RestCategoryService _categoryService = RestCategoryService();
 
   List<Transaction> _transactions = [];
   List<Account> _accounts = [];
@@ -56,7 +60,26 @@ class _TransactionsPageState extends State<TransactionsPage> {
     }
   }
 
-  void _showAddTransactionDialog() {
+  Future<bool> _hasCategoriesForType() async {
+    try {
+      final categoryType = widget.type == TransactionType.income ? CategoryType.income : CategoryType.expense;
+      final categories = await _categoryService.getCategoriesByType(categoryType);
+      return categories.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _showAddTransactionDialog() async {
+    final hasCategories = await _hasCategoriesForType();
+
+    if (!hasCategories && mounted) {
+      showDialog<void>(context: context, builder: (context) => NoCategoriesDialog(type: widget.type));
+      return;
+    }
+
+    if (!mounted) return;
+
     showDialog<void>(
       context: context,
       builder:
@@ -76,7 +99,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
     );
   }
 
-  void _showEditTransactionDialog(Transaction transaction) {
+  Future<void> _showEditTransactionDialog(Transaction transaction) async {
+    final hasCategories = await _hasCategoriesForType();
+
+    if (!hasCategories && mounted) {
+      showDialog<void>(context: context, builder: (context) => NoCategoriesDialog(type: widget.type));
+      return;
+    }
+
+    if (!mounted) return;
+
     showDialog<void>(
       context: context,
       builder:
