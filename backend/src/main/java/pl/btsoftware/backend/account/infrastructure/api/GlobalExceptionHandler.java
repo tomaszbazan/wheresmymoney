@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.domain.error.BusinessException;
@@ -54,5 +55,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         return new ResponseEntity<>(ex.getMessage(), BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        var message = "Invalid category type: " + ex.getValue();
+        log.error(message, ex);
+        return new ResponseEntity<>(message, BAD_REQUEST);
     }
 }
