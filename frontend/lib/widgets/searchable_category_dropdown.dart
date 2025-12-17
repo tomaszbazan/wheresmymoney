@@ -159,27 +159,29 @@ class _SearchableCategoryDropdownState extends State<SearchableCategoryDropdown>
       optionsViewBuilder: (context, onSelected, options) {
         return Align(
           alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4.0,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200, maxWidth: 400),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  final categoryId = options.elementAt(index);
-                  final categoryWithLevel = _getCategoryWithLevelById(categoryId);
+          child: ClipRRect(
+            child: Material(
+              elevation: 4.0,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300),
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  shrinkWrap: true,
+                  itemCount: options.length,
+                  itemBuilder: (context, index) {
+                    final categoryId = options.elementAt(index);
+                    final categoryWithLevel = _getCategoryWithLevelById(categoryId);
 
-                  if (categoryWithLevel == null) {
-                    return const SizedBox.shrink();
-                  }
+                    if (categoryWithLevel == null) {
+                      return const SizedBox.shrink();
+                    }
 
-                  return InkWell(
-                    onTap: () => onSelected(categoryId),
-                    child: CategoryOptionItem(category: categoryWithLevel.category, level: categoryWithLevel.level, parseColor: _parseColor),
-                  );
-                },
+                    return InkWell(
+                      onTap: () => onSelected(categoryId),
+                      child: CategoryOptionItem(category: categoryWithLevel.category, level: categoryWithLevel.level, parseColor: _parseColor),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -194,8 +196,19 @@ class _SearchableCategoryDropdownState extends State<SearchableCategoryDropdown>
         return TextFormField(
           controller: textEditingController,
           focusNode: focusNode,
-          decoration: const InputDecoration(labelText: 'Kategoria', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16)),
+          decoration: const InputDecoration(labelText: 'Kategoria', border: OutlineInputBorder()),
           enabled: widget.enabled,
+          onFieldSubmitted: (value) {
+            final filteredCategories = _filterCategories(value);
+            if (filteredCategories.isNotEmpty) {
+              final firstCategoryId = filteredCategories.first;
+              setState(() {
+                _selectedCategoryId = firstCategoryId;
+              });
+              widget.onChanged(firstCategoryId);
+              _updateTextController();
+            }
+          },
           validator: (value) {
             if (widget.validator != null) {
               return widget.validator!(_selectedCategoryId);

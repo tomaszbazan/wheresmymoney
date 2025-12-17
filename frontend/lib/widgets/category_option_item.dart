@@ -12,7 +12,7 @@ class CategoryOptionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(left: level * 24.0, top: 8.0, bottom: 8.0, right: 8.0),
+      padding: EdgeInsets.only(left: (level * 24.0) + 20, top: 8.0, bottom: 8.0, right: 8.0),
       child: Row(
         children: [
           Container(width: 12, height: 12, decoration: BoxDecoration(color: parseColor(category.color), shape: BoxShape.circle)),

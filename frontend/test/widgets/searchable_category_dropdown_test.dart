@@ -256,5 +256,76 @@ void main() {
       expect(find.text('Food'), findsOneWidget);
       expect(find.text('Transport'), findsNothing);
     });
+
+    testWidgets('should select first option when Enter is pressed after typing', (WidgetTester tester) async {
+      final foodCategory = await categoryService.addCategory('Food', type: CategoryType.expense);
+      await categoryService.addCategory('Fuel', type: CategoryType.expense);
+      String? selectedCategoryId;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SearchableCategoryDropdown(
+              transactionType: CategoryType.expense,
+              onChanged: (categoryId) {
+                selectedCategoryId = categoryId;
+              },
+              categoryService: categoryService,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final textField = find.byType(TextFormField);
+      await tester.tap(textField);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(textField, 'foo');
+      await tester.pumpAndSettle();
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(selectedCategoryId, equals(foodCategory.id));
+    });
+
+    testWidgets('should allow selecting option by clicking in list', (WidgetTester tester) async {
+      await categoryService.addCategory('Food', type: CategoryType.expense);
+      final transportCategory = await categoryService.addCategory('Transport', type: CategoryType.expense);
+      String? selectedCategoryId;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SearchableCategoryDropdown(
+              transactionType: CategoryType.expense,
+              onChanged: (categoryId) {
+                selectedCategoryId = categoryId;
+              },
+              categoryService: categoryService,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final textField = find.byType(TextFormField);
+      await tester.tap(textField);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Food'), findsOneWidget);
+      expect(find.text('Transport'), findsOneWidget);
+
+      await tester.tap(find.text('Transport'));
+      await tester.pumpAndSettle();
+
+      expect(selectedCategoryId, equals(transportCategory.id));
+      expect(find.byType(TextFormField), findsOneWidget);
+      final textFieldWidget = tester.widget<TextFormField>(find.byType(TextFormField));
+      expect(textFieldWidget.controller?.text, equals('Transport'));
+    });
   });
 }
