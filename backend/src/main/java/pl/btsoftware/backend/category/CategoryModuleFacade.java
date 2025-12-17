@@ -8,6 +8,7 @@ import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.users.UsersModuleFacade;
+import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.List;
@@ -38,5 +39,9 @@ public class CategoryModuleFacade {
 
     public void deleteCategory(UUID categoryId, UserId userId) {
         categoryService.deleteCategory(CategoryId.of(categoryId), userId);
+    }
+
+    public boolean hasCategories(CategoryType type, GroupId groupId) {
+        return categoryService.hasCategories(type, groupId);
     }
 }

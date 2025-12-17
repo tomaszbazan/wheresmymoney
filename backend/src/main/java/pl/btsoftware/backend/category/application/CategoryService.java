@@ -46,6 +46,10 @@ public class CategoryService {
         return categoryRepository.findByType(type, groupId);
     }
 
+    public boolean hasCategories(CategoryType type, GroupId groupId) {
+        return !categoryRepository.findByType(type, groupId).isEmpty();
+    }
+
     @Transactional
     public Category updateCategory(UpdateCategoryCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);

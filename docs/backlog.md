@@ -22,14 +22,14 @@
 
 ## Group Management
 
-| ID        | Task                           | Description                                                            | Done |
-|-----------|--------------------------------|------------------------------------------------------------------------|------|
-| TASK-0020 | Group domain model             | Create Group entity with owner relationship and unique identifier      | [x]  |
-| TASK-0021 | Automatic group creation       | Create new group automatically when user registers                     | [x]  |
-| TASK-0022 | Invitation code generation     | Implement unique invitation code generation for groups                 | [x]  |
-| TASK-0023 | Join group via invitation code | Allow users to join existing group using invitation code               | [x]  |
-| TASK-0024 | Group settings UI              | Create Flutter screen for managing group settings and invitation codes | [x]  |
-| TASK-0025 | Group membership validation    | Ensure user belongs to only one group at a time                        | [x]  |
+| ID        | Task                           | Description                                                                   | Done |
+|-----------|--------------------------------|-------------------------------------------------------------------------------|------|
+| TASK-0020 | Group domain model             | Create Group entity with owner relationship and unique identifier             | [x]  |
+| TASK-0021 | Automatic group creation       | Create new group automatically when user registers                            | [x]  |
+| TASK-0022 | Invitation code generation     | Implement unique invitation code generation for groups                        | [x]  |
+| TASK-0023 | Join group via invitation code | Allow users to join existing group using invitation code                      | [x]  |
+| TASK-0024 | Group settings UI              | Create Flutter screen for managing group settings and invitation codes - TODO | [x]  |
+| TASK-0025 | Group membership validation    | Ensure user belongs to only one group at a time                               | [x]  |
 
 ## Category Management
 
@@ -41,7 +41,7 @@
 | TASK-0033 | Category deletion validation | Block deletion of categories with assigned transactions               | [x]  |
 | TASK-0034 | Category management UI       | Create Flutter screen for managing category tree                      | [x]  |
 | TASK-0035 | Searchable category dropdown | Implement searchable dropdown component for category selection        | [x]  |
-| TASK-0036 | Empty category list blocking | Disable transaction operations when no categories are defined         | [ ]  |
+| TASK-0036 | Empty category list blocking | Disable transaction operations when no categories are defined         | [x]  |
 
 ## CSV Import and Parsing
 

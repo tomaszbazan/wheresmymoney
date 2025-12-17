@@ -451,4 +451,52 @@ class CategoryServiceTest {
         assertThat(deletedCategory).isPresent();
         assertThat(deletedCategory.get().isDeleted()).isTrue();
     }
+
+    @Test
+    void shouldReturnFalseWhenNoCategoriesExistForType() {
+        var hasCategories = categoryService.hasCategories(CategoryType.EXPENSE, testGroupId);
+
+        assertThat(hasCategories).isFalse();
+    }
+
+    @Test
+    void shouldReturnTrueWhenCategoriesExistForType() {
+        var expenseCategory = createCategory(CategoryId.generate(), "Food", CategoryType.EXPENSE, "#FF5722");
+        categoryRepository.store(expenseCategory);
+
+        var hasCategories = categoryService.hasCategories(CategoryType.EXPENSE, testGroupId);
+
+        assertThat(hasCategories).isTrue();
+    }
+
+    @Test
+    void shouldReturnFalseWhenCategoriesExistButForDifferentType() {
+        var incomeCategory = createCategory(CategoryId.generate(), "Salary", CategoryType.INCOME, "#4CAF50");
+        categoryRepository.store(incomeCategory);
+
+        var hasCategories = categoryService.hasCategories(CategoryType.EXPENSE, testGroupId);
+
+        assertThat(hasCategories).isFalse();
+    }
+
+    @Test
+    void shouldReturnFalseWhenCategoriesExistButForDifferentGroup() {
+        var differentGroupId = GroupId.generate();
+        var category = createCategoryForGroup(CategoryId.generate(), "Food", CategoryType.EXPENSE, "#FF5722", differentGroupId);
+        categoryRepository.store(category);
+
+        var hasCategories = categoryService.hasCategories(CategoryType.EXPENSE, testGroupId);
+
+        assertThat(hasCategories).isFalse();
+    }
+
+    @Test
+    void shouldReturnFalseWhenOnlyDeletedCategoriesExist() {
+        var deletedCategory = createCategory(CategoryId.generate(), "Food", CategoryType.EXPENSE, "#FF5722").delete();
+        categoryRepository.store(deletedCategory);
+
+        var hasCategories = categoryService.hasCategories(CategoryType.EXPENSE, testGroupId);
+
+        assertThat(hasCategories).isFalse();
+    }
 }

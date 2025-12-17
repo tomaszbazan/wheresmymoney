@@ -10,6 +10,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.domain.error.BusinessException;
+import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -62,5 +63,11 @@ public class GlobalExceptionHandler {
         var message = "Invalid category type: " + ex.getValue();
         log.error(message, ex);
         return new ResponseEntity<>(message, BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NoCategoriesAvailableException.class)
+    public ResponseEntity<String> handleNoCategoriesAvailableException(NoCategoriesAvailableException ex) {
+        log.error("{}", ex.getMessage(), ex);
+        return ResponseEntity.status(PRECONDITION_FAILED).body(ex.getMessage());
     }
 }

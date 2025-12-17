@@ -8,6 +8,8 @@ import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountRepository;
+import pl.btsoftware.backend.category.CategoryModuleFacade;
+import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
@@ -35,6 +37,7 @@ import static pl.btsoftware.backend.shared.Currency.USD;
 class TransactionServiceTest {
     private TransactionRepository transactionRepository;
     private AccountModuleFacade accountModuleFacade;
+    private CategoryModuleFacade categoryModuleFacade;
     private TransactionService transactionService;
     private UsersModuleFacade usersModuleFacade;
     private GroupId testGroupId;
@@ -44,6 +47,7 @@ class TransactionServiceTest {
         this.transactionRepository = new InMemoryTransactionRepository();
         var accountRepository = new InMemoryAccountRepository();
         this.usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
+        this.categoryModuleFacade = Mockito.mock(CategoryModuleFacade.class);
 
         this.testGroupId = new GroupId(UUID.randomUUID());
         var mockUser = User.create(
@@ -53,10 +57,11 @@ class TransactionServiceTest {
                 testGroupId
         );
         when(usersModuleFacade.findUserOrThrow(any(UserId.class))).thenReturn(mockUser);
+        when(categoryModuleFacade.hasCategories(any(CategoryType.class), any(GroupId.class))).thenReturn(true);
 
         var accountService = new AccountService(accountRepository, usersModuleFacade);
         this.accountModuleFacade = new AccountModuleFacade(accountService, usersModuleFacade);
-        this.transactionService = new TransactionService(transactionRepository, accountModuleFacade, usersModuleFacade);
+        this.transactionService = new TransactionService(transactionRepository, accountModuleFacade, categoryModuleFacade, usersModuleFacade);
     }
 
     @Test
@@ -477,5 +482,99 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.deleteTransaction(nonExistentTransactionId, UserId.generate()))
                 .isInstanceOf(TransactionNotFoundException.class)
                 .hasMessageContaining("Transaction not found with id: " + nonExistentTransactionId.value());
+    }
+
+    @Test
+    void shouldRejectCreateIncomeTransactionWhenNoCategoriesExist() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var amount = new BigDecimal("1000.00");
+        var description = "Salary payment";
+        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var type = TransactionType.INCOME;
+        var categoryId = CategoryId.generate();
+
+        when(categoryModuleFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(false);
+
+        // When & Then
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+        assertThatThrownBy(() -> transactionService.createTransaction(command))
+                .isInstanceOf(NoCategoriesAvailableException.class)
+                .hasMessageContaining("No categories of type INCOME are available");
+
+        assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
+    }
+
+    @Test
+    void shouldRejectCreateExpenseTransactionWhenNoCategoriesExist() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var amount = new BigDecimal("250.50");
+        var description = "Grocery shopping";
+        var date = OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC);
+        var type = TransactionType.EXPENSE;
+        var categoryId = CategoryId.generate();
+
+        when(categoryModuleFacade.hasCategories(CategoryType.EXPENSE, testGroupId)).thenReturn(false);
+
+        // When & Then
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+        assertThatThrownBy(() -> transactionService.createTransaction(command))
+                .isInstanceOf(NoCategoriesAvailableException.class)
+                .hasMessageContaining("No categories of type EXPENSE are available");
+
+        assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
+    }
+
+    @Test
+    void shouldAllowCreateTransactionWhenCategoriesExist() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var amount = new BigDecimal("1000.00");
+        var description = "Salary payment";
+        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var type = TransactionType.INCOME;
+        var categoryId = CategoryId.generate();
+
+        when(categoryModuleFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(true);
+
+        // When
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+        var transaction = transactionService.createTransaction(command);
+
+        // Then
+        assertThat(transaction.id()).isNotNull();
+        assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+    }
+
+    @Test
+    void shouldRejectUpdateTransactionWhenNoCategoriesExist() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var amount = new BigDecimal("1000.00");
+        var description = "Salary payment";
+        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var type = TransactionType.INCOME;
+        var categoryId = CategoryId.generate();
+
+        when(categoryModuleFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(true);
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+        var transaction = transactionService.createTransaction(command);
+
+        when(categoryModuleFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(false);
+
+        // When & Then
+        var updateCommand = new UpdateTransactionCommand(transaction.id(), Money.of(new BigDecimal("2000.00"), PLN), "Updated description", categoryId);
+        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
+                .isInstanceOf(NoCategoriesAvailableException.class)
+                .hasMessageContaining("No categories of type INCOME are available");
     }
 }
