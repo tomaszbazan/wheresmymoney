@@ -23,12 +23,12 @@ class Account {
       balance: balanceValue,
       currency: json['currency'] as String?,
       type: json['type'] as String? ?? 'Rachunek bieżący',
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'name': name, 'balance': balance, 'currency': currency, 'type': type, 'created_at': createdAt, 'updated_at': updatedAt};
+    return {'id': id, 'name': name, 'balance': balance, 'currency': currency, 'type': type, 'createdAt': createdAt?.toIso8601String(), 'updatedAt': updatedAt?.toIso8601String()};
   }
 }

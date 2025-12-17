@@ -1,67 +1,181 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:convert';
 
-import '../mocks/in_memory_account_service.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frontend/models/http_exception.dart';
+import 'package:frontend/services/account_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+import '../mocks/fake_auth_service.dart';
 
 void main() {
-  group('AccountService', () {
-    late InMemoryAccountService accountService;
+  group('RestAccountService HTTP', () {
+    late FakeAuthService fakeAuthService;
 
     setUp(() {
-      accountService = InMemoryAccountService();
+      fakeAuthService = FakeAuthService();
     });
 
-    test('should return empty list when no accounts exist', () async {
+    test('getAccounts sends GET request to /accounts', () async {
+      final mockClient = MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/api/accounts');
+        expect(request.headers['Authorization'], 'Bearer fake-jwt-token');
+        expect(request.headers['Content-Type'], 'application/json');
+
+        final responseBody = jsonEncode({
+          'accounts': [
+            {
+              'id': '5d98513c-d224-43d9-a521-960af3ce9b46',
+              'name': 'Test Account',
+              'balance': 1000.0,
+              'currency': 'PLN',
+              'type': 'Checking',
+              'createdAt': '2024-01-01T00:00:00Z',
+              'updatedAt': '2024-01-01T00:00:00Z',
+            },
+          ],
+        });
+
+        return http.Response(responseBody, 200);
+      });
+
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
+
+      final accounts = await accountService.getAccounts();
+
+      expect(accounts, hasLength(1));
+      expect(accounts.first.id, '5d98513c-d224-43d9-a521-960af3ce9b46');
+      expect(accounts.first.name, 'Test Account');
+      expect(accounts.first.balance, 1000.0);
+      expect(accounts.first.currency, 'PLN');
+      expect(accounts.first.type, 'Checking');
+      expect(accounts.first.createdAt, DateTime.parse('2024-01-01T00:00:00Z'));
+      expect(accounts.first.updatedAt, DateTime.parse('2024-01-01T00:00:00Z'));
+    });
+
+    test('getAccounts returns empty list when no accounts key', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(jsonEncode({}), 200);
+      });
+
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
+
       final accounts = await accountService.getAccounts();
 
       expect(accounts, isEmpty);
     });
 
-    test('should create account with default values', () async {
-      final account = await accountService.createAccount('Test Account');
+    test('getAccounts throws HttpException on error status', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response('Unauthorized', 401);
+      });
 
-      expect(account.name, 'Test Account');
-      expect(account.balance, 0.0);
-      expect(account.type, 'Rachunek bieżący');
-      expect(account.currency, 'PLN');
-      expect(account.id, isNotEmpty);
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
+
+      expect(() => accountService.getAccounts(), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 401)));
     });
 
-    test('should create account with custom type and currency', () async {
-      final account = await accountService.createAccount('Savings Account', type: 'Oszczędnościowy', currency: 'EUR');
+    test('createAccount sends POST request with correct body', () async {
+      final mockClient = MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/api/accounts');
+        expect(request.headers['Authorization'], 'Bearer fake-jwt-token');
 
-      expect(account.name, 'Savings Account');
-      expect(account.type, 'Oszczędnościowy');
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body['name'], 'New Account');
+        expect(body['type'], 'Savings');
+        expect(body['currency'], 'EUR');
+
+        return http.Response(
+          jsonEncode({
+            'id': '5d98513c-d224-43d9-a521-960af3ce9b46',
+            'name': 'New Account',
+            'balance': 0.0,
+            'currency': 'EUR',
+            'type': 'Savings',
+            'createdAt': '2024-01-01T00:00:00Z',
+            'updatedAt': '2024-01-01T00:00:00Z',
+          }),
+          201,
+        );
+      });
+
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
+
+      final account = await accountService.createAccount('New Account', type: 'Savings', currency: 'EUR');
+
+      expect(account.name, 'New Account');
+      expect(account.type, 'Savings');
       expect(account.currency, 'EUR');
     });
 
-    test('should return all created accounts', () async {
-      await accountService.createAccount('Account 1');
-      await accountService.createAccount('Account 2');
-      await accountService.createAccount('Account 3');
+    test('createAccount sends only name when no optional params', () async {
+      final mockClient = MockClient((request) async {
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body.keys, {'name'});
+        expect(body['name'], 'Simple Account');
 
-      final accounts = await accountService.getAccounts();
+        final responseBody = jsonEncode({
+          'id': '5d98513c-d224-43d9-a521-960af3ce9b46',
+          'name': 'Simple Account',
+          'balance': 0.0,
+          'currency': 'PLN',
+          'type': 'Checking',
+          'createdAt': '2024-01-01T00:00:00Z',
+          'updatedAt': '2024-01-01T00:00:00Z',
+        });
 
-      expect(accounts.length, 3);
+        return http.Response(responseBody, 201);
+      });
+
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
+
+      await accountService.createAccount('Simple Account');
     });
 
-    test('should delete account by id', () async {
-      final account1 = await accountService.createAccount('Account 1');
-      final account2 = await accountService.createAccount('Account 2');
+    test('createAccount throws HttpException on error', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response('Bad Request', 400);
+      });
 
-      await accountService.deleteAccount(account1.id);
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
 
-      final accounts = await accountService.getAccounts();
-      expect(accounts.length, 1);
-      expect(accounts.first.id, account2.id);
+      expect(() => accountService.createAccount('Test'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 400)));
     });
 
-    test('should persist added accounts', () async {
-      accountService.createAccount('Manual Account', type: 'Bieżący', currency: 'USD');
+    test('deleteAccount sends DELETE request to correct endpoint', () async {
+      final mockClient = MockClient((request) async {
+        expect(request.method, 'DELETE');
+        expect(request.url.path, '/api/accounts/account-to-delete');
+        expect(request.headers['Authorization'], 'Bearer fake-jwt-token');
 
-      final accounts = await accountService.getAccounts();
-      expect(accounts.length, 1);
-      expect(accounts.first.id, isNotEmpty);
-      expect(accounts.first.balance, 0.0);
+        return http.Response('', 204);
+      });
+
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
+
+      await accountService.deleteAccount('account-to-delete');
+    });
+
+    test('deleteAccount accepts 200 status code', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response('', 200);
+      });
+
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
+
+      await accountService.deleteAccount('any-id');
+    });
+
+    test('deleteAccount throws HttpException on error', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response('Not Found', 404);
+      });
+
+      final accountService = RestAccountService(authService: fakeAuthService, httpClient: mockClient);
+
+      expect(() => accountService.deleteAccount('non-existent'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 404)));
     });
   });
 }
