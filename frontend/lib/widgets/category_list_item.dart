@@ -14,12 +14,12 @@ class CategoryListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final category = categoryWithLevel.category;
     final level = categoryWithLevel.level;
-    final indentWidth = level * 24.0; // 24px wcięcia na poziom
+    final indentWidth = level * 24.0;
 
     return Container(
       margin: EdgeInsets.only(left: indentWidth, bottom: 8),
       child: Card(
-        elevation: level == 0 ? 2 : 1, // Kategorie główne bardziej wyróżnione
+        elevation: level == 0 ? 2 : 1,
         child: ListTile(
           leading: Container(
             width: 40,

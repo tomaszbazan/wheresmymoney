@@ -74,7 +74,7 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: CategoryOptionItem(category: category, level: 0, parseColor: parseColor))));
 
       final padding = tester.widget<Padding>(find.byType(Padding).first);
-      expect(padding.padding, equals(const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0, right: 8.0)));
+      expect(padding.padding, equals(const EdgeInsets.only(left: 20.0, top: 8.0, bottom: 8.0, right: 8.0)));
     });
 
     testWidgets('should apply correct indentation for level 1', (WidgetTester tester) async {
@@ -92,7 +92,7 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: CategoryOptionItem(category: category, level: 1, parseColor: parseColor))));
 
       final padding = tester.widget<Padding>(find.byType(Padding).first);
-      expect(padding.padding, equals(const EdgeInsets.only(left: 24.0, top: 8.0, bottom: 8.0, right: 8.0)));
+      expect(padding.padding, equals(const EdgeInsets.only(left: 44.0, top: 8.0, bottom: 8.0, right: 8.0)));
     });
 
     testWidgets('should apply correct indentation for level 2', (WidgetTester tester) async {
@@ -110,7 +110,7 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: CategoryOptionItem(category: category, level: 2, parseColor: parseColor))));
 
       final padding = tester.widget<Padding>(find.byType(Padding).first);
-      expect(padding.padding, equals(const EdgeInsets.only(left: 48.0, top: 8.0, bottom: 8.0, right: 8.0)));
+      expect(padding.padding, equals(const EdgeInsets.only(left: 68.0, top: 8.0, bottom: 8.0, right: 8.0)));
     });
   });
 }
