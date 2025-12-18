@@ -7,7 +7,9 @@ import '../models/transaction.dart';
 import '../models/transaction_type.dart';
 import '../services/account_service.dart';
 import '../services/category_service.dart';
+import '../services/csv_import_service.dart';
 import '../services/transaction_service.dart';
+import '../widgets/csv_upload_dialog.dart';
 import '../widgets/no_categories_dialog.dart';
 import '../widgets/transaction_form.dart';
 import '../widgets/transaction_list.dart';
@@ -25,6 +27,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   final TransactionService _transactionService = TransactionService();
   final RestAccountService _accountService = RestAccountService();
   final RestCategoryService _categoryService = RestCategoryService();
+  final CsvImportService _csvImportService = CsvImportService();
 
   List<Transaction> _transactions = [];
   List<Account> _accounts = [];
@@ -161,15 +164,46 @@ class _TransactionsPageState extends State<TransactionsPage> {
     }
   }
 
+  Future<void> _showCsvUploadDialog() async {
+    if (_accounts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nie można importować transakcji - brak kont'), backgroundColor: Colors.red));
+      return;
+    }
+
+    await showDialog<void>(context: context, builder: (context) => CsvUploadDialog(csvImportService: _csvImportService, accounts: _accounts));
+
+    _loadData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.type == TransactionType.income ? 'Przychody' : 'Wydatki'), automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: Text(widget.type == TransactionType.income ? 'Przychody' : 'Wydatki'),
+        automaticallyImplyLeading: false,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.add),
+            tooltip: 'Dodaj transakcję',
+            onSelected: (value) {
+              if (value == 'manual') {
+                _showAddTransactionDialog();
+              } else if (value == 'import') {
+                _showCsvUploadDialog();
+              }
+            },
+            itemBuilder:
+                (context) => [
+                  const PopupMenuItem(value: 'manual', child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text('Dodaj ręcznie')])),
+                  const PopupMenuItem(value: 'import', child: Row(children: [Icon(Icons.file_upload), SizedBox(width: 8), Text('Importuj z CSV')])),
+                ],
+          ),
+        ],
+      ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : TransactionList(transactions: _transactions, accounts: _accounts, onEdit: _showEditTransactionDialog, onDelete: _deleteTransaction),
-      floatingActionButton: FloatingActionButton(onPressed: _showAddTransactionDialog, child: const Icon(Icons.add)),
     );
   }
 }

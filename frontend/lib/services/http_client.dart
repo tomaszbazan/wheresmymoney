@@ -21,7 +21,9 @@ class AuthenticatedHttpClient extends http.BaseClient {
       request.headers['Authorization'] = 'Bearer $token';
     }
 
-    request.headers['Content-Type'] = 'application/json';
+    if (request is! http.MultipartRequest) {
+      request.headers['Content-Type'] = 'application/json';
+    }
 
     return _inner.send(request);
   }
@@ -102,6 +104,31 @@ class ApiClient {
       final response = await _httpClient.put(Uri.parse('${ApiConfig.backendUrl}$endpoint'), body: jsonEncode(body));
 
       if (response.statusCode == 200) {
+        return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      } else {
+        throw HttpException(response.statusCode, response.body);
+      }
+    } on SocketException {
+      throw const HttpException(0, 'Connection refused');
+    }
+  }
+
+  Future<T> postMultipart<T>(String endpoint, Map<String, String> fields, Map<String, http.MultipartFile> files, T Function(Map<String, dynamic>) fromJson) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('${ApiConfig.backendUrl}$endpoint'));
+
+      final token = await _authService.getAccessToken();
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      request.fields.addAll(fields);
+      request.files.addAll(files.values);
+
+      final streamedResponse = await _httpClient.send(request);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
       } else {
         throw HttpException(response.statusCode, response.body);
