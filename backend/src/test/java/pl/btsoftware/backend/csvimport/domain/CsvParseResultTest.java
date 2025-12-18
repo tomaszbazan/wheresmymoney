@@ -8,72 +8,95 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CsvParseResultTest {
 
     @Test
     void shouldCreateResultWithProposalsAndErrors() {
+        // given
         var proposal = new TransactionProposal(LocalDate.of(2025, 12, 17), "Wpływy / Test", new BigDecimal("100.00"), Currency.PLN, TransactionType.INCOME, null);
-
         var error = new ParseError(5, "Invalid format");
 
+        // when
         var result = new CsvParseResult(List.of(proposal), List.of(error), 2, 1, 1);
 
-        assertEquals(1, result.proposals().size());
-        assertEquals(1, result.errors().size());
-        assertEquals(2, result.totalRows());
-        assertEquals(1, result.successCount());
-        assertEquals(1, result.errorCount());
+        // then
+        assertThat(result.proposals()).hasSize(1);
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.totalRows()).isEqualTo(2);
+        assertThat(result.successCount()).isEqualTo(1);
+        assertThat(result.errorCount()).isEqualTo(1);
     }
 
     @Test
     void shouldCreateResultWithNoErrors() {
+        // given
         var proposal = new TransactionProposal(LocalDate.of(2025, 12, 17), "Wpływy / Test", new BigDecimal("100.00"), Currency.PLN, TransactionType.INCOME, null);
 
+        // when
         var result = new CsvParseResult(List.of(proposal), List.of(), 1, 1, 0);
 
-        assertEquals(1, result.proposals().size());
-        assertTrue(result.errors().isEmpty());
-        assertEquals(1, result.totalRows());
-        assertEquals(1, result.successCount());
-        assertEquals(0, result.errorCount());
+        // then
+        assertThat(result.proposals()).hasSize(1);
+        assertThat(result.errors()).isEmpty();
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isEqualTo(1);
+        assertThat(result.errorCount()).isEqualTo(0);
     }
 
     @Test
     void shouldCreateResultWithNoProposals() {
+        // given
         var error = new ParseError(1, "Invalid format");
 
+        // when
         var result = new CsvParseResult(List.of(), List.of(error), 1, 0, 1);
 
-        assertTrue(result.proposals().isEmpty());
-        assertEquals(1, result.errors().size());
-        assertEquals(1, result.totalRows());
-        assertEquals(0, result.successCount());
-        assertEquals(1, result.errorCount());
+        // then
+        assertThat(result.proposals()).isEmpty();
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isEqualTo(0);
+        assertThat(result.errorCount()).isEqualTo(1);
     }
 
     @Test
     void shouldCalculateSuccessRate() {
+        // given
         var result = new CsvParseResult(List.of(), List.of(), 10, 8, 2);
 
-        assertEquals(0.8, result.successRate(), 0.001);
+        // when
+        var successRate = result.successRate();
+
+        // then
+        assertThat(successRate).isCloseTo(0.8, org.assertj.core.data.Offset.offset(0.001));
     }
 
     @Test
     void shouldHandleZeroTotalRows() {
+        // given
         var result = new CsvParseResult(List.of(), List.of(), 0, 0, 0);
 
-        assertEquals(0.0, result.successRate(), 0.001);
+        // when
+        var successRate = result.successRate();
+
+        // then
+        assertThat(successRate).isCloseTo(0.0, org.assertj.core.data.Offset.offset(0.001));
     }
 
     @Test
     void shouldRejectNullProposals() {
-        assertThrows(NullPointerException.class, () -> new CsvParseResult(null, List.of(), 0, 0, 0));
+        // when & then
+        assertThatThrownBy(() -> new CsvParseResult(null, List.of(), 0, 0, 0))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void shouldRejectNullErrors() {
-        assertThrows(NullPointerException.class, () -> new CsvParseResult(List.of(), null, 0, 0, 0));
+        // when & then
+        assertThatThrownBy(() -> new CsvParseResult(List.of(), null, 0, 0, 0))
+                .isInstanceOf(NullPointerException.class);
     }
 }

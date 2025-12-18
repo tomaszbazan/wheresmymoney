@@ -2,21 +2,29 @@ package pl.btsoftware.backend.csvimport.domain;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ParseErrorTest {
 
     @Test
     void shouldCreateParseError() {
-        var error = new ParseError(5, "Invalid date format");
+        // given
+        var lineNumber = 5;
+        var message = "Invalid date format";
 
-        assertEquals(5, error.lineNumber());
-        assertEquals("Invalid date format", error.message());
+        // when
+        var error = new ParseError(lineNumber, message);
+
+        // then
+        assertThat(error.lineNumber()).isEqualTo(5);
+        assertThat(error.message()).isEqualTo("Invalid date format");
     }
 
     @Test
     void shouldRejectNullMessage() {
-        assertThrows(NullPointerException.class, () -> new ParseError(1, null));
+        // when & then
+        assertThatThrownBy(() -> new ParseError(1, null))
+                .isInstanceOf(NullPointerException.class);
     }
 }

@@ -41,6 +41,7 @@ public class TransactionsImportControllerTest {
 
     @Test
     void shouldParseCsvAndReturnProposals() throws Exception {
+        // given
         var proposal1 = new TransactionProposal(
                 LocalDate.of(2025, 12, 17),
                 "Wpływy - inne / FRANCISZEK BELA",
@@ -76,6 +77,7 @@ public class TransactionsImportControllerTest {
                 "csv content".getBytes(StandardCharsets.UTF_8)
         );
 
+        // when & then
         mockMvc.perform(multipart("/api/transactions/import")
                         .file(csvFile)
                         .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
@@ -95,6 +97,7 @@ public class TransactionsImportControllerTest {
 
     @Test
     void shouldHandleInvalidCsv() throws Exception {
+        // given
         var parseError = new ParseError(1, "Invalid date format");
         var parseResult = new CsvParseResult(
                 List.of(),
@@ -113,6 +116,7 @@ public class TransactionsImportControllerTest {
                 "invalid,csv,data\n1,2,3".getBytes(StandardCharsets.UTF_8)
         );
 
+        // when & then
         mockMvc.perform(multipart("/api/transactions/import")
                         .file(csvFile)
                         .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
@@ -128,6 +132,7 @@ public class TransactionsImportControllerTest {
 
     @Test
     void shouldRejectEmptyFile() throws Exception {
+        // given
         var emptyFile = new MockMultipartFile(
                 "csvFile",
                 "empty.csv",
@@ -135,6 +140,7 @@ public class TransactionsImportControllerTest {
                 new byte[0]
         );
 
+        // when & then
         mockMvc.perform(multipart("/api/transactions/import")
                         .file(emptyFile)
                         .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
@@ -144,6 +150,7 @@ public class TransactionsImportControllerTest {
 
     @Test
     void shouldReturn400ForInvalidFileFormat() throws Exception {
+        // given
         when(csvParseService.parse(any())).thenThrow(new CsvValidationException("CSV file must have at least 28 lines (mBank format header + column headers)"));
 
         var invalidFile = new MockMultipartFile(
@@ -153,6 +160,7 @@ public class TransactionsImportControllerTest {
                 "invalid content".getBytes(StandardCharsets.UTF_8)
         );
 
+        // when & then
         mockMvc.perform(multipart("/api/transactions/import")
                         .file(invalidFile)
                         .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
@@ -163,6 +171,7 @@ public class TransactionsImportControllerTest {
 
     @Test
     void shouldReturnValidationErrorInResponse() throws Exception {
+        // given
         when(csvParseService.parse(any())).thenThrow(new CsvValidationException("Expected mBank column headers at line 27"));
 
         var invalidFile = new MockMultipartFile(
@@ -172,6 +181,7 @@ public class TransactionsImportControllerTest {
                 "wrong headers content".getBytes(StandardCharsets.UTF_8)
         );
 
+        // when & then
         mockMvc.perform(multipart("/api/transactions/import")
                         .file(invalidFile)
                         .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
