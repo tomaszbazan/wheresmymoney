@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.csvimport.application.CsvParseService;
 import pl.btsoftware.backend.csvimport.domain.CsvParseResult;
+import pl.btsoftware.backend.csvimport.domain.CsvValidationException;
 import pl.btsoftware.backend.csvimport.domain.ParseError;
 import pl.btsoftware.backend.csvimport.domain.TransactionProposal;
 import pl.btsoftware.backend.shared.Currency;
@@ -20,12 +21,12 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static pl.btsoftware.backend.shared.JwtTokenFixture.createTokenFor;
 
 @WebMvcTest(controllers = TransactionsImportController.class)
@@ -139,5 +140,43 @@ public class TransactionsImportControllerTest {
                         .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
                         .with(createTokenFor("test-user")))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn400ForInvalidFileFormat() throws Exception {
+        when(csvParseService.parse(any())).thenThrow(new CsvValidationException("CSV file must have at least 28 lines (mBank format header + column headers)"));
+
+        var invalidFile = new MockMultipartFile(
+                "csvFile",
+                "invalid.csv",
+                "text/csv",
+                "invalid content".getBytes(StandardCharsets.UTF_8)
+        );
+
+        mockMvc.perform(multipart("/api/transactions/import")
+                        .file(invalidFile)
+                        .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
+                        .with(createTokenFor("test-user")))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("at least 28 lines")));
+    }
+
+    @Test
+    void shouldReturnValidationErrorInResponse() throws Exception {
+        when(csvParseService.parse(any())).thenThrow(new CsvValidationException("Expected mBank column headers at line 27"));
+
+        var invalidFile = new MockMultipartFile(
+                "csvFile",
+                "wrong_headers.csv",
+                "text/csv",
+                "wrong headers content".getBytes(StandardCharsets.UTF_8)
+        );
+
+        mockMvc.perform(multipart("/api/transactions/import")
+                        .file(invalidFile)
+                        .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
+                        .with(createTokenFor("test-user")))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Expected mBank column headers")));
     }
 }

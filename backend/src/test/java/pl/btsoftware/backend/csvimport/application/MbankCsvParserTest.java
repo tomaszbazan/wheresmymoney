@@ -1,12 +1,17 @@
 package pl.btsoftware.backend.csvimport.application;
 
 import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.csvimport.domain.CsvValidationException;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionType;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MbankCsvParserTest {
 
@@ -20,7 +25,7 @@ class MbankCsvParserTest {
         assertThat(csvStream).isNotNull();
 
         // when
-        var result = parser.parse(csvStream);
+        var result = parser.parse(csvStream, Currency.PLN);
 
         // then
         assertThat(result.proposals()).hasSize(9);
@@ -35,7 +40,7 @@ class MbankCsvParserTest {
         var csvStream = getClass().getClassLoader().getResourceAsStream("mbank_transaction_list.csv");
 
         // when
-        var result = parser.parse(csvStream);
+        var result = parser.parse(csvStream, Currency.PLN);
 
         // then
         var incomeProposal = result.proposals().stream().filter(p -> p.type() == TransactionType.INCOME).findFirst().orElseThrow();
@@ -53,7 +58,7 @@ class MbankCsvParserTest {
         var csvStream = getClass().getClassLoader().getResourceAsStream("mbank_transaction_list.csv");
 
         // when
-        var result = parser.parse(csvStream);
+        var result = parser.parse(csvStream, Currency.PLN);
 
         // then
         var expenseProposal = result.proposals().stream().filter(p -> p.type() == TransactionType.EXPENSE).findFirst().orElseThrow();
@@ -63,5 +68,101 @@ class MbankCsvParserTest {
         assertThat(expenseProposal.currency()).isEqualTo(Currency.PLN);
         assertThat(expenseProposal.categoryId()).isNull();
         assertThat(expenseProposal.description()).contains(" / ");
+    }
+
+    @Test
+    void shouldRejectEmptyFile() {
+        // given
+        var stream = createInputStream("");
+
+        // when & then
+        assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
+                .isInstanceOf(CsvValidationException.class)
+                .hasMessageContaining("empty");
+    }
+
+    @Test
+    void shouldRejectFileTooShort() {
+        // given
+        var stream = getClass().getClassLoader().getResourceAsStream("too_short.csv");
+
+        // when & then
+        assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
+                .isInstanceOf(CsvValidationException.class)
+                .hasMessageContaining("at least 28 lines");
+    }
+
+    @Test
+    void shouldRejectMissingColumnHeaders() {
+        // given
+        var content = createValidHeaderLines(26) + "\n";
+        var stream = createInputStream(content);
+
+        // when & then
+        assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
+                .isInstanceOf(CsvValidationException.class)
+                .hasMessageContaining("column headers");
+    }
+
+    @Test
+    void shouldRejectIncorrectColumnHeaders() {
+        // given
+        var stream = getClass().getClassLoader().getResourceAsStream("invalid_headers.csv");
+
+        // when & then
+        assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
+                .isInstanceOf(CsvValidationException.class)
+                .hasMessageContaining("Expected mBank column headers");
+    }
+
+    @Test
+    void shouldRejectMissingRequiredColumn() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;\n"
+                      + "\n";
+        var stream = createInputStream(content);
+
+        // when & then
+        assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
+                .isInstanceOf(CsvValidationException.class)
+                .hasMessageContaining("Expected mBank column headers");
+    }
+
+    @Test
+    void shouldRejectWrongColumnOrder() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Opis operacji;#Data operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "\n";
+        var stream = createInputStream(content);
+
+        // when & then
+        assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
+                .isInstanceOf(CsvValidationException.class)
+                .hasMessageContaining("Expected mBank column headers");
+    }
+
+    @Test
+    void shouldRejectWrongDelimiter() {
+        // given
+        var stream = getClass().getClassLoader().getResourceAsStream("wrong_delimiter.csv");
+
+        // when & then
+        assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
+                .isInstanceOf(CsvValidationException.class)
+                .hasMessageContaining("Expected mBank column headers");
+    }
+
+    private InputStream createInputStream(String content) {
+        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String createValidHeaderLines(int count) {
+        var builder = new StringBuilder();
+        for (var i = 0; i < count; i++) {
+            builder.append("Header line ").append(i + 1).append(";\n");
+        }
+        return builder.toString();
     }
 }

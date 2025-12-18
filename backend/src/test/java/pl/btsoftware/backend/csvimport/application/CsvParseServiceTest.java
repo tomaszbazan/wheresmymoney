@@ -257,17 +257,13 @@ class CsvParseServiceTest {
     }
 
     @Test
-    void shouldHandleHeaderOnlyFile() {
+    void shouldRejectHeaderOnlyFile() {
         // given
         var csv = createMbankTransactionListCsv("");
         var command = new ParseCsvCommand(csv, userId, accountId);
 
-        // when
-        var result = service.parse(command);
-
-        // then
-        assertThat(result.proposals()).isEmpty();
-        assertThat(result.errors()).isEmpty();
+        // when & then
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class).hasMessageContaining("at least 28 lines");
     }
 
     @Test
@@ -282,6 +278,36 @@ class CsvParseServiceTest {
         // then
         assertThat(result.proposals()).hasSize(1);
         assertThat(result.proposals().getFirst().description()).isEqualTo("Category / Test; with; semicolons");
+    }
+
+    @Test
+    void shouldRejectInvalidFileFormat() {
+        // given
+        var invalidCsv = new ByteArrayInputStream("Invalid CSV content".getBytes(StandardCharsets.UTF_8));
+        var command = new ParseCsvCommand(invalidCsv, userId, accountId);
+
+        // when & then
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class).hasMessageContaining("at least 28 lines");
+    }
+
+    @Test
+    void shouldProvideValidationErrorMessage() {
+        // given
+        var invalidCsv = getClass().getClassLoader().getResourceAsStream("invalid_headers.csv");
+        var command = new ParseCsvCommand(invalidCsv, userId, accountId);
+
+        // when & then
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class).hasMessageContaining("Expected mBank column headers");
+    }
+
+    @Test
+    void shouldValidateBeforeParsing() {
+        // given
+        var tooShortCsv = getClass().getClassLoader().getResourceAsStream("too_short.csv");
+        var command = new ParseCsvCommand(tooShortCsv, userId, accountId);
+
+        // when & then
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class).hasMessageContaining("at least 28 lines");
     }
 
     private InputStream createMbankTransactionListCsv(String dataRows) {

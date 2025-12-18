@@ -4,16 +4,11 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Component;
-import pl.btsoftware.backend.csvimport.domain.CsvParseResult;
-import pl.btsoftware.backend.csvimport.domain.CsvParsingException;
-import pl.btsoftware.backend.csvimport.domain.ParseError;
-import pl.btsoftware.backend.csvimport.domain.TransactionProposal;
+import pl.btsoftware.backend.csvimport.domain.*;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionType;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -28,17 +23,19 @@ public class MbankCsvParser implements TransactionCsvParser {
     private static final int DESCRIPTION_COLUMN = 1;
     private static final int CATEGORY_COLUMN = 3;
     private static final int AMOUNT_COLUMN = 4;
-
-    public CsvParseResult parse(InputStream csvStream) {
-        return parse(csvStream, null);
-    }
+    private static final int MINIMUM_LINE_COUNT = 28;
+    private static final int COLUMN_HEADER_LINE_INDEX = 26;
+    private static final String EXPECTED_COLUMN_HEADERS = "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;";
 
     public CsvParseResult parse(InputStream csvStream, Currency accountCurrency) {
+        var csvBytes = readAllBytes(csvStream);
+        validate(new ByteArrayInputStream(csvBytes));
+
         var proposals = new ArrayList<TransactionProposal>();
         var errors = new ArrayList<ParseError>();
         var totalRows = 0;
 
-        try (var reader = new InputStreamReader(csvStream, StandardCharsets.UTF_8); var parser = createCsvParser(reader)) {
+        try (var reader = new InputStreamReader(new ByteArrayInputStream(csvBytes), StandardCharsets.UTF_8); var parser = createCsvParser(reader)) {
 
             for (CSVRecord record : parser) {
                 if (isDataRow(record)) {
@@ -142,5 +139,54 @@ public class MbankCsvParser implements TransactionCsvParser {
 
     private TransactionType determineType(BigDecimal amount) {
         return amount.compareTo(BigDecimal.ZERO) >= 0 ? TransactionType.INCOME : TransactionType.EXPENSE;
+    }
+
+    private byte[] readAllBytes(InputStream stream) {
+        try {
+            return stream.readAllBytes();
+        } catch (IOException e) {
+            throw new CsvValidationException("Failed to read CSV file: " + e.getMessage());
+        }
+    }
+
+    private void validate(InputStream csvStream) {
+        var lines = readLines(csvStream);
+
+        validateNotEmpty(lines);
+        validateMinimumLineCount(lines);
+        validateColumnHeaders(lines);
+    }
+
+    private ArrayList<String> readLines(InputStream csvStream) {
+        var lines = new ArrayList<String>();
+        try (var reader = new BufferedReader(new InputStreamReader(csvStream, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null && lines.size() < MINIMUM_LINE_COUNT) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            throw new CsvValidationException("Failed to read CSV file: " + e.getMessage());
+        }
+        return lines;
+    }
+
+    private void validateNotEmpty(ArrayList<String> lines) {
+        if (lines.isEmpty()) {
+            throw new CsvValidationException("CSV file is empty");
+        }
+    }
+
+    private void validateMinimumLineCount(ArrayList<String> lines) {
+        if (lines.size() < MINIMUM_LINE_COUNT) {
+            throw new CsvValidationException("CSV file must have at least 28 lines (mBank format header + column headers)");
+        }
+    }
+
+    private void validateColumnHeaders(ArrayList<String> lines) {
+        var columnHeaderLine = lines.get(COLUMN_HEADER_LINE_INDEX);
+
+        if (!columnHeaderLine.startsWith(EXPECTED_COLUMN_HEADERS)) {
+            throw new CsvValidationException("Expected mBank column headers at line 27: " + EXPECTED_COLUMN_HEADERS);
+        }
     }
 }
