@@ -8,7 +8,7 @@ import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountRepository;
-import pl.btsoftware.backend.category.CategoryModuleFacade;
+import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
@@ -37,7 +37,7 @@ import static pl.btsoftware.backend.shared.Currency.USD;
 class TransactionServiceTest {
     private TransactionRepository transactionRepository;
     private AccountModuleFacade accountModuleFacade;
-    private CategoryModuleFacade categoryModuleFacade;
+    private CategoryQueryFacade categoryQueryFacade;
     private TransactionService transactionService;
     private UsersModuleFacade usersModuleFacade;
     private GroupId testGroupId;
@@ -47,7 +47,7 @@ class TransactionServiceTest {
         this.transactionRepository = new InMemoryTransactionRepository();
         var accountRepository = new InMemoryAccountRepository();
         this.usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
-        this.categoryModuleFacade = Mockito.mock(CategoryModuleFacade.class);
+        this.categoryQueryFacade = Mockito.mock(CategoryQueryFacade.class);
 
         this.testGroupId = new GroupId(UUID.randomUUID());
         var mockUser = User.create(
@@ -57,11 +57,11 @@ class TransactionServiceTest {
                 testGroupId
         );
         when(usersModuleFacade.findUserOrThrow(any(UserId.class))).thenReturn(mockUser);
-        when(categoryModuleFacade.hasCategories(any(CategoryType.class), any(GroupId.class))).thenReturn(true);
+        when(categoryQueryFacade.hasCategories(any(CategoryType.class), any(GroupId.class))).thenReturn(true);
 
         var accountService = new AccountService(accountRepository, usersModuleFacade);
         this.accountModuleFacade = new AccountModuleFacade(accountService, usersModuleFacade);
-        this.transactionService = new TransactionService(transactionRepository, accountModuleFacade, categoryModuleFacade, usersModuleFacade);
+        this.transactionService = new TransactionService(transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade);
     }
 
     @Test
@@ -496,7 +496,7 @@ class TransactionServiceTest {
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
-        when(categoryModuleFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(false);
+        when(categoryQueryFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(false);
 
         // When & Then
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
@@ -519,7 +519,7 @@ class TransactionServiceTest {
         var type = TransactionType.EXPENSE;
         var categoryId = CategoryId.generate();
 
-        when(categoryModuleFacade.hasCategories(CategoryType.EXPENSE, testGroupId)).thenReturn(false);
+        when(categoryQueryFacade.hasCategories(CategoryType.EXPENSE, testGroupId)).thenReturn(false);
 
         // When & Then
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
@@ -542,7 +542,7 @@ class TransactionServiceTest {
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
-        when(categoryModuleFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(true);
+        when(categoryQueryFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(true);
 
         // When
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
@@ -565,11 +565,11 @@ class TransactionServiceTest {
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
-        when(categoryModuleFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(true);
+        when(categoryQueryFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(true);
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
         var transaction = transactionService.createTransaction(command);
 
-        when(categoryModuleFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(false);
+        when(categoryQueryFacade.hasCategories(CategoryType.INCOME, testGroupId)).thenReturn(false);
 
         // When & Then
         var updateCommand = new UpdateTransactionCommand(transaction.id(), Money.of(new BigDecimal("2000.00"), PLN), "Updated description", categoryId);

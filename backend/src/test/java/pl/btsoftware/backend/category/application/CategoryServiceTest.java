@@ -12,7 +12,7 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.shared.Color;
 import pl.btsoftware.backend.shared.Tombstone;
-import pl.btsoftware.backend.transaction.TransactionModuleFacade;
+import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
@@ -28,7 +28,7 @@ class CategoryServiceTest {
     private CategoryService categoryService;
     private InMemoryCategoryRepository categoryRepository;
     private UsersModuleFacade usersModuleFacade;
-    private TransactionModuleFacade transactionModuleFacade;
+    private TransactionQueryFacade transactionQueryFacade;
     private User testUser;
     private GroupId testGroupId;
 
@@ -36,8 +36,8 @@ class CategoryServiceTest {
     void setUp() {
         categoryRepository = new InMemoryCategoryRepository();
         usersModuleFacade = mock(UsersModuleFacade.class);
-        transactionModuleFacade = mock(TransactionModuleFacade.class);
-        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionModuleFacade);
+        transactionQueryFacade = mock(TransactionQueryFacade.class);
+        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade);
 
         testGroupId = GroupId.generate();
         testUser = createUser(UserId.generate(), testGroupId);
@@ -431,7 +431,7 @@ class CategoryServiceTest {
         var category = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(category);
 
-        when(transactionModuleFacade.categoryHasTransactions(categoryId, testGroupId)).thenReturn(true);
+        when(transactionQueryFacade.categoryHasTransactions(categoryId, testGroupId)).thenReturn(true);
 
         assertThatThrownBy(() -> categoryService.deleteCategory(categoryId, testUser.id()))
                 .isInstanceOf(CategoryHasTransactionsException.class);
@@ -443,7 +443,7 @@ class CategoryServiceTest {
         var category = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(category);
 
-        when(transactionModuleFacade.categoryHasTransactions(categoryId, testGroupId)).thenReturn(false);
+        when(transactionQueryFacade.categoryHasTransactions(categoryId, testGroupId)).thenReturn(false);
 
         categoryService.deleteCategory(categoryId, testUser.id());
 

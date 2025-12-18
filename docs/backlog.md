@@ -47,7 +47,7 @@
 
 | ID        | Task                             | Description                                                  | Done |
 |-----------|----------------------------------|--------------------------------------------------------------|------|
-| TASK-0040 | mBank CSV parser                 | Implement parser for mBank CSV file format                   | [ ]  |
+| TASK-0040 | mBank CSV parser                 | Implement parser for mBank CSV file format                   | [x]  |
 | TASK-0041 | CSV file validation              | Validate uploaded file structure matches mBank format        | [ ]  |
 | TASK-0042 | CSV upload UI                    | Create Flutter file upload component with progress indicator | [ ]  |
 | TASK-0043 | In-memory transaction processing | Process parsed transactions in browser RAM before saving     | [ ]  |

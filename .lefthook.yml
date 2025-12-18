@@ -7,9 +7,12 @@ pre-commit:
     backend-spotbugs:
       glob: "backend/**/*.java"  
       run: cd backend && ./gradlew spotbugsMain spotbugsTest
-    backend-tests:
+    backend-unit-tests:
       glob: "backend/**/*.java"
       run: cd backend && ./gradlew test
+    backend-system-tests:
+      glob: "backend/**/*.java"
+      run: cd backend && ./gradlew systemTest
     frontend-analyze:
       glob: "frontend/**/*.dart"
       run: cd frontend && flutter analyze

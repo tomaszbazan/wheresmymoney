@@ -52,6 +52,7 @@ dependencies {
     implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.9.0'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'org.apache.commons:commons-csv:1.11.0'
 
     compileOnly "org.projectlombok:lombok:$lombokVersion"
 

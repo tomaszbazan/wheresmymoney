@@ -70,7 +70,7 @@ public class AccountServiceTest {
 
         // then
         assertThat(accounts).hasSize(2);
-        assertThat(accounts.get(0).name()).isEqualTo("Account 1");
+        assertThat(accounts.getFirst().name()).isEqualTo("Account 1");
         assertThat(accounts.get(1).name()).isEqualTo("Account 2");
     }
 
