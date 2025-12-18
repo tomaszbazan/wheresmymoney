@@ -11,7 +11,7 @@ import pl.btsoftware.backend.category.domain.error.CategoryHierarchyTooDeepExcep
 import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
-import pl.btsoftware.backend.transaction.TransactionModuleFacade;
+import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -22,7 +22,7 @@ import java.util.List;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final UsersModuleFacade usersModuleFacade;
-    private final TransactionModuleFacade transactionModuleFacade;
+    private final TransactionQueryFacade transactionQueryFacade;
 
     @Transactional
     public Category createCategory(CreateCategoryCommand command) {
@@ -76,7 +76,7 @@ public class CategoryService {
             throw new CategoryAccessDeniedException();
         }
 
-        if (transactionModuleFacade.categoryHasTransactions(categoryId, user.groupId())) {
+        if (transactionQueryFacade.categoryHasTransactions(categoryId, user.groupId())) {
             throw new CategoryHasTransactionsException(categoryId);
         }
 

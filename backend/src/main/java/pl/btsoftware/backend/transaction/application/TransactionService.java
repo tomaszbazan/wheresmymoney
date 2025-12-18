@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.domain.AuditInfo;
-import pl.btsoftware.backend.category.CategoryModuleFacade;
+import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
@@ -22,7 +22,7 @@ import java.util.List;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountModuleFacade accountModuleFacade;
-    private final CategoryModuleFacade categoryModuleFacade;
+    private final CategoryQueryFacade categoryQueryFacade;
     private final UsersModuleFacade usersModuleFacade;
 
     @Transactional // TODO: Verify if transactional works correctly in integration tests
@@ -48,7 +48,7 @@ public class TransactionService {
 
     private void validateCategoriesExist(TransactionType type, GroupId groupId) {
         var categoryType = type == TransactionType.INCOME ? CategoryType.INCOME : CategoryType.EXPENSE;
-        if (!categoryModuleFacade.hasCategories(categoryType, groupId)) {
+        if (!categoryQueryFacade.hasCategories(categoryType, groupId)) {
             throw new NoCategoriesAvailableException(categoryType);
         }
     }

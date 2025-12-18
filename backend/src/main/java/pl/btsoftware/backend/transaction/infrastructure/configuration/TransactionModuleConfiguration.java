@@ -4,7 +4,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.category.CategoryModuleFacade;
+import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
+import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.transaction.infrastructure.api.TransactionController;
@@ -21,9 +23,14 @@ public class TransactionModuleConfiguration {
     }
 
     @Bean
+    public TransactionQueryFacade transactionQueryFacade(TransactionRepository transactionRepository) {
+        return new TransactionQueryFacade(transactionRepository);
+    }
+
+    @Bean
     public TransactionService transactionService(TransactionRepository transactionRepository, AccountModuleFacade accountModuleFacade,
-                                                 CategoryModuleFacade categoryModuleFacade, UsersModuleFacade usersModuleFacade) {
-        return new TransactionService(transactionRepository, accountModuleFacade, categoryModuleFacade, usersModuleFacade);
+                                                 CategoryQueryFacade categoryQueryFacade, UsersModuleFacade usersModuleFacade) {
+        return new TransactionService(transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade);
     }
 
     @Bean

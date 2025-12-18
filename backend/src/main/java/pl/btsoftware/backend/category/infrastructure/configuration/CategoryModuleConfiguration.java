@@ -4,12 +4,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import pl.btsoftware.backend.category.CategoryModuleFacade;
+import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.application.CategoryService;
 import pl.btsoftware.backend.category.domain.CategoryRepository;
 import pl.btsoftware.backend.category.infrastructure.api.CategoryController;
 import pl.btsoftware.backend.category.infrastructure.persistance.CategoryJpaRepository;
 import pl.btsoftware.backend.category.infrastructure.persistance.JpaCategoryRepository;
-import pl.btsoftware.backend.transaction.TransactionModuleFacade;
+import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 
 @Configuration
@@ -22,10 +23,15 @@ public class CategoryModuleConfiguration {
     }
 
     @Bean
+    public CategoryQueryFacade categoryQueryFacade(CategoryRepository categoryRepository) {
+        return new CategoryQueryFacade(categoryRepository);
+    }
+
+    @Bean
     public CategoryService categoryService(CategoryRepository categoryRepository,
                                            UsersModuleFacade usersModuleFacade,
-                                           TransactionModuleFacade transactionModuleFacade) {
-        return new CategoryService(categoryRepository, usersModuleFacade, transactionModuleFacade);
+                                           TransactionQueryFacade transactionQueryFacade) {
+        return new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade);
     }
 
     @Bean

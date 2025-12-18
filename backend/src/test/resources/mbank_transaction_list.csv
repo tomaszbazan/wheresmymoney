@@ -1,0 +1,36 @@
+﻿mBank S.A. Bankowość Detaliczna;
+		Skrytka Pocztowa 2108;
+		90-959 Łódź 2;
+		www.mBank.pl;
+		mLinia: 801 300 800;
+		+48 (42) 6 300 800;
+		
+
+#Klient;
+JAN MARIAN KOWALSKI;
+
+Lista operacji;
+
+#Za okres:;
+17.12.2024;17.12.2025;
+
+#zgodnie z wybranymi filtrami wyszukiwania;
+      #dla rachunków:;
+      mKonto Intensive - 12345678901234567890123456;
+      rachunek kredytowy PLN - 12345678901234567890123456;
+      
+      #Lista nie jest dokumentem w rozumieniu art. 7 Ustawy Prawo Bankowe (Dz. U. Nr 140 z 1997 roku, poz.939 z późniejszymi zmianami), ponieważ operacje można samodzielnie edytować.;
+      
+      #Waluta;#Wpływy;#Wydatki;
+PLN;891 199,60;-897 548,47;
+      
+#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;
+2025-12-17;"FRANCISZEK BELA AKACJOWA 12H 111-111 KRAKÓW, Zwrot  FRANCISZEK BELA                       AKACJOWA 12                        11-111 KRAKÓW                                                         PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY                                                     ";"mKonto Intensive 1234 ... 3456";"Wpływy - inne";1 100,00 PLN;;
+2025-12-17;"APTEKARIUS SPOLKA JAWN  ZAKUP PRZY UŻYCIU KARTY W KRAJU                                                     transakcja nierozliczona";"mKonto Intensive 1234 ... 3456";"Zdrowie i uroda";-239,22 PLN;;
+2025-12-17;"ALLEGRO.PL                                                                         BLIK ZAKUP E-COMMERCE                                                               ";"mKonto Intensive 1234 ... 3456";"Osobiste - inne";-89,44 PLN;;
+2025-12-16;"STACJA PALIW P&M PE  ZAKUP PRZY UŻYCIU KARTY W KRAJU                                                     transakcja nierozliczona";"mKonto Intensive 1234 ... 3456";"Paliwo";-196,26 PLN;;
+2025-12-16;"AUCHAN POLSKA SP. Z  ZAKUP PRZY UŻYCIU KARTY W KRAJU                                                     transakcja nierozliczona";"mKonto Intensive 1234 ... 3456";"Żywność i chemia domowa";-173,34 PLN;;
+2025-12-16;"Rossmann  ZAKUP PRZY UŻYCIU KARTY W KRAJU                                                     transakcja nierozliczona";"mKonto Intensive 1234 ... 3456";"Żywność i chemia domowa";-300,00 PLN;;
+2025-12-16;"LPP SINSAY 3312546  ZAKUP PRZY UŻYCIU KARTY W KRAJU                                                     transakcja nierozliczona";"mKonto Intensive 1234 ... 3456";"Odzież i obuwie";-100,00 PLN;;
+2025-12-15;"CHAPS  ZAKUP PRZY UŻYCIU KARTY W KRAJU                                                     ";"mKonto Intensive 1234 ... 3456";"Wyjścia i wydarzenia";-19,00 PLN;;
+2025-12-15;"JAN POZNAŃSKI ., za wyjazd  .                                                                      BLIK P2P-PRZYCHODZĄCY                                                               ";"mKonto Intensive 1234 ... 3456";"Wpływy - inne";50,00 PLN;;

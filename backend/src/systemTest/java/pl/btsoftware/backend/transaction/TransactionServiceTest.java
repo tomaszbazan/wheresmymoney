@@ -4,11 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
+import pl.btsoftware.backend.category.CategoryModuleFacade;
+import pl.btsoftware.backend.category.application.CreateCategoryCommand;
 import pl.btsoftware.backend.configuration.SystemTest;
-import pl.btsoftware.backend.shared.CategoryId;
-import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionId;
-import pl.btsoftware.backend.shared.TransactionType;
+import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
@@ -46,6 +45,9 @@ public class TransactionServiceTest {
     @Autowired
     private UsersModuleFacade usersModuleFacade;
 
+    @Autowired
+    private CategoryModuleFacade categoryModuleFacade;
+
     private String uniqueAccountName() {
         return "Account-" + UUID.randomUUID().toString().substring(0, 8);
     }
@@ -63,10 +65,33 @@ public class TransactionServiceTest {
         return user.id();
     }
 
+    private CategoryId createIncomeCategory(UserId userId) {
+        var command = new CreateCategoryCommand(
+                "Test Income",
+                CategoryType.INCOME,
+                Color.of("#4CAF50"),
+                userId
+        );
+        var category = categoryModuleFacade.createCategory(command);
+        return category.id();
+    }
+
+    private CategoryId createExpenseCategory(UserId userId) {
+        var command = new CreateCategoryCommand(
+                "Test Expense",
+                CategoryType.EXPENSE,
+                Color.of("#FF5722"),
+                userId
+        );
+        var category = categoryModuleFacade.createCategory(command);
+        return category.id();
+    }
+
     @Test
     void shouldCreateIncomeTransactionAndUpdateAccountBalance() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
@@ -74,7 +99,7 @@ public class TransactionServiceTest {
                 "Salary payment",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
 
@@ -99,6 +124,7 @@ public class TransactionServiceTest {
     void shouldCreateExpenseTransactionAndUpdateAccountBalance() {
         // Given
         var userId = createTestUser();
+        var categoryId = createExpenseCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         accountModuleFacade.addTransaction(accountId.id(), TransactionId.generate(), Money.of(new BigDecimal("200.00"), PLN), INCOME, userId);
 
@@ -108,7 +134,7 @@ public class TransactionServiceTest {
                 "Grocery shopping",
                 now(),
                 TransactionType.EXPENSE,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
 
@@ -128,6 +154,7 @@ public class TransactionServiceTest {
     void shouldAllowTransactionWithEmptyDescription() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
@@ -135,7 +162,7 @@ public class TransactionServiceTest {
                 "",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
 
@@ -150,6 +177,7 @@ public class TransactionServiceTest {
     void shouldAllowTransactionWithNullDescription() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
@@ -157,7 +185,7 @@ public class TransactionServiceTest {
                 null,
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
 
@@ -172,6 +200,7 @@ public class TransactionServiceTest {
     void shouldThrowExceptionWhenDescriptionIsTooLong() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var longDescription = "A".repeat(201);
         var command = new CreateTransactionCommand(
@@ -180,7 +209,7 @@ public class TransactionServiceTest {
                 longDescription,
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
 
@@ -215,6 +244,7 @@ public class TransactionServiceTest {
     void shouldRetrieveTransactionById() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command = new CreateTransactionCommand(
                 accountId.id(),
@@ -222,7 +252,7 @@ public class TransactionServiceTest {
                 "Test transaction",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
         var createdTransaction = transactionService.createTransaction(command);
@@ -253,6 +283,8 @@ public class TransactionServiceTest {
     void shouldRetrieveAllTransactions() {
         // Given
         var userId = createTestUser();
+        var incomeCategoryId = createIncomeCategory(userId);
+        var expenseCategoryId = createExpenseCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command1 = new CreateTransactionCommand(
                 accountId.id(),
@@ -260,7 +292,7 @@ public class TransactionServiceTest {
                 "Transaction 1",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                incomeCategoryId,
                 userId
         );
         var command2 = new CreateTransactionCommand(
@@ -269,7 +301,7 @@ public class TransactionServiceTest {
                 "Transaction 2",
                 now(),
                 TransactionType.EXPENSE,
-                CategoryId.generate(),
+                expenseCategoryId,
                 userId
         );
 
@@ -290,6 +322,8 @@ public class TransactionServiceTest {
     void shouldRetrieveTransactionsByAccountId() {
         // Given
         var userId = createTestUser();
+        var incomeCategoryId = createIncomeCategory(userId);
+        var expenseCategoryId = createExpenseCategory(userId);
         var account1Id = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var account2Id = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
 
@@ -299,7 +333,7 @@ public class TransactionServiceTest {
                 "Transaction for account 1",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                incomeCategoryId,
                 userId
         );
         var command2 = new CreateTransactionCommand(
@@ -308,7 +342,7 @@ public class TransactionServiceTest {
                 "Transaction for account 2",
                 now(),
                 TransactionType.EXPENSE,
-                CategoryId.generate(),
+                expenseCategoryId,
                 userId
         );
 
@@ -328,6 +362,7 @@ public class TransactionServiceTest {
     void shouldUpdateTransactionAmountAndAdjustAccountBalance() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
@@ -335,7 +370,7 @@ public class TransactionServiceTest {
                 "Original transaction",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -363,6 +398,7 @@ public class TransactionServiceTest {
     void shouldUpdateTransactionDescription() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
@@ -370,7 +406,7 @@ public class TransactionServiceTest {
                 "Original description",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -394,6 +430,8 @@ public class TransactionServiceTest {
     void shouldUpdateTransactionCategory() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
+        var newCategoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
@@ -401,7 +439,7 @@ public class TransactionServiceTest {
                 "Test transaction",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -410,7 +448,7 @@ public class TransactionServiceTest {
                 transaction.id(),
                 null,
                 null,
-                CategoryId.generate()
+                newCategoryId
         );
 
         // When
@@ -444,6 +482,7 @@ public class TransactionServiceTest {
     void shouldDeleteTransactionAndAdjustAccountBalance() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
@@ -451,7 +490,7 @@ public class TransactionServiceTest {
                 "Transaction to delete",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -472,6 +511,7 @@ public class TransactionServiceTest {
     void shouldDeleteExpenseTransactionAndAdjustAccountBalance() {
         // Given
         var userId = createTestUser();
+        var categoryId = createExpenseCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         accountModuleFacade.addTransaction(accountId.id(), TransactionId.generate(), new Money(new BigDecimal("200.00"), PLN), INCOME, userId);
 
@@ -481,7 +521,7 @@ public class TransactionServiceTest {
                 "Expense to delete",
                 now(),
                 TransactionType.EXPENSE,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
@@ -511,6 +551,7 @@ public class TransactionServiceTest {
     void shouldThrowExceptionWhenDeletingAlreadyDeletedTransaction() {
         // Given
         var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),
@@ -518,7 +559,7 @@ public class TransactionServiceTest {
                 "Transaction to delete twice",
                 now(),
                 INCOME,
-                CategoryId.generate(),
+                categoryId,
                 userId
         );
         var transaction = transactionService.createTransaction(createCommand);
