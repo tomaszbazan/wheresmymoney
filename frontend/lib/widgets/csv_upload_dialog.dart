@@ -4,7 +4,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/models/account.dart';
 import 'package:frontend/models/csv_parse_result.dart';
+import 'package:frontend/screens/transaction_staging_screen.dart';
 import 'package:frontend/services/csv_import_service.dart';
+import 'package:frontend/services/transaction_staging_service.dart';
 
 class CsvUploadDialog extends StatefulWidget {
   final CsvImportService csvImportService;
@@ -79,9 +81,16 @@ class _CsvUploadDialogState extends State<CsvUploadDialog> {
           _errors.add('... i ${result.errorCount - 10} więcej błędów');
         }
       });
+    } else if (result.hasProposals) {
+      final stagingService = TransactionStagingService();
+      stagingService.loadFromCsv(result);
+
+      Navigator.of(context).pop();
+
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) => TransactionStagingScreen(stagingService: stagingService, accountId: _selectedAccountId!)));
     } else {
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pomyślnie zaimportowano ${result.successCount} transakcji')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Brak transakcji do zaimportowania')));
     }
   }
 
