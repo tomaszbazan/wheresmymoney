@@ -19,6 +19,7 @@ class PingControllerTest {
 
     @Test
     void shouldReturnPongOnPingRequest() throws Exception {
+        // when & then
         mockMvc.perform(get("/api/ping"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("pong"));
