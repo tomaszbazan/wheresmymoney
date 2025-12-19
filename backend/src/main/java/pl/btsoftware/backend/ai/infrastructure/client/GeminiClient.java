@@ -1,0 +1,74 @@
+package pl.btsoftware.backend.ai.infrastructure.client;
+
+import com.google.genai.Client;
+import com.google.genai.types.GenerateContentResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import pl.btsoftware.backend.ai.infrastructure.config.GeminiConfig;
+
+import java.util.concurrent.CompletableFuture;
+
+@Component
+@ConditionalOnProperty(name = "gemini.enabled", havingValue = "true", matchIfMissing = false)
+@Slf4j
+public final class GeminiClient {
+    private final GeminiConfig config;
+    private final Client client;
+
+    public GeminiClient(GeminiConfig config) {
+        if (config == null) {
+            throw new IllegalArgumentException("GeminiConfig cannot be null");
+        }
+        this.config = config;
+        this.client = initializeClient();
+    }
+
+    private Client initializeClient() {
+        try {
+            log.info("Initializing Gemini API client with model: {}", config.getModelName());
+            return Client.builder()
+                    .apiKey(config.getApiKey())
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to initialize Gemini API client", e);
+            throw new GeminiClientException("Failed to initialize Gemini API client", e);
+        }
+    }
+
+    @Async
+    @Retryable(
+            retryFor = {Exception.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000)
+    )
+    public CompletableFuture<String> generateContent(String prompt) {
+        validatePrompt(prompt);
+
+        log.debug("Generating content with Gemini API");
+
+        var response = executeGenerateContent(prompt);
+        var text = response.text();
+
+        log.debug("Successfully generated content with {} characters", text.length());
+        return CompletableFuture.completedFuture(text);
+    }
+
+    private GenerateContentResponse executeGenerateContent(String prompt) {
+        try {
+            return client.models.generateContent(config.getModelName(), prompt, null);
+        } catch (Exception e) {
+            log.error("Error calling Gemini API: {}", e.getMessage());
+            throw new GeminiClientException("Error calling Gemini API", e);
+        }
+    }
+
+    private void validatePrompt(String prompt) {
+        if (prompt == null || prompt.isEmpty()) {
+            throw new IllegalArgumentException("Prompt cannot be null or empty");
+        }
+    }
+}
