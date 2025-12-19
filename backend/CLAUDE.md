@@ -2,7 +2,8 @@
 
 ## Architecture
 
-This is a **Spring Boot 3.3.5** application using **Java 21** that follows **Domain-Driven Design (DDD)** principles with a modular monolith structure.
+This is a **Spring Boot 3.3.5** application using **Java 21** that follows **Domain-Driven Design (DDD)** principles
+with a modular monolith structure.
 
 ### Technology Stack
 - **Spring Boot** with Spring Data JPA and Hibernate
@@ -50,14 +51,16 @@ gradle checkstyleMain checkstyleTest spotbugsMain spotbugsTest
 - Write small, focused methods and classes
 - Use functional programming techniques where appropriate
 - Follow the project's coding standards and best practices
-- After each feature or bug fix, ensure all tests pass (unit and system) and code is cleaned up (use checkstyle & spotbugs)
+- After each feature or bug fix, ensure all tests pass (unit and system) and code is cleaned up (use checkstyle &
+  spotbugs)
 
 #### SPRING_BOOT
 
 - Use Spring Boot for simplified configuration and rapid development with sensible defaults
 - Prefer constructor-based dependency injection over `@Autowired`
 - Avoid hardcoding values that may change externally, use configuration parameters instead
-- For complex logic, use Spring profiles and configuration parameters to control which beans are injected instead of hardcoded conditionals
+- For complex logic, use Spring profiles and configuration parameters to control which beans are injected instead of
+  hardcoded conditionals
 - If a well-known library simplifies the solution, suggest using it instead of generating a custom implementation
 - Use DTOs as immutable `record` types
 - Use Bean Validation annotations (e.g., `@Size`, `@Email`, etc.) instead of manual validation logic
