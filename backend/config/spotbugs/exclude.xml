@@ -14,4 +14,10 @@
         <Method name="~.*shouldThrowException.*"/>
         <Bug pattern="RV_RETURN_VALUE_IGNORED_INFERRED"/>
     </Match>
+
+    <!-- GeminiConfig throws exception in constructor for validation -->
+    <Match>
+        <Class name="pl.btsoftware.backend.ai.infrastructure.config.GeminiConfig"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
 </FindBugsFilter>
