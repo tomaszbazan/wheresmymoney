@@ -51,14 +51,14 @@
 | TASK-0041 | CSV file validation              | Validate uploaded file structure matches mBank format        | [x]  |
 | TASK-0042 | CSV upload UI                    | Create Flutter file upload component with progress indicator | [x]  |
 | TASK-0043 | In-memory transaction processing | Process parsed transactions in browser RAM before saving     | [x]  |
-| TASK-0044 | Import error handling            | Handle and display parsing errors to user                    | [ ]  |
+| TASK-0044 | Import error handling            | Handle and display parsing errors to user                    | [x]  |
 
 ## AI Categorization
 
 | ID        | Task                               | Description                                                      | Done |
 |-----------|------------------------------------|------------------------------------------------------------------|------|
-| TASK-0050 | Gemini API integration             | Configure Gemini 3.0 Flash API client in backend                 | [ ]  |
-| TASK-0051 | Category suggestion endpoint       | Create API endpoint for AI-based category suggestions            | [ ]  |
+| TASK-0050 | Gemini API integration             | Configure Gemini 3.0 Flash API client in backend                 | [x]  |
+| TASK-0051 | Category suggestion endpoint       | Create API endpoint for AI-based category suggestions            | [x]  |
 | TASK-0052 | Transaction description processing | Send transaction descriptions with category tree to Gemini       | [ ]  |
 | TASK-0053 | AI response parsing                | Parse and map Gemini responses to user categories                | [ ]  |
 | TASK-0054 | Uncategorized transaction handling | Mark transactions as "To be clarified" when AI cannot categorize | [ ]  |

@@ -7,6 +7,7 @@ import 'package:frontend/models/csv_parse_result.dart';
 import 'package:frontend/screens/transaction_staging_screen.dart';
 import 'package:frontend/services/csv_import_service.dart';
 import 'package:frontend/services/transaction_staging_service.dart';
+import 'package:frontend/utils/error_messages.dart';
 
 class CsvUploadDialog extends StatefulWidget {
   final CsvImportService csvImportService;
@@ -75,7 +76,7 @@ class _CsvUploadDialogState extends State<CsvUploadDialog> {
     if (result.hasErrors) {
       setState(() {
         _isUploading = false;
-        _errors = result.errors.take(10).map((e) => 'Wiersz ${e.lineNumber}: ${e.message}').toList();
+        _errors = result.errors.take(10).map((e) => ErrorMessages.getMessage(e.type, e.lineNumber)).toList();
 
         if (result.errorCount > 10) {
           _errors.add('... i ${result.errorCount - 10} więcej błędów');
