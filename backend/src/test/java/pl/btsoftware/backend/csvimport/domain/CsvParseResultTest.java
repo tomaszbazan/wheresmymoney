@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static pl.btsoftware.backend.csvimport.domain.ErrorType.INVALID_CSV_FORMAT;
 
 class CsvParseResultTest {
 
@@ -17,7 +18,7 @@ class CsvParseResultTest {
     void shouldCreateResultWithProposalsAndErrors() {
         // given
         var proposal = new TransactionProposal(LocalDate.of(2025, 12, 17), "Wpływy / Test", new BigDecimal("100.00"), Currency.PLN, TransactionType.INCOME, null);
-        var error = new ParseError(5, "Invalid format");
+        var error = new ParseError(INVALID_CSV_FORMAT, 5, "Invalid format");
 
         // when
         var result = new CsvParseResult(List.of(proposal), List.of(error), 2, 1, 1);
@@ -49,7 +50,7 @@ class CsvParseResultTest {
     @Test
     void shouldCreateResultWithNoProposals() {
         // given
-        var error = new ParseError(1, "Invalid format");
+        var error = new ParseError(INVALID_CSV_FORMAT, 1, "Invalid format");
 
         // when
         var result = new CsvParseResult(List.of(), List.of(error), 1, 0, 1);

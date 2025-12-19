@@ -1,7 +1,8 @@
 package pl.btsoftware.backend.csvimport.application;
 
 import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.csvimport.domain.CsvValidationException;
+import pl.btsoftware.backend.csvimport.domain.CsvImportException;
+import pl.btsoftware.backend.csvimport.domain.ErrorType;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionType;
 
@@ -77,7 +78,7 @@ class MbankCsvParserTest {
 
         // when & then
         assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
-                .isInstanceOf(CsvValidationException.class)
+                .isInstanceOf(CsvImportException.class)
                 .hasMessageContaining("empty");
     }
 
@@ -88,7 +89,7 @@ class MbankCsvParserTest {
 
         // when & then
         assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
-                .isInstanceOf(CsvValidationException.class)
+                .isInstanceOf(CsvImportException.class)
                 .hasMessageContaining("at least 28 lines");
     }
 
@@ -100,7 +101,7 @@ class MbankCsvParserTest {
 
         // when & then
         assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
-                .isInstanceOf(CsvValidationException.class)
+                .isInstanceOf(CsvImportException.class)
                 .hasMessageContaining("column headers");
     }
 
@@ -111,7 +112,7 @@ class MbankCsvParserTest {
 
         // when & then
         assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
-                .isInstanceOf(CsvValidationException.class)
+                .isInstanceOf(CsvImportException.class)
                 .hasMessageContaining("Expected mBank column headers");
     }
 
@@ -125,7 +126,7 @@ class MbankCsvParserTest {
 
         // when & then
         assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
-                .isInstanceOf(CsvValidationException.class)
+                .isInstanceOf(CsvImportException.class)
                 .hasMessageContaining("Expected mBank column headers");
     }
 
@@ -139,7 +140,7 @@ class MbankCsvParserTest {
 
         // when & then
         assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
-                .isInstanceOf(CsvValidationException.class)
+                .isInstanceOf(CsvImportException.class)
                 .hasMessageContaining("Expected mBank column headers");
     }
 
@@ -150,8 +151,76 @@ class MbankCsvParserTest {
 
         // when & then
         assertThatThrownBy(() -> parser.parse(stream, Currency.PLN))
-                .isInstanceOf(CsvValidationException.class)
+                .isInstanceOf(CsvImportException.class)
                 .hasMessageContaining("Expected mBank column headers");
+    }
+
+    @Test
+    void shouldReturnInvalidDateFormatErrorTypeForInvalidDate() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "invalid-date;Test description;Account;Category;100.00 PLN\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.errorCount()).isEqualTo(1);
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.errors().getFirst().type()).isEqualTo(ErrorType.INVALID_DATE_FORMAT);
+    }
+
+    @Test
+    void shouldReturnInvalidAmountFormatErrorTypeForInvalidAmount() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "2024-01-15;Test description;Account;Category; PLN\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.errorCount()).isEqualTo(1);
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.errors().getFirst().type()).isEqualTo(ErrorType.INVALID_AMOUNT_FORMAT);
+    }
+
+    @Test
+    void shouldReturnInvalidCurrencyErrorTypeForUnsupportedCurrency() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "2024-01-15;Test description;Account;Category;100.00 XYZ\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.errorCount()).isEqualTo(1);
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.errors().getFirst().type()).isEqualTo(ErrorType.INVALID_CURRENCY);
+    }
+
+    @Test
+    void shouldReturnCurrencyMismatchErrorTypeForDifferentCurrency() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "2024-01-15;Test description;Account;Category;100.00 EUR\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.errorCount()).isEqualTo(1);
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.errors().getFirst().type()).isEqualTo(ErrorType.CURRENCY_MISMATCH);
     }
 
     private InputStream createInputStream(String content) {
