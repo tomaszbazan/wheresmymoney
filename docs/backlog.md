@@ -58,7 +58,7 @@
 | ID        | Task                                  | Description                                                                                  | Done |
 |-----------|---------------------------------------|----------------------------------------------------------------------------------------------|------|
 | TASK-0050 | Gemini API integration                | Configure Gemini 3.0 Flash API client in backend                                             | [x]  |
-| TASK-0051 | CategorySuggestion domain model       | Create domain model for AI category suggestions (transactionIndex, CategoryId, confidence)   | [ ]  |
+| TASK-0051 | CategorySuggestion domain model       | Create domain model for AI category suggestions (transactionIndex, CategoryId, confidence)   | [x]  |
 | TASK-0052 | CategorizationPromptBuilder           | Build JSON prompt with transactions and category tree for bulk categorization                | [ ]  |
 | TASK-0053 | GeminiResponseParser                  | Parse Gemini JSON response and map to CategoryId for each transaction                        | [ ]  |
 | TASK-0054 | CategorySuggestionService             | Orchestrate AI categorization: fetch categories, build prompt, call Gemini, parse response   | [ ]  |
