@@ -73,8 +73,8 @@ void main() {
         final responseBody = jsonEncode({
           'proposals': <Map<String, dynamic>>[],
           'errors': <Map<String, dynamic>>[
-            {'lineNumber': 5, 'message': 'Invalid date format'},
-            {'lineNumber': 12, 'message': 'Missing required column'},
+            {'lineNumber': 5, 'type': 'INVALID_DATE_FORMAT', 'details': 'Date format is incorrect'},
+            {'lineNumber': 12, 'type': 'INVALID_CSV_FORMAT', 'details': 'CSV structure is invalid'},
           ],
           'totalRows': 2,
           'successCount': 0,
@@ -93,7 +93,7 @@ void main() {
       expect(result.errorCount, 2);
       expect(result.errors, hasLength(2));
       expect(result.errors.first.lineNumber, 5);
-      expect(result.errors.first.message, 'Invalid date format');
+      expect(result.errors.first.type.name, 'invalidDateFormat');
       expect(result.proposals, isEmpty);
     });
 
