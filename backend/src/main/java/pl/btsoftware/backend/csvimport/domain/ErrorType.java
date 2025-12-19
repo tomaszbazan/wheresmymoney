@@ -1,0 +1,15 @@
+package pl.btsoftware.backend.csvimport.domain;
+
+public enum ErrorType {
+    INVALID_FILE_TYPE,
+    FILE_TOO_LARGE,
+    EMPTY_FILE,
+    INVALID_CSV_FORMAT,
+    INVALID_DATE_FORMAT,
+    INVALID_AMOUNT_FORMAT,
+    INVALID_CURRENCY,
+    CURRENCY_MISMATCH,
+    UNKNOWN_ERROR,
+    FAILED_TO_PARSE_CSV,
+    INVALID_FILE
+}

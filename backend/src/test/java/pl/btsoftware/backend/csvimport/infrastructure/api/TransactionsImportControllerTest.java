@@ -9,8 +9,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.csvimport.application.CsvParseService;
+import pl.btsoftware.backend.csvimport.domain.CsvImportException;
 import pl.btsoftware.backend.csvimport.domain.CsvParseResult;
-import pl.btsoftware.backend.csvimport.domain.CsvValidationException;
 import pl.btsoftware.backend.csvimport.domain.ParseError;
 import pl.btsoftware.backend.csvimport.domain.TransactionProposal;
 import pl.btsoftware.backend.shared.Currency;
@@ -27,6 +27,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static pl.btsoftware.backend.csvimport.domain.ErrorType.INVALID_CSV_FORMAT;
+import static pl.btsoftware.backend.csvimport.domain.ErrorType.INVALID_DATE_FORMAT;
 import static pl.btsoftware.backend.shared.JwtTokenFixture.createTokenFor;
 
 @WebMvcTest(controllers = TransactionsImportController.class)
@@ -98,7 +100,7 @@ public class TransactionsImportControllerTest {
     @Test
     void shouldHandleInvalidCsv() throws Exception {
         // given
-        var parseError = new ParseError(1, "Invalid date format");
+        var parseError = new ParseError(INVALID_DATE_FORMAT, 1, "Invalid date format");
         var parseResult = new CsvParseResult(
                 List.of(),
                 List.of(parseError),
@@ -124,8 +126,9 @@ public class TransactionsImportControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.proposals", hasSize(0)))
                 .andExpect(jsonPath("$.errors", hasSize(1)))
+                .andExpect(jsonPath("$.errors[0].type").value("INVALID_DATE_FORMAT"))
                 .andExpect(jsonPath("$.errors[0].lineNumber").value(1))
-                .andExpect(jsonPath("$.errors[0].message").value("Invalid date format"))
+                .andExpect(jsonPath("$.errors[0].details").value("Invalid date format"))
                 .andExpect(jsonPath("$.successCount").value(0))
                 .andExpect(jsonPath("$.errorCount").value(1));
     }
@@ -145,13 +148,55 @@ public class TransactionsImportControllerTest {
                         .file(emptyFile)
                         .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
                         .with(createTokenFor("test-user")))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorType").value("EMPTY_FILE"))
+                .andExpect(jsonPath("$.message").value("File cannot be empty"));
+    }
+
+    @Test
+    void shouldRejectFileLargerThan10MB() throws Exception {
+        // given
+        var largeFile = new MockMultipartFile(
+                "csvFile",
+                "large.csv",
+                "text/csv",
+                new byte[10 * 1024 * 1024 + 1]
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/transactions/import")
+                        .file(largeFile)
+                        .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
+                        .with(createTokenFor("test-user")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorType").value("FILE_TOO_LARGE"))
+                .andExpect(jsonPath("$.message").value("File size exceeds maximum allowed size of 10MB"));
+    }
+
+    @Test
+    void shouldRejectInvalidFileType() throws Exception {
+        // given
+        var invalidFile = new MockMultipartFile(
+                "csvFile",
+                "test.exe",
+                "application/octet-stream",
+                "binary content".getBytes(StandardCharsets.UTF_8)
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/transactions/import")
+                        .file(invalidFile)
+                        .param("accountId", "550e8400-e29b-41d4-a716-446655440000")
+                        .with(createTokenFor("test-user")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorType").value("INVALID_FILE_TYPE"))
+                .andExpect(jsonPath("$.message").value("Invalid file type. Allowed types: CSV"));
     }
 
     @Test
     void shouldReturn400ForInvalidFileFormat() throws Exception {
         // given
-        when(csvParseService.parse(any())).thenThrow(new CsvValidationException("CSV file must have at least 28 lines (mBank format header + column headers)"));
+        when(csvParseService.parse(any())).thenThrow(new CsvImportException(INVALID_CSV_FORMAT, "CSV file must have at least 28 lines (mBank format header + column headers)"));
 
         var invalidFile = new MockMultipartFile(
                 "csvFile",
@@ -172,7 +217,7 @@ public class TransactionsImportControllerTest {
     @Test
     void shouldReturnValidationErrorInResponse() throws Exception {
         // given
-        when(csvParseService.parse(any())).thenThrow(new CsvValidationException("Expected mBank column headers at line 27"));
+        when(csvParseService.parse(any())).thenThrow(new CsvImportException(INVALID_CSV_FORMAT, "Expected mBank column headers at line 27"));
 
         var invalidFile = new MockMultipartFile(
                 "csvFile",

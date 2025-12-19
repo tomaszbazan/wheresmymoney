@@ -11,7 +11,8 @@ import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.domain.error.BusinessException;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
-import pl.btsoftware.backend.csvimport.domain.CsvParsingException;
+import pl.btsoftware.backend.csvimport.domain.CsvImportException;
+import pl.btsoftware.backend.csvimport.infrastructure.api.ErrorResponse;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -72,9 +73,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(PRECONDITION_FAILED).body(ex.getMessage());
     }
 
-    @ExceptionHandler(CsvParsingException.class)
-    public ResponseEntity<String> handleCsvParsingException(CsvParsingException ex) {
+    @ExceptionHandler(CsvImportException.class)
+    public ResponseEntity<ErrorResponse> handleCsvParsingException(CsvImportException ex) {
         log.error("{}", ex.getMessage(), ex);
-        return ResponseEntity.status(BAD_REQUEST).body(ex.getMessage());
+        var errorResponse = new ErrorResponse(ex.getErrorType(), ex.getMessage());
+        return ResponseEntity.status(BAD_REQUEST).body(errorResponse);
     }
 }

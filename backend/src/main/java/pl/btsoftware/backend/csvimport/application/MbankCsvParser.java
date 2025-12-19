@@ -16,6 +16,8 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static pl.btsoftware.backend.csvimport.domain.ErrorType.*;
+
 @Component
 public class MbankCsvParser implements TransactionCsvParser {
     private static final int HEADER_END_LINE = 27;
@@ -47,7 +49,7 @@ public class MbankCsvParser implements TransactionCsvParser {
             return new CsvParseResult(proposals, errors, totalRows, proposals.size(), errors.size());
 
         } catch (IOException e) {
-            throw new CsvParsingException("Failed to parse CSV file", e);
+            throw new CsvImportException(FAILED_TO_PARSE_CSV, e.getMessage());
         }
     }
 
@@ -57,7 +59,7 @@ public class MbankCsvParser implements TransactionCsvParser {
         var parser = format.parse(reader);
 
         if (!parser.iterator().hasNext()) {
-            throw new CsvParsingException("CSV file is empty");
+            throw new CsvImportException(ErrorType.EMPTY_FILE, "CSV file is empty");
         }
 
         return parser;
@@ -76,13 +78,15 @@ public class MbankCsvParser implements TransactionCsvParser {
             var proposal = createProposal(record);
 
             if (accountCurrency != null && !proposal.currency().equals(accountCurrency)) {
-                errors.add(new ParseError(rowNumber, "Currency mismatch: CSV contains " + proposal.currency() + " but account uses " + accountCurrency));
+                errors.add(new ParseError(ErrorType.CURRENCY_MISMATCH, rowNumber, "Currency mismatch: CSV contains " + proposal.currency() + " but account uses " + accountCurrency));
                 return;
             }
 
             proposals.add(proposal);
+        } catch (CsvImportException e) {
+            errors.add(new ParseError(e.getErrorType(), rowNumber, e.getMessage()));
         } catch (Exception e) {
-            errors.add(new ParseError(rowNumber, e.getMessage()));
+            errors.add(new ParseError(ErrorType.UNKNOWN_ERROR, rowNumber, e.getMessage()));
         }
     }
 
@@ -113,7 +117,7 @@ public class MbankCsvParser implements TransactionCsvParser {
         try {
             return LocalDate.parse(dateString.trim());
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Invalid date format: " + dateString);
+            throw new CsvImportException(ErrorType.INVALID_DATE_FORMAT, "Invalid date format: " + dateString);
         }
     }
 
@@ -123,7 +127,7 @@ public class MbankCsvParser implements TransactionCsvParser {
 
             return new BigDecimal(cleanAmount);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid amount format: " + amountString);
+            throw new CsvImportException(ErrorType.INVALID_AMOUNT_FORMAT, "Invalid amount format: " + amountString);
         }
     }
 
@@ -133,7 +137,7 @@ public class MbankCsvParser implements TransactionCsvParser {
 
             return Currency.valueOf(currencyCode);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Unsupported currency in amount: " + amountString);
+            throw new CsvImportException(ErrorType.INVALID_CURRENCY, "Unsupported currency in amount: " + amountString);
         }
     }
 
@@ -145,7 +149,7 @@ public class MbankCsvParser implements TransactionCsvParser {
         try {
             return stream.readAllBytes();
         } catch (IOException e) {
-            throw new CsvValidationException("Failed to read CSV file: " + e.getMessage());
+            throw new CsvImportException(FAILED_TO_PARSE_CSV, e.getMessage());
         }
     }
 
@@ -165,20 +169,20 @@ public class MbankCsvParser implements TransactionCsvParser {
                 lines.add(line);
             }
         } catch (IOException e) {
-            throw new CsvValidationException("Failed to read CSV file: " + e.getMessage());
+            throw new CsvImportException(FAILED_TO_PARSE_CSV, e.getMessage());
         }
         return lines;
     }
 
     private void validateNotEmpty(ArrayList<String> lines) {
         if (lines.isEmpty()) {
-            throw new CsvValidationException("CSV file is empty");
+            throw new CsvImportException(EMPTY_FILE, "CSV file is empty");
         }
     }
 
     private void validateMinimumLineCount(ArrayList<String> lines) {
         if (lines.size() < MINIMUM_LINE_COUNT) {
-            throw new CsvValidationException("CSV file must have at least 28 lines (mBank format header + column headers)");
+            throw new CsvImportException(INVALID_FILE, "CSV file must have at least 28 lines (mBank format header + column headers)");
         }
     }
 
@@ -186,7 +190,7 @@ public class MbankCsvParser implements TransactionCsvParser {
         var columnHeaderLine = lines.get(COLUMN_HEADER_LINE_INDEX);
 
         if (!columnHeaderLine.startsWith(EXPECTED_COLUMN_HEADERS)) {
-            throw new CsvValidationException("Expected mBank column headers at line 27: " + EXPECTED_COLUMN_HEADERS);
+            throw new CsvImportException(INVALID_FILE, "Expected mBank column headers at line 27: " + EXPECTED_COLUMN_HEADERS);
         }
     }
 }

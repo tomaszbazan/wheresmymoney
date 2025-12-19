@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.domain.Account;
-import pl.btsoftware.backend.csvimport.domain.CsvParsingException;
+import pl.btsoftware.backend.csvimport.domain.CsvImportException;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
@@ -26,23 +26,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
 import static org.mockito.Mockito.when;
+import static pl.btsoftware.backend.csvimport.domain.ErrorType.*;
 
 class CsvParseServiceTest {
 
     private CsvParseService service;
-    private AccountModuleFacade accountFacade;
-    private UsersModuleFacade usersFacade;
     private UserId userId;
-    private GroupId groupId;
     private AccountId accountId;
 
     @BeforeEach
     void setUp() {
-        accountFacade = Mockito.mock(AccountModuleFacade.class);
-        usersFacade = Mockito.mock(UsersModuleFacade.class);
+        var accountFacade = Mockito.mock(AccountModuleFacade.class);
+        var usersFacade = Mockito.mock(UsersModuleFacade.class);
+        var groupId = GroupId.generate();
 
         userId = UserId.generate();
-        groupId = GroupId.generate();
         accountId = AccountId.generate();
 
         var user = Instancio.of(User.class).set(field(User::id), userId).set(field(User::groupId), groupId).create();
@@ -109,7 +107,8 @@ class CsvParseServiceTest {
         assertThat(result.totalRows()).isEqualTo(2);
         assertThat(result.errors()).hasSize(1);
         var error = result.errors().getFirst();
-        assertThat(error.message()).isEqualTo("Invalid date format: invalid-date");
+        assertThat(error.type()).isEqualTo(INVALID_DATE_FORMAT);
+        assertThat(error.details()).isEqualTo("Invalid date format: invalid-date");
         assertThat(error.lineNumber()).isEqualTo(2);
     }
 
@@ -131,7 +130,8 @@ class CsvParseServiceTest {
         assertThat(result.totalRows()).isEqualTo(2);
         assertThat(result.errors()).hasSize(1);
         var error = result.errors().getFirst();
-        assertThat(error.message()).isEqualTo("Currency mismatch: CSV contains EUR but account uses PLN");
+        assertThat(error.type()).isEqualTo(CURRENCY_MISMATCH);
+        assertThat(error.details()).isEqualTo("Currency mismatch: CSV contains EUR but account uses PLN");
         assertThat(error.lineNumber()).isEqualTo(2);
     }
 
@@ -191,7 +191,9 @@ class CsvParseServiceTest {
         // then
         assertThat(result.proposals()).isEmpty();
         assertThat(result.errors()).hasSize(1);
-        assertThat(result.errors().getFirst().message()).containsIgnoringCase("date");
+        var error = result.errors().getFirst();
+        assertThat(error.type()).isEqualTo(INVALID_DATE_FORMAT);
+        assertThat(error.details()).containsIgnoringCase("date");
     }
 
     @Test
@@ -207,7 +209,8 @@ class CsvParseServiceTest {
         assertThat(result.proposals()).isEmpty();
         assertThat(result.errors()).hasSize(1);
         var error = result.errors().getFirst();
-        assertThat(error.message()).isEqualTo("Unsupported currency in amount: invalid");
+        assertThat(error.type()).isEqualTo(INVALID_CURRENCY);
+        assertThat(error.details()).isEqualTo("Unsupported currency in amount: invalid");
         assertThat(error.lineNumber()).isEqualTo(1);
     }
 
@@ -224,7 +227,8 @@ class CsvParseServiceTest {
         assertThat(result.proposals()).isEmpty();
         assertThat(result.errors()).hasSize(1);
         var error = result.errors().getFirst();
-        assertThat(error.message()).isEqualTo("Unsupported currency in amount: ");
+        assertThat(error.type()).isEqualTo(INVALID_CURRENCY);
+        assertThat(error.details()).isEqualTo("Unsupported currency in amount: ");
         assertThat(error.lineNumber()).isEqualTo(1);
     }
 
@@ -253,7 +257,7 @@ class CsvParseServiceTest {
         var command = new ParseCsvCommand(csv, userId, accountId);
 
         // when & then
-        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class);
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvImportException.class);
     }
 
     @Test
@@ -263,7 +267,7 @@ class CsvParseServiceTest {
         var command = new ParseCsvCommand(csv, userId, accountId);
 
         // when & then
-        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class).hasMessageContaining("at least 28 lines");
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvImportException.class).hasMessageContaining("at least 28 lines");
     }
 
     @Test
@@ -287,7 +291,7 @@ class CsvParseServiceTest {
         var command = new ParseCsvCommand(invalidCsv, userId, accountId);
 
         // when & then
-        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class).hasMessageContaining("at least 28 lines");
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvImportException.class).hasMessageContaining("at least 28 lines");
     }
 
     @Test
@@ -297,7 +301,7 @@ class CsvParseServiceTest {
         var command = new ParseCsvCommand(invalidCsv, userId, accountId);
 
         // when & then
-        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class).hasMessageContaining("Expected mBank column headers");
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvImportException.class).hasMessageContaining("Expected mBank column headers");
     }
 
     @Test
@@ -307,7 +311,7 @@ class CsvParseServiceTest {
         var command = new ParseCsvCommand(tooShortCsv, userId, accountId);
 
         // when & then
-        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvParsingException.class).hasMessageContaining("at least 28 lines");
+        assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvImportException.class).hasMessageContaining("at least 28 lines");
     }
 
     private InputStream createMbankTransactionListCsv(String dataRows) {

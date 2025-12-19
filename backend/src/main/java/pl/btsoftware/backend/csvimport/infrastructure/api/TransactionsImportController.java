@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import pl.btsoftware.backend.csvimport.application.CsvParseService;
 import pl.btsoftware.backend.csvimport.application.ParseCsvCommand;
-import pl.btsoftware.backend.csvimport.domain.CsvParsingException;
+import pl.btsoftware.backend.csvimport.domain.CsvImportException;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.io.IOException;
 import java.util.UUID;
+
+import static pl.btsoftware.backend.csvimport.domain.ErrorType.*;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -44,22 +46,22 @@ public class TransactionsImportController {
             return CsvParseResultView.from(result);
         } catch (IOException e) {
             log.error("Failed to read CSV file", e);
-            throw new CsvParsingException("Failed to read CSV file", e);
+            throw new CsvImportException(FAILED_TO_PARSE_CSV, e.getMessage());
         }
     }
 
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("File cannot be empty");
+            throw new CsvImportException(EMPTY_FILE, "File cannot be empty");
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("File size exceeds maximum allowed size of " + MAX_FILE_SIZE + " bytes");
+            throw new CsvImportException(FILE_TOO_LARGE, "File size exceeds maximum allowed size of 10MB");
         }
 
         var contentType = file.getContentType();
         if (contentType == null || !isAllowedContentType(contentType)) {
-            throw new IllegalArgumentException("Invalid file type. Only CSV files are allowed");
+            throw new CsvImportException(INVALID_FILE_TYPE, "Invalid file type. Allowed types: CSV");
         }
     }
 
