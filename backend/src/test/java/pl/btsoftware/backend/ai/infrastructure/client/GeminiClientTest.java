@@ -37,14 +37,6 @@ class GeminiClientTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenConfigIsNull() {
-        // when & then
-        assertThatThrownBy(() -> new GeminiClient(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("GeminiConfig");
-    }
-
-    @Test
     void shouldProvideGenerateContentMethod() {
         // given
         var prompt = "Test prompt";

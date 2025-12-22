@@ -6,11 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.domain.Account;
+import pl.btsoftware.backend.csvimport.domain.CategorySuggestion;
+import pl.btsoftware.backend.csvimport.domain.CategorySuggestionService;
 import pl.btsoftware.backend.csvimport.domain.CsvImportException;
-import pl.btsoftware.backend.shared.AccountId;
-import pl.btsoftware.backend.shared.Currency;
-import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionType;
+import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
@@ -21,10 +20,14 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static pl.btsoftware.backend.csvimport.domain.ErrorType.*;
 
@@ -33,12 +36,15 @@ class CsvParseServiceTest {
     private CsvParseService service;
     private UserId userId;
     private AccountId accountId;
+    private GroupId groupId;
+    private CategorySuggestionService categorySuggestionService;
 
     @BeforeEach
     void setUp() {
         var accountFacade = Mockito.mock(AccountModuleFacade.class);
         var usersFacade = Mockito.mock(UsersModuleFacade.class);
-        var groupId = GroupId.generate();
+        categorySuggestionService = Mockito.mock(CategorySuggestionService.class);
+        groupId = GroupId.generate();
 
         userId = UserId.generate();
         accountId = AccountId.generate();
@@ -51,7 +57,7 @@ class CsvParseServiceTest {
         when(accountFacade.getAccount(accountId, groupId)).thenReturn(account);
 
         var parser = new MbankCsvParser();
-        service = new CsvParseService(parser, accountFacade, usersFacade);
+        service = new CsvParseService(parser, accountFacade, usersFacade, categorySuggestionService);
     }
 
     @Test
@@ -312,6 +318,100 @@ class CsvParseServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.parse(command)).isInstanceOf(CsvImportException.class).hasMessageContaining("at least 28 lines");
+    }
+
+    @Test
+    void shouldApplyCategorySuggestionsWhenAvailable() {
+        // given
+        var csv = createMbankTransactionListCsv("""
+                2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
+                2025-12-18;"Expense description";"mKonto";"Another Category";-100,00 PLN;;
+                """);
+        var command = new ParseCsvCommand(csv, userId, accountId);
+
+        var categoryId1 = CategoryId.generate();
+        var categoryId2 = CategoryId.generate();
+        var suggestions = List.of(
+                new CategorySuggestion(TransactionId.of(UUID.fromString("00000000-0000-0000-0000-000000000000")), categoryId1, 0.95),
+                new CategorySuggestion(TransactionId.of(UUID.fromString("00000000-0000-0000-0000-000000000001")), categoryId2, 0.90)
+        );
+
+        when(categorySuggestionService.suggestCategories(any(), eq(groupId))).thenReturn(suggestions);
+
+        // when
+        var result = service.parse(command);
+
+        // then
+        assertThat(result.proposals()).hasSize(2);
+        assertThat(result.proposals().get(0).categoryId()).isEqualTo(categoryId1);
+        assertThat(result.proposals().get(1).categoryId()).isEqualTo(categoryId2);
+    }
+
+    @Test
+    void shouldContinueWithoutCategoriesWhenAiFails() {
+        // given
+        var csv = createMbankTransactionListCsv("""
+                2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
+                2025-12-18;"Expense description";"mKonto";"Another Category";-100,00 PLN;;
+                """);
+        var command = new ParseCsvCommand(csv, userId, accountId);
+
+        when(categorySuggestionService.suggestCategories(any(), eq(groupId))).thenReturn(null);
+
+        // when
+        var result = service.parse(command);
+
+        // then
+        assertThat(result.proposals()).hasSize(2);
+        assertThat(result.proposals().get(0).categoryId()).isNull();
+        assertThat(result.proposals().get(1).categoryId()).isNull();
+    }
+
+    @Test
+    void shouldContinueWithoutCategoriesWhenNoCategoriesExist() {
+        // given
+        var csv = createMbankTransactionListCsv("""
+                2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
+                """);
+        var command = new ParseCsvCommand(csv, userId, accountId);
+
+        when(categorySuggestionService.suggestCategories(any(), eq(groupId))).thenReturn(List.of());
+
+        // when
+        var result = service.parse(command);
+
+        // then
+        assertThat(result.proposals()).hasSize(1);
+        assertThat(result.proposals().get(0).categoryId()).isNull();
+    }
+
+    @Test
+    void shouldHandleMixedIncomeAndExpenseTransactions() {
+        // given
+        var csv = createMbankTransactionListCsv("""
+                2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
+                2025-12-18;"Expense description";"mKonto";"Another Category";-50,00 PLN;;
+                """);
+        var command = new ParseCsvCommand(csv, userId, accountId);
+
+        var incomeCategoryId = CategoryId.generate();
+        var expenseCategoryId = CategoryId.generate();
+        var suggestions = List.of(
+                new CategorySuggestion(TransactionId.of(UUID.fromString("00000000-0000-0000-0000-000000000000")), incomeCategoryId, 0.95),
+                new CategorySuggestion(TransactionId.of(UUID.fromString("00000000-0000-0000-0000-000000000001")), expenseCategoryId, 0.90)
+        );
+
+        when(categorySuggestionService.suggestCategories(any(), eq(groupId))).thenReturn(suggestions);
+
+        // when
+        var result = service.parse(command);
+
+        // then
+        assertThat(result.proposals()).hasSize(2);
+        assertThat(result.proposals().get(0).type()).isEqualTo(TransactionType.INCOME);
+        assertThat(result.proposals().get(0).categoryId()).isEqualTo(incomeCategoryId);
+        assertThat(result.proposals().get(1).type()).isEqualTo(TransactionType.EXPENSE);
+        assertThat(result.proposals().get(1).categoryId()).isEqualTo(expenseCategoryId);
     }
 
     private InputStream createMbankTransactionListCsv(String dataRows) {
