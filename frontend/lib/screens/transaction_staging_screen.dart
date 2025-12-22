@@ -27,6 +27,39 @@ class _TransactionStagingScreenState extends State<TransactionStagingScreen> {
   }
 
   Future<void> _saveAll() async {
+    if (widget.stagingService.hasIncompleteCategorization()) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Wszystkie transakcje muszą mieć przypisaną kategorię'), backgroundColor: Colors.red));
+      return;
+    }
+
+    final aiSuggestedCount = widget.stagingService.proposals.where((p) => p.isSuggestedByAi).length;
+    final totalCount = widget.stagingService.proposals.length;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Potwierdź zapis'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Zapisać $totalCount transakcji?'),
+                if (aiSuggestedCount > 0) ...[
+                  const SizedBox(height: 8),
+                  Row(children: [const Icon(Icons.auto_awesome, size: 16), const SizedBox(width: 4), Text('$aiSuggestedCount kategorii zasugerowanych przez AI')]),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Anuluj')),
+              ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Zapisz')),
+            ],
+          ),
+    );
+
+    if (confirmed != true) return;
+
     setState(() {
       _isSaving = true;
     });

@@ -4,6 +4,7 @@ import 'package:frontend/models/transaction_proposal.dart';
 import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/services/category_service.dart';
 import 'package:frontend/services/transaction_staging_service.dart';
+import 'package:frontend/widgets/ai_category_indicator.dart';
 import 'package:frontend/widgets/searchable_category_dropdown.dart';
 import 'package:intl/intl.dart';
 
@@ -67,10 +68,28 @@ class _TransactionStagingListState extends State<TransactionStagingList> {
   }
 
   Widget _buildSummary(List<TransactionProposal> proposals) {
+    final aiSuggestedCount = proposals.where((p) => p.isSuggestedByAi).length;
+    final missingCategoryCount = proposals.where((p) => p.categoryId == null).length;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [Text('Transakcji: ${proposals.length}', style: Theme.of(context).textTheme.titleMedium)]),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Text('Transakcji: ${proposals.length}', style: Theme.of(context).textTheme.titleMedium),
+            if (aiSuggestedCount > 0)
+              Row(children: [const Icon(Icons.auto_awesome, size: 16), const SizedBox(width: 4), Text('AI: $aiSuggestedCount', style: Theme.of(context).textTheme.titleMedium)]),
+            if (missingCategoryCount > 0)
+              Row(
+                children: [
+                  Icon(Icons.warning, size: 16, color: Theme.of(context).colorScheme.error),
+                  const SizedBox(width: 4),
+                  Text('Brak kategorii: $missingCategoryCount', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.error)),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -78,6 +97,7 @@ class _TransactionStagingListState extends State<TransactionStagingList> {
   Widget _buildTransactionCard(TransactionProposal proposal, int index) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: proposal.isSuggestedByAi ? Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3) : null,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -92,18 +112,24 @@ class _TransactionStagingListState extends State<TransactionStagingList> {
                   const SizedBox(height: 4),
                   Text('${_numberFormat.format(proposal.amount)} ${proposal.currency}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  SizedBox(
-                    width: 300,
-                    child: SearchableCategoryDropdown(
-                      transactionType: _getCategoryType(proposal.type),
-                      selectedCategoryId: proposal.categoryId,
-                      onChanged: (categoryId) {
-                        if (categoryId != null) {
-                          widget.stagingService.updateCategory(index, categoryId);
-                        }
-                      },
-                      categoryService: widget.categoryService,
-                    ),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 300,
+                        child: SearchableCategoryDropdown(
+                          transactionType: _getCategoryType(proposal.type),
+                          selectedCategoryId: proposal.categoryId,
+                          onChanged: (categoryId) {
+                            if (categoryId != null) {
+                              widget.stagingService.updateCategory(index, categoryId);
+                            }
+                          },
+                          categoryService: widget.categoryService,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AiCategoryIndicator(isSuggestedByAi: proposal.isSuggestedByAi),
+                    ],
                   ),
                 ],
               ),

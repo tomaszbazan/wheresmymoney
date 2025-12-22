@@ -14,15 +14,7 @@ class TransactionStagingService extends ChangeNotifier {
   }
 
   void updateCategory(int index, String categoryId) {
-    final proposal = _proposals[index];
-    _proposals[index] = TransactionProposal(
-      transactionDate: proposal.transactionDate,
-      description: proposal.description,
-      amount: proposal.amount,
-      currency: proposal.currency,
-      type: proposal.type,
-      categoryId: categoryId,
-    );
+    _proposals[index] = _proposals[index].copyWith(categoryId: categoryId);
     notifyListeners();
   }
 
@@ -34,6 +26,10 @@ class TransactionStagingService extends ChangeNotifier {
   void clear() {
     _proposals.clear();
     notifyListeners();
+  }
+
+  bool hasIncompleteCategorization() {
+    return _proposals.any((proposal) => proposal.categoryId == null);
   }
 
   Future<void> saveAll(String accountId, TransactionServiceInterface transactionService) async {

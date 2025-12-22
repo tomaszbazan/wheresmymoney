@@ -58,6 +58,28 @@ void main() {
         expect(service.proposals.first.categoryId, 'category-123');
       });
 
+      test('preserves isSuggestedByAi flag when updating category', () {
+        final proposals = [
+          TransactionProposal(
+            transactionDate: DateTime(2024, 1, 1),
+            description: 'Test',
+            amount: 100.0,
+            currency: 'PLN',
+            type: TransactionType.expense,
+            categoryId: 'ai-suggested-category',
+            isSuggestedByAi: true,
+          ),
+        ];
+
+        final result = CsvParseResult(totalRows: 1, successCount: 1, errorCount: 0, proposals: proposals, errors: []);
+
+        service.loadFromCsv(result);
+        service.updateCategory(0, 'manually-selected-category');
+
+        expect(service.proposals.first.categoryId, 'manually-selected-category');
+        expect(service.proposals.first.isSuggestedByAi, true);
+      });
+
       test('throws when index out of range', () {
         expect(() => service.updateCategory(0, 'category-123'), throwsRangeError);
       });
@@ -157,6 +179,59 @@ void main() {
 
         service.clear();
         expect(notified, true);
+      });
+    });
+
+    group('hasIncompleteCategorization', () {
+      test('returns true when any proposal has null categoryId', () {
+        final proposals = [
+          TransactionProposal(
+            transactionDate: DateTime(2024, 1, 1),
+            description: 'Test 1',
+            amount: 100.0,
+            currency: 'PLN',
+            type: TransactionType.expense,
+            categoryId: 'category-1',
+          ),
+          TransactionProposal(transactionDate: DateTime(2024, 1, 2), description: 'Test 2', amount: 200.0, currency: 'PLN', type: TransactionType.expense),
+        ];
+
+        final result = CsvParseResult(totalRows: 2, successCount: 2, errorCount: 0, proposals: proposals, errors: []);
+
+        service.loadFromCsv(result);
+
+        expect(service.hasIncompleteCategorization(), true);
+      });
+
+      test('returns false when all proposals have categoryId', () {
+        final proposals = [
+          TransactionProposal(
+            transactionDate: DateTime(2024, 1, 1),
+            description: 'Test 1',
+            amount: 100.0,
+            currency: 'PLN',
+            type: TransactionType.expense,
+            categoryId: 'category-1',
+          ),
+          TransactionProposal(
+            transactionDate: DateTime(2024, 1, 2),
+            description: 'Test 2',
+            amount: 200.0,
+            currency: 'PLN',
+            type: TransactionType.expense,
+            categoryId: 'category-2',
+          ),
+        ];
+
+        final result = CsvParseResult(totalRows: 2, successCount: 2, errorCount: 0, proposals: proposals, errors: []);
+
+        service.loadFromCsv(result);
+
+        expect(service.hasIncompleteCategorization(), false);
+      });
+
+      test('returns false when proposals list is empty', () {
+        expect(service.hasIncompleteCategorization(), false);
       });
     });
 
