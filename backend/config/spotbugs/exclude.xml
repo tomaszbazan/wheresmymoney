@@ -20,4 +20,14 @@
         <Class name="pl.btsoftware.backend.ai.infrastructure.config.GeminiConfig"/>
         <Bug pattern="CT_CONSTRUCTOR_THROW"/>
     </Match>
+
+    <!-- Test data intentionally uses \n in formatted strings -->
+    <Match>
+        <Class name="pl.btsoftware.backend.csvimport.domain.GeminiResponseParserTest"/>
+        <Bug pattern="VA_FORMAT_STRING_USES_NEWLINE"/>
+    </Match>
+    <Match>
+        <Class name="pl.btsoftware.backend.csvimport.domain.CategorySuggestionServiceTest"/>
+        <Bug pattern="VA_FORMAT_STRING_USES_NEWLINE"/>
+    </Match>
 </FindBugsFilter>

@@ -15,28 +15,20 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @ConditionalOnProperty(name = "gemini.enabled", havingValue = "true", matchIfMissing = false)
 @Slf4j
-public final class GeminiClient {
+public class GeminiClient {
     private final GeminiConfig config;
     private final Client client;
 
     public GeminiClient(GeminiConfig config) {
-        if (config == null) {
-            throw new IllegalArgumentException("GeminiConfig cannot be null");
-        }
         this.config = config;
         this.client = initializeClient();
     }
 
     private Client initializeClient() {
-        try {
-            log.info("Initializing Gemini API client with model: {}", config.getModelName());
-            return Client.builder()
-                    .apiKey(config.getApiKey())
-                    .build();
-        } catch (Exception e) {
-            log.error("Failed to initialize Gemini API client", e);
-            throw new GeminiClientException("Failed to initialize Gemini API client", e);
-        }
+        log.info("Initializing Gemini API client with model: {}", config.getModelName());
+        return Client.builder()
+                .apiKey(config.getApiKey())
+                .build();
     }
 
     @Async

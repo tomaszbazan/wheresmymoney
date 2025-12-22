@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @ConditionalOnProperty(name = "gemini.enabled", havingValue = "true", matchIfMissing = false)
 public class GeminiConfig {
-
     private final String apiKey;
     private final String modelName;
     private final int timeoutSeconds;
@@ -23,8 +22,7 @@ public class GeminiConfig {
     }
 
     private String getApiKeyFromEnvironment() {
-        var key = System.getProperty("GEMINI_API_KEY", System.getenv("GEMINI_API_KEY"));
-        return key;
+        return System.getProperty("GEMINI_API_KEY", System.getenv("GEMINI_API_KEY"));
     }
 
     private void validateApiKey() {

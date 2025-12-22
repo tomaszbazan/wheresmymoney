@@ -2,6 +2,7 @@ package pl.btsoftware.backend.csvimport.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Component;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@Component
 public class CategorizationPromptBuilder {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

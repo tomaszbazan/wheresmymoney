@@ -55,17 +55,17 @@
 
 ## AI Categorization
 
-| ID        | Task                                  | Description                                                                                  | Done |
-|-----------|---------------------------------------|----------------------------------------------------------------------------------------------|------|
-| TASK-0050 | Gemini API integration                | Configure Gemini 3.0 Flash API client in backend                                             | [x]  |
-| TASK-0051 | CategorySuggestion domain model       | Create domain model for AI category suggestions (transactionIndex, CategoryId, confidence)   | [x]  |
-| TASK-0052 | CategorizationPromptBuilder           | Build JSON prompt with transactions and category tree for bulk categorization                | [x]  |
-| TASK-0053 | GeminiResponseParser                  | Parse Gemini JSON response and map to CategoryId for each transaction                        | [ ]  |
-| TASK-0054 | CategorySuggestionService             | Orchestrate AI categorization: fetch categories, build prompt, call Gemini, parse response   | [ ]  |
-| TASK-0055 | Integration in CsvParseService        | Integrate CategorySuggestionService into CSV import flow after parsing                       | [ ]  |
-| TASK-0056 | Error handling for AI failures        | Handle Gemini errors with retry (using @Retryable) and return null categories on failure     | [ ]  |
-| TASK-0057 | Support INCOME and EXPENSE categories | Ensure AI suggests categories for both transaction types based on amount sign                | [ ]  |
-| TASK-0058 | AI categorization UI integration      | Display AI-suggested categories in import preview with manual edit capability                | [ ]  |
+| ID        | Task                                  | Description                                                                                | Done |
+|-----------|---------------------------------------|--------------------------------------------------------------------------------------------|------|
+| TASK-0050 | Gemini API integration                | Configure Gemini 3.0 Flash API client in backend                                           | [x]  |
+| TASK-0051 | CategorySuggestion domain model       | Create domain model for AI category suggestions (transactionIndex, CategoryId, confidence) | [x]  |
+| TASK-0052 | CategorizationPromptBuilder           | Build JSON prompt with transactions and category tree for bulk categorization              | [x]  |
+| TASK-0053 | AI response parsing                   | Parse and map Gemini responses to user categories                                          | [x]  |
+| TASK-0054 | CategorySuggestionService             | Orchestrate AI categorization: fetch categories, build prompt, call Gemini, parse response | [x]  |
+| TASK-0055 | Integration in CsvParseService        | Integrate CategorySuggestionService into CSV import flow after parsing                     | [x]  |
+| TASK-0056 | Error handling for AI failures        | Handle Gemini errors with retry (using @Retryable) and return null categories on failure   | [x]  |
+| TASK-0057 | Support INCOME and EXPENSE categories | Ensure AI suggests categories for both transaction types based on amount sign              | [x]  |
+| TASK-0058 | AI categorization UI integration      | Display AI-suggested categories in import preview with manual edit capability              | [x]  |
 
 ## Transaction Management
 
@@ -73,9 +73,9 @@
 |-----------|----------------------------------|--------------------------------------------------------------------------------------|------|
 | TASK-0060 | Transaction domain model         | Create Transaction entity with required fields (date, amount, category, description) | [x]  |
 | TASK-0061 | Transaction CRUD API             | Implement REST endpoints for transaction operations                                  | [x]  |
-| TASK-0062 | Transaction deduplication        | Implement hash-based deduplication mechanism                                         | [ ]  |
-| TASK-0063 | Staging list UI                  | Create Flutter screen for reviewing imported transactions before save                | [ ]  |
-| TASK-0064 | Transaction edit in staging      | Allow editing category, description, date, amount before saving                      | [ ]  |
+| TASK-0062 | Transaction deduplication        | Implement hash-based deduplication mechanism                                         | [x]  |
+| TASK-0063 | Staging list UI                  | Create Flutter screen for reviewing imported transactions before save                | [x]  |
+| TASK-0064 | Transaction edit in staging      | Allow editing category, description, date, amount before saving                      | [x]  |
 | TASK-0065 | Bulk transaction save            | Save all approved transactions from staging to database                              | [ ]  |
 | TASK-0066 | Manual transaction form          | Create form for adding single transactions manually                                  | [x]  |
 | TASK-0067 | Transaction list view            | Display saved transactions with filtering and sorting                                | [x]  |

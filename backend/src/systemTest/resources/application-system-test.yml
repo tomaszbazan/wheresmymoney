@@ -6,3 +6,6 @@ spring:
   flyway:
     enabled: true
     clean-disabled: false
+
+gemini:
+  enabled: true
