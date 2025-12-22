@@ -7,6 +7,7 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.domain.TransactionHash;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.users.domain.GroupId;
 
@@ -55,5 +56,11 @@ public class JpaTransactionRepository implements TransactionRepository {
     @Override
     public boolean existsByCategoryId(CategoryId categoryId, GroupId groupId) {
         return repository.existsByCategoryIdAndCreatedByGroupAndIsDeletedFalse(categoryId.value(), groupId.value());
+    }
+
+    @Override
+    public Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId) {
+        return repository.findByAccountIdAndTransactionHashAndCreatedByGroupAndIsDeletedFalse(accountId.value(), hash.value(), groupId.value())
+                .map(TransactionEntity::toDomain);
     }
 }

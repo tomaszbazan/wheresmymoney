@@ -15,4 +15,6 @@ public interface TransactionRepository {
     List<Transaction> findAll(GroupId groupId);
     List<Transaction> findByAccountId(AccountId accountId, GroupId groupId);
     boolean existsByCategoryId(CategoryId categoryId, GroupId groupId);
+
+    Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId);
 }

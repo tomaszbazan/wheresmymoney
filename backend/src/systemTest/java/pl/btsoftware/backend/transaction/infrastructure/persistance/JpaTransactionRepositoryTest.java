@@ -10,11 +10,13 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.domain.TransactionHashCalculator;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +29,8 @@ public class JpaTransactionRepositoryTest {
 
     private final UserId testUserId = new UserId("test-user");
     private final GroupId testGroupId = new GroupId(UUID.randomUUID());
+    private final TransactionHashCalculator hashCalculator = new TransactionHashCalculator();
+
     @Autowired
     private TransactionRepository transactionRepository;
 
@@ -37,13 +41,21 @@ public class JpaTransactionRepositoryTest {
         );
     }
 
+    private Transaction createTransaction(AccountId accountId, Money amount, String description,
+                                          pl.btsoftware.backend.shared.TransactionType type,
+                                          CategoryId categoryId, AuditInfo auditInfo) {
+        var transactionDate = LocalDate.now();
+        var hash = hashCalculator.calculateHash(accountId, amount, description, transactionDate, type);
+        return Transaction.create(accountId, amount, description, type, categoryId, transactionDate, hash, auditInfo);
+    }
+
     @Test
     void shouldStoreAndRetrieveTransaction() {
         // given
         var accountId = AccountId.generate();
         var amount = Money.of(new BigDecimal("150.75"), EUR);
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var transaction = Transaction.create(
+        var transaction = createTransaction(
                 accountId,
                 amount,
                 "Grocery shopping",
@@ -86,7 +98,7 @@ public class JpaTransactionRepositoryTest {
         // given
         var accountId = AccountId.generate();
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var transaction = Transaction.create(
+        var transaction = createTransaction(
                 accountId,
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
@@ -110,7 +122,7 @@ public class JpaTransactionRepositoryTest {
         // given
         var accountId = AccountId.generate();
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var transaction = Transaction.create(
+        var transaction = createTransaction(
                 accountId,
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
@@ -137,9 +149,9 @@ public class JpaTransactionRepositoryTest {
         var accountId2 = AccountId.generate();
 
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var transaction1 = Transaction.create(accountId1, Money.of(new BigDecimal("50.00"), USD), "Transaction 1", EXPENSE, CategoryId.generate(), auditInfo);
-        var transaction2 = Transaction.create(accountId2, Money.of(new BigDecimal("200.00"), GBP), "Transaction 2", INCOME, CategoryId.generate(), auditInfo);
-        var transaction3 = Transaction.create(accountId1, Money.of(new BigDecimal("75.00"), EUR), "Transaction 3", EXPENSE, CategoryId.generate(), auditInfo);
+        var transaction1 = createTransaction(accountId1, Money.of(new BigDecimal("50.00"), USD), "Transaction 1", EXPENSE, CategoryId.generate(), auditInfo);
+        var transaction2 = createTransaction(accountId2, Money.of(new BigDecimal("200.00"), GBP), "Transaction 2", INCOME, CategoryId.generate(), auditInfo);
+        var transaction3 = createTransaction(accountId1, Money.of(new BigDecimal("75.00"), EUR), "Transaction 3", EXPENSE, CategoryId.generate(), auditInfo);
 
         transactionRepository.store(transaction1);
         transactionRepository.store(transaction2);
@@ -164,11 +176,11 @@ public class JpaTransactionRepositoryTest {
         var otherAccountId = AccountId.generate();
 
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var transaction1 = Transaction.create(targetAccountId, Money.of(new BigDecimal("100.00"), PLN),
+        var transaction1 = createTransaction(targetAccountId, Money.of(new BigDecimal("100.00"), PLN),
                 "Target account tx 1", INCOME, CategoryId.generate(), auditInfo);
-        var transaction2 = Transaction.create(otherAccountId, Money.of(new BigDecimal("50.00"), PLN),
+        var transaction2 = createTransaction(otherAccountId, Money.of(new BigDecimal("50.00"), PLN),
                 "Other account tx", EXPENSE, CategoryId.generate(), auditInfo);
-        var transaction3 = Transaction.create(targetAccountId, Money.of(new BigDecimal("25.00"), PLN),
+        var transaction3 = createTransaction(targetAccountId, Money.of(new BigDecimal("25.00"), PLN),
                 "Target account tx 2", EXPENSE, CategoryId.generate(), auditInfo);
 
         transactionRepository.store(transaction1);
@@ -191,9 +203,9 @@ public class JpaTransactionRepositoryTest {
         var accountId = AccountId.generate();
 
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var activeTransaction = Transaction.create(accountId, Money.of(new BigDecimal("100.00"), PLN),
+        var activeTransaction = createTransaction(accountId, Money.of(new BigDecimal("100.00"), PLN),
                 "Active transaction", INCOME, CategoryId.generate(), auditInfo);
-        var toDeleteTransaction = Transaction.create(accountId, Money.of(new BigDecimal("50.00"), PLN),
+        var toDeleteTransaction = createTransaction(accountId, Money.of(new BigDecimal("50.00"), PLN),
                 "To delete transaction", EXPENSE, CategoryId.generate(), auditInfo);
 
         transactionRepository.store(activeTransaction);
@@ -229,7 +241,7 @@ public class JpaTransactionRepositoryTest {
         var accountId = AccountId.generate();
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
         var originalCategoryId = CategoryId.generate();
-        var originalTransaction = Transaction.create(
+        var originalTransaction = createTransaction(
                 accountId,
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Original description",
@@ -262,13 +274,13 @@ public class JpaTransactionRepositoryTest {
         // given
         var accountId = AccountId.generate();
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var plnTransaction = Transaction.create(accountId, Money.of(new BigDecimal("100.00"), PLN),
+        var plnTransaction = createTransaction(accountId, Money.of(new BigDecimal("100.00"), PLN),
                 "PLN transaction", INCOME, CategoryId.generate(), auditInfo);
-        var eurTransaction = Transaction.create(accountId, Money.of(new BigDecimal("50.00"), EUR),
+        var eurTransaction = createTransaction(accountId, Money.of(new BigDecimal("50.00"), EUR),
                 "EUR transaction", EXPENSE, CategoryId.generate(), auditInfo);
-        var usdTransaction = Transaction.create(accountId, Money.of(new BigDecimal("75.00"), USD),
+        var usdTransaction = createTransaction(accountId, Money.of(new BigDecimal("75.00"), USD),
                 "USD transaction", INCOME, CategoryId.generate(), auditInfo);
-        var gbpTransaction = Transaction.create(accountId, Money.of(new BigDecimal("25.00"), GBP),
+        var gbpTransaction = createTransaction(accountId, Money.of(new BigDecimal("25.00"), GBP),
                 "GBP transaction", EXPENSE, CategoryId.generate(), auditInfo);
 
         // when
@@ -290,8 +302,8 @@ public class JpaTransactionRepositoryTest {
         // given
         var accountId = AccountId.generate();
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var incomeTransaction = Transaction.create(accountId, Money.of(new BigDecimal("1000.00"), PLN), "Salary", INCOME, CategoryId.generate(), auditInfo);
-        var expenseTransaction = Transaction.create(accountId, Money.of(new BigDecimal("200.00"), PLN), "Grocery", EXPENSE, CategoryId.generate(), auditInfo);
+        var incomeTransaction = createTransaction(accountId, Money.of(new BigDecimal("1000.00"), PLN), "Salary", INCOME, CategoryId.generate(), auditInfo);
+        var expenseTransaction = createTransaction(accountId, Money.of(new BigDecimal("200.00"), PLN), "Grocery", EXPENSE, CategoryId.generate(), auditInfo);
 
         // when
         transactionRepository.store(incomeTransaction);
@@ -310,7 +322,7 @@ public class JpaTransactionRepositoryTest {
         var categoryId = CategoryId.generate();
         var accountId = AccountId.generate();
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var transaction = Transaction.create(
+        var transaction = createTransaction(
                 accountId,
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
@@ -333,7 +345,7 @@ public class JpaTransactionRepositoryTest {
         var categoryId = CategoryId.generate();
         var accountId = AccountId.generate();
         var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var transaction = Transaction.create(
+        var transaction = createTransaction(
                 accountId,
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",

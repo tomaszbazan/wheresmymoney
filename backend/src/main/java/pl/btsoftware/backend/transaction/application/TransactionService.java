@@ -32,7 +32,7 @@ public class TransactionService {
         validateCurrencyMatch(command.amount().currency(), account.balance().currency());
         validateCategoriesExist(command.type(), user.groupId());
 
-        var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value(), command.date());
+        var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value());
         var transaction = command.toDomain(auditInfo);
         transactionRepository.store(transaction);
         accountModuleFacade.addTransaction(command.accountId(), transaction.id(), transaction.amount(), transaction.type(), command.userId());

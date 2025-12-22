@@ -7,14 +7,14 @@ import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record CreateTransactionRequest(
         UUID accountId,
         Money amount,
         String description,
-        OffsetDateTime date,
+        LocalDate transactionDate,
         String type,
         UUID categoryId
 ) {
@@ -23,7 +23,7 @@ public record CreateTransactionRequest(
                 AccountId.from(accountId),
                 amount,
                 description,
-                date,
+                transactionDate,
                 TransactionType.valueOf(type.toUpperCase()),
                 new CategoryId(categoryId),
                 userId

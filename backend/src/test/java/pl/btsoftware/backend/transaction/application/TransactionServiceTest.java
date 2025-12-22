@@ -23,8 +23,7 @@ import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,7 +71,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("1000.12");
         var description = "Salary payment";
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
@@ -108,7 +107,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("250.50");
         var description = "Grocery shopping";
-        var date = OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 16);
         var type = TransactionType.EXPENSE;
         var categoryId = CategoryId.generate();
 
@@ -142,7 +141,7 @@ class TransactionServiceTest {
         var nonExistentAccountId = AccountId.generate();
         var amount = new BigDecimal("100.00");
         var description = "Test transaction";
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
@@ -164,7 +163,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("100.00");
         var description = "";
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
@@ -185,7 +184,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("100.00");
         String description = null;
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
@@ -206,7 +205,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("100.00");
         var description = "A".repeat(201); // 201 characters
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
@@ -228,7 +227,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("100.00");
         var description = "Test transaction";
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
@@ -250,7 +249,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("1000.12");
         var description = "Salary payment";
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
@@ -289,9 +288,9 @@ class TransactionServiceTest {
         var categoryId1 = CategoryId.generate();
         var categoryId2 = CategoryId.generate();
         var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("1000.00"), PLN), "Salary",
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, categoryId1, userId);
+                LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId1, userId);
         var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("250.50"), PLN), "Groceries",
-                OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, categoryId2, userId);
+                LocalDate.of(2024, 1, 16), TransactionType.EXPENSE, categoryId2, userId);
 
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
@@ -319,11 +318,11 @@ class TransactionServiceTest {
         var categoryId2 = CategoryId.generate();
         var categoryId3 = CategoryId.generate();
         var command1 = new CreateTransactionCommand(account1.id(), Money.of(new BigDecimal("1000.00"), PLN), "Salary",
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, categoryId1, userId1);
+                LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId1, userId1);
         var command2 = new CreateTransactionCommand(account2.id(), Money.of(new BigDecimal("250.50"), PLN), "Groceries",
-                OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, categoryId2, userId2);
+                LocalDate.of(2024, 1, 16), TransactionType.EXPENSE, categoryId2, userId2);
         var command3 = new CreateTransactionCommand(account1.id(), Money.of(new BigDecimal("100.00"), PLN), "Coffee",
-                OffsetDateTime.of(2024, 1, 17, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, categoryId3, userId1);
+                LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId3, userId1);
 
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
@@ -348,7 +347,7 @@ class TransactionServiceTest {
         var initialAmount = new BigDecimal("500.00");
         var categoryId = CategoryId.generate();
         var createCommand = new CreateTransactionCommand(account.id(), Money.of(initialAmount, PLN), "Initial transaction",
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, categoryId, userId);
+                LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newAmount = Money.of(new BigDecimal("750.00"), PLN);
@@ -378,7 +377,7 @@ class TransactionServiceTest {
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
         var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Original description",
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.INCOME, categoryId, userId);
+                LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newDescription = "Updated description";
@@ -408,7 +407,7 @@ class TransactionServiceTest {
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
         var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Test transaction",
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, categoryId, userId);
+                LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, categoryId, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newCategoryId = CategoryId.generate();
@@ -450,7 +449,7 @@ class TransactionServiceTest {
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
         var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Transaction to delete",
-                OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC), TransactionType.EXPENSE, categoryId, userId);
+                LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, categoryId, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         // When
@@ -492,7 +491,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("1000.00");
         var description = "Salary payment";
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
@@ -515,7 +514,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("250.50");
         var description = "Grocery shopping";
-        var date = OffsetDateTime.of(2024, 1, 16, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 16);
         var type = TransactionType.EXPENSE;
         var categoryId = CategoryId.generate();
 
@@ -538,7 +537,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("1000.00");
         var description = "Salary payment";
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
@@ -561,7 +560,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("1000.00");
         var description = "Salary payment";
-        var date = OffsetDateTime.of(2024, 1, 15, 0, 0, 0, 0, ZoneOffset.UTC);
+        var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
