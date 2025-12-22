@@ -21,9 +21,9 @@ import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
-import static java.time.OffsetDateTime.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static pl.btsoftware.backend.shared.Currency.EUR;
@@ -97,7 +97,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Salary payment",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -132,7 +132,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("50.00"), PLN),
                 "Grocery shopping",
-                now(),
+                LocalDate.now(),
                 TransactionType.EXPENSE,
                 categoryId,
                 userId
@@ -160,7 +160,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -183,7 +183,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 null,
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -207,7 +207,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 longDescription,
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -228,7 +228,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), EUR),
                 "Payment",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 CategoryId.generate(),
                 userId
@@ -250,7 +250,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -290,7 +290,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction 1",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 incomeCategoryId,
                 userId
@@ -299,7 +299,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("50.00"), PLN),
                 "Transaction 2",
-                now(),
+                LocalDate.now(),
                 TransactionType.EXPENSE,
                 expenseCategoryId,
                 userId
@@ -331,7 +331,7 @@ public class TransactionServiceTest {
                 account1Id.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction for account 1",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 incomeCategoryId,
                 userId
@@ -340,7 +340,7 @@ public class TransactionServiceTest {
                 account2Id.id(),
                 Money.of(new BigDecimal("50.00"), PLN),
                 "Transaction for account 2",
-                now(),
+                LocalDate.now(),
                 TransactionType.EXPENSE,
                 expenseCategoryId,
                 userId
@@ -368,7 +368,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Original transaction",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -404,7 +404,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Original description",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -437,7 +437,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Test transaction",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -488,7 +488,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction to delete",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId
@@ -519,7 +519,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("50.00"), PLN),
                 "Expense to delete",
-                now(),
+                LocalDate.now(),
                 TransactionType.EXPENSE,
                 categoryId,
                 userId
@@ -557,7 +557,7 @@ public class TransactionServiceTest {
                 accountId.id(),
                 Money.of(new BigDecimal("100.00"), PLN),
                 "Transaction to delete twice",
-                now(),
+                LocalDate.now(),
                 INCOME,
                 categoryId,
                 userId

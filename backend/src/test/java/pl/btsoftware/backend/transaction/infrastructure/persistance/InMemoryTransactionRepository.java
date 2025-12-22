@@ -4,6 +4,7 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.domain.TransactionHash;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.users.domain.GroupId;
 
@@ -56,5 +57,15 @@ public class InMemoryTransactionRepository implements TransactionRepository {
                 .anyMatch(transaction -> transaction.categoryId().equals(categoryId)
                         && transaction.ownedBy().equals(groupId)
                         && !transaction.tombstone().isDeleted());
+    }
+
+    @Override
+    public Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId) {
+        return database.values().stream()
+                .filter(transaction -> transaction.accountId().equals(accountId))
+                .filter(transaction -> transaction.transactionHash().equals(hash))
+                .filter(transaction -> transaction.ownedBy().equals(groupId))
+                .filter(transaction -> !transaction.tombstone().isDeleted())
+                .findFirst();
     }
 }

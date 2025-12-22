@@ -21,11 +21,10 @@ import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
+import static java.time.LocalDate.now;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.containsString;
@@ -224,7 +223,7 @@ public class TransactionControllerTest {
                 accountId,
                 Money.of(new BigDecimal("100.50"), PLN),
                 "Test transaction",
-                OffsetDateTime.now(ZoneOffset.UTC),
+                now(),
                 "INCOME",
                 randomUUID()
         );
@@ -276,13 +275,20 @@ public class TransactionControllerTest {
 
     private Transaction createTransaction(UUID transactionId, UUID accountId, BigDecimal amount, String description, TransactionType type) {
         var auditInfo = AuditInfo.create("user123", randomUUID());
+        var accountIdObj = new AccountId(accountId);
+        var money = Money.of(amount, PLN);
+        var transactionDate = now();
+        var hashCalculator = new pl.btsoftware.backend.transaction.domain.TransactionHashCalculator();
+        var hash = hashCalculator.calculateHash(accountIdObj, money, description, transactionDate, type);
         return new Transaction(
                 new TransactionId(transactionId),
-                new AccountId(accountId),
-                Money.of(amount, PLN),
+                accountIdObj,
+                money,
                 type,
                 description,
                 CategoryId.generate(),
+                transactionDate,
+                hash,
                 auditInfo,
                 auditInfo,
                 Tombstone.active()

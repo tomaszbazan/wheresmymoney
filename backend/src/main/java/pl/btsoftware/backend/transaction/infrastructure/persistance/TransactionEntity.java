@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.domain.TransactionHash;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -30,6 +32,10 @@ public class TransactionEntity {
     private String description;
     @Column(name = "category_id")
     private UUID categoryId;
+    @Column(name = "transaction_date")
+    private LocalDate transactionDate;
+    @Column(name = "transaction_hash", nullable = false, length = 64)
+    private String transactionHash;
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
     @Column(name = "created_by")
@@ -56,6 +62,8 @@ public class TransactionEntity {
                 transaction.type(),
                 transaction.description(),
                 transaction.categoryId().value(),
+                transaction.transactionDate(),
+                transaction.transactionHash().value(),
                 transaction.createdAt(),
                 transaction.createdBy().value(),
                 transaction.ownedBy().value(),
@@ -77,6 +85,8 @@ public class TransactionEntity {
                 type,
                 description,
                 CategoryId.of(categoryId),
+                transactionDate,
+                new TransactionHash(transactionHash),
                 createdAuditInfo,
                 updatedAuditInfo,
                 new Tombstone(isDeleted, deletedAt)

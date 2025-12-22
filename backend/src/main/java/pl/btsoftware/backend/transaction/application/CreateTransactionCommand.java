@@ -6,20 +6,24 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.domain.TransactionHashCalculator;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 
 public record CreateTransactionCommand(
         AccountId accountId,
         Money amount,
         String description,
-        OffsetDateTime date,
+        LocalDate transactionDate,
         TransactionType type,
         CategoryId categoryId,
         UserId userId
 ) {
+    private static final TransactionHashCalculator HASH_CALCULATOR = new TransactionHashCalculator();
+
     public Transaction toDomain(AuditInfo auditInfo) {
-        return Transaction.create(accountId, amount, description, type, categoryId, auditInfo);
+        var hash = HASH_CALCULATOR.calculateHash(accountId, amount, description, transactionDate, type);
+        return Transaction.create(accountId, amount, description, type, categoryId, transactionDate, hash, auditInfo);
     }
 }
