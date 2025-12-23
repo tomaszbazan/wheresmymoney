@@ -7,7 +7,7 @@ import 'package:frontend/widgets/transaction_staging_list.dart';
 class TransactionStagingScreen extends StatefulWidget {
   final TransactionStagingService stagingService;
   final String accountId;
-  final TransactionService? transactionService;
+  final RestTransactionService? transactionService;
   final CategoryService? categoryService;
 
   const TransactionStagingScreen({super.key, required this.stagingService, required this.accountId, this.transactionService, this.categoryService});
@@ -18,12 +18,12 @@ class TransactionStagingScreen extends StatefulWidget {
 
 class _TransactionStagingScreenState extends State<TransactionStagingScreen> {
   bool _isSaving = false;
-  late final TransactionService _transactionService;
+  late final RestTransactionService _transactionService;
 
   @override
   void initState() {
     super.initState();
-    _transactionService = widget.transactionService ?? TransactionService();
+    _transactionService = widget.transactionService ?? RestTransactionService();
   }
 
   Future<void> _saveAll() async {
@@ -65,12 +65,16 @@ class _TransactionStagingScreenState extends State<TransactionStagingScreen> {
     });
 
     try {
-      await widget.stagingService.saveAll(widget.accountId, _transactionService);
+      final result = await widget.stagingService.saveAll(widget.accountId, _transactionService);
 
       if (!mounted) return;
 
       Navigator.of(context).pop(true);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Wszystkie transakcje zostały zapisane')));
+
+      final message =
+          result.duplicateCount > 0 ? 'Zapisano ${result.savedCount} transakcji. ${result.duplicateCount} duplikatów pominięto.' : 'Zapisano ${result.savedCount} transakcji.';
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       if (!mounted) return;
 

@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/csv_parse_result.dart';
-import 'package:frontend/models/transaction.dart';
 import 'package:frontend/models/transaction_proposal.dart';
 import 'package:frontend/models/transaction_type.dart';
-import 'package:frontend/services/transaction_service.dart';
 import 'package:frontend/services/transaction_staging_service.dart';
+
+import '../mocks/in_memory_transaction_service.dart';
 
 void main() {
   late TransactionStagingService service;
@@ -243,12 +243,14 @@ void main() {
 
         final result = CsvParseResult(totalRows: 1, successCount: 1, errorCount: 0, proposals: proposals, errors: []);
 
-        final mockService = MockTransactionService();
+        final mockService = InMemoryTransactionService();
         service.loadFromCsv(result);
 
         await service.saveAll('account-1', mockService);
 
-        expect(mockService.createdTransactions.length, 1);
+        final transactions = await mockService.getTransactionsByAccountId('account-1');
+
+        expect(transactions.length, 1);
         expect(service.proposals.length, 0);
       });
 
@@ -259,7 +261,7 @@ void main() {
 
         final result = CsvParseResult(totalRows: 1, successCount: 1, errorCount: 0, proposals: proposals, errors: []);
 
-        final mockService = MockTransactionService();
+        final mockService = InMemoryTransactionService();
         service.loadFromCsv(result);
         expect(service.proposals.length, 1);
 
@@ -275,66 +277,12 @@ void main() {
 
         final result = CsvParseResult(totalRows: 1, successCount: 1, errorCount: 0, proposals: proposals, errors: []);
 
-        final mockService = MockTransactionService(shouldFail: true);
+        final mockService = InMemoryTransactionService();
+        mockService.setApiError(Exception('Failed to create transaction'));
         service.loadFromCsv(result);
 
         expect(() => service.saveAll('account-1', mockService), throwsException);
       });
     });
   });
-}
-
-class MockTransactionService implements TransactionServiceInterface {
-  final List<Transaction> createdTransactions = [];
-  final bool shouldFail;
-
-  MockTransactionService({this.shouldFail = false});
-
-  @override
-  Future<Transaction> createTransaction({
-    required String accountId,
-    required double amount,
-    required String description,
-    required DateTime date,
-    required TransactionType type,
-    required String categoryId,
-    required String currency,
-  }) async {
-    if (shouldFail) {
-      throw Exception('Failed to create transaction');
-    }
-
-    final transaction = Transaction(
-      id: 'test-id',
-      accountId: accountId,
-      amount: amount,
-      description: description,
-      type: type,
-      categoryId: categoryId,
-      categoryName: null,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    createdTransactions.add(transaction);
-    return transaction;
-  }
-
-  @override
-  Future<void> deleteTransaction(String transactionId) async {}
-
-  @override
-  Future<List<Transaction>> getTransactions() async {
-    return [];
-  }
-
-  @override
-  Future<List<Transaction>> getTransactionsByAccountId(String accountId) async {
-    return [];
-  }
-
-  @override
-  Future<Transaction> updateTransaction({required String id, required double amount, required String description, required String categoryId, required String currency}) async {
-    throw UnimplementedError();
-  }
 }

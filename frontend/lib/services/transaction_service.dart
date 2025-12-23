@@ -1,11 +1,12 @@
 import 'package:frontend/models/transaction_type.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/bulk_create_response.dart';
 import '../models/transaction.dart';
 import 'auth_service.dart';
 import 'http_client.dart';
 
-abstract class TransactionServiceInterface {
+abstract class TransactionService {
   Future<List<Transaction>> getTransactions();
 
   Future<List<Transaction>> getTransactionsByAccountId(String accountId);
@@ -20,15 +21,17 @@ abstract class TransactionServiceInterface {
     required String currency,
   });
 
+  Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<Map<String, dynamic>> transactions});
+
   Future<Transaction> updateTransaction({required String id, required double amount, required String description, required String categoryId, required String currency});
 
   Future<void> deleteTransaction(String transactionId);
 }
 
-class TransactionService implements TransactionServiceInterface {
+class RestTransactionService implements TransactionService {
   final ApiClient _apiClient;
 
-  TransactionService({AuthService? authService, http.Client? httpClient}) : _apiClient = ApiClient(authService ?? AuthService(), httpClient: httpClient);
+  RestTransactionService({AuthService? authService, http.Client? httpClient}) : _apiClient = ApiClient(authService ?? AuthService(), httpClient: httpClient);
   @override
   Future<List<Transaction>> getTransactions() async {
     return await _apiClient.getList<Transaction>('/transactions', 'transactions', Transaction.fromJson);
@@ -75,5 +78,12 @@ class TransactionService implements TransactionServiceInterface {
   @override
   Future<void> deleteTransaction(String transactionId) async {
     await _apiClient.delete('/transactions/$transactionId');
+  }
+
+  @override
+  Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<Map<String, dynamic>> transactions}) async {
+    final Map<String, dynamic> bulkData = {'accountId': accountId, 'transactions': transactions};
+
+    return await _apiClient.post<BulkCreateResponse>('/transactions/bulk', bulkData, BulkCreateResponse.fromJson);
   }
 }
