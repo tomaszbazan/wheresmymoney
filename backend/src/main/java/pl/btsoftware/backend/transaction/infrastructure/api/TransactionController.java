@@ -66,4 +66,12 @@ public class TransactionController {
         log.info("Received request to delete transaction with id: {} by user: {}", id, userId);
         transactionModuleFacade.deleteTransaction(id, userId);
     }
+
+    @PostMapping("/transactions/bulk")
+    public BulkCreateTransactionResponse bulkCreateTransactions(@RequestBody BulkCreateTransactionRequest request, @AuthenticationPrincipal Jwt jwt) {
+        var userId = new UserId(jwt.getSubject());
+        log.info("Received request to bulk create {} transactions for account: {} by user: {}", request.transactions().size(), request.accountId(), userId);
+        var result = transactionModuleFacade.bulkCreateTransactions(request.toCommands(userId), userId);
+        return BulkCreateTransactionResponse.from(result);
+    }
 }

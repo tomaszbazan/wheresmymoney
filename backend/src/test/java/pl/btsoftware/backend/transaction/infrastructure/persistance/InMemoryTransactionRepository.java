@@ -68,4 +68,16 @@ public class InMemoryTransactionRepository implements TransactionRepository {
                 .filter(transaction -> !transaction.tombstone().isDeleted())
                 .findFirst();
     }
+
+    @Override
+    public List<TransactionHash> findExistingHashes(AccountId accountId, List<TransactionHash> hashes, GroupId groupId) {
+        return database.values().stream()
+                .filter(transaction -> transaction.accountId().equals(accountId))
+                .filter(transaction -> transaction.ownedBy().equals(groupId))
+                .filter(transaction -> !transaction.isDeleted())
+                .map(Transaction::transactionHash)
+                .filter(hashes::contains)
+                .distinct()
+                .toList();
+    }
 }

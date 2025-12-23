@@ -63,4 +63,16 @@ public class JpaTransactionRepository implements TransactionRepository {
         return repository.findByAccountIdAndTransactionHashAndCreatedByGroupAndIsDeletedFalse(accountId.value(), hash.value(), groupId.value())
                 .map(TransactionEntity::toDomain);
     }
+
+    @Override
+    public List<TransactionHash> findExistingHashes(AccountId accountId, List<TransactionHash> hashes, GroupId groupId) {
+        var hashValues = hashes.stream()
+                .map(TransactionHash::value)
+                .toList();
+
+        return repository.findExistingHashesByAccountIdAndHashesInAndCreatedByGroup(accountId.value(), hashValues, groupId.value())
+                .stream()
+                .map(TransactionHash::new)
+                .toList();
+    }
 }

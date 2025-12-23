@@ -76,12 +76,12 @@
 | TASK-0062 | Transaction deduplication        | Implement hash-based deduplication mechanism                                         | [x]  |
 | TASK-0063 | Staging list UI                  | Create Flutter screen for reviewing imported transactions before save                | [x]  |
 | TASK-0064 | Transaction edit in staging      | Allow editing category, description, date, amount before saving                      | [x]  |
-| TASK-0065 | Bulk transaction save            | Save all approved transactions from staging to database                              | [ ]  |
+| TASK-0065 | Bulk transaction save            | Save all approved transactions from staging to database                              | [x]  |
 | TASK-0066 | Manual transaction form          | Create form for adding single transactions manually                                  | [x]  |
 | TASK-0067 | Transaction list view            | Display saved transactions with filtering and sorting                                | [x]  |
 | TASK-0068 | Transaction edit form            | Allow editing saved transactions with deduplication warning                          | [x]  |
 | TASK-0069 | Transaction deletion             | Implement hard delete for transactions                                               | [x]  |
-| TASK-0070 | Duplicate detection notification | Inform user about skipped duplicate transactions during import                       | [ ]  |
+| TASK-0070 | Duplicate detection notification | Inform user about skipped duplicate transactions during import                       | [x]  |
 
 ## Data Security and Validation
 

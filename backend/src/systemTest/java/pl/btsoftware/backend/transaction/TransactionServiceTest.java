@@ -8,6 +8,7 @@ import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.application.CreateCategoryCommand;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.transaction.application.BulkCreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
@@ -24,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static pl.btsoftware.backend.shared.Currency.EUR;
@@ -569,5 +571,54 @@ public class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.deleteTransaction(transaction.id(), userId))
                 .isInstanceOf(TransactionAlreadyDeletedException.class)
                 .hasMessage("Transaction with id " + transaction.id().value() + " is already deleted");
+    }
+
+    @Test
+    void shouldBulkCreateTransactionsAndSkipDuplicates() {
+        // Given
+        var userId = createTestUser();
+        var categoryId = createIncomeCategory(userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId)).id();
+
+        // Existing transaction
+        var existingCommand = new CreateTransactionCommand(
+                accountId,
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Existing Transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId
+        );
+        transactionService.createTransaction(existingCommand);
+
+        // New transactions (one duplicate, one new)
+        var newCommand = new CreateTransactionCommand(
+                accountId,
+                Money.of(new BigDecimal("200.00"), PLN),
+                "New Transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId
+        );
+
+        var commands = of(existingCommand, newCommand);
+
+        // When
+        var result = transactionService.bulkCreateTransactions(new BulkCreateTransactionCommand(accountId, commands), userId);
+
+        // Then
+        assertThat(result.savedCount()).isEqualTo(1);
+        assertThat(result.duplicateCount()).isEqualTo(1);
+        assertThat(result.savedTransactionIds()).hasSize(1);
+
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var allTransactions = transactionService.getTransactionsByAccountId(accountId, user.groupId());
+        assertThat(allTransactions).hasSize(2); // 1 existing + 1 new
+
+        var account = accountModuleFacade.getAccount(accountId, userId);
+        // 100 (existing) + 200 (new) = 300
+        assertThat(account.balance().value()).isEqualByComparingTo(new BigDecimal("300.00"));
     }
 }

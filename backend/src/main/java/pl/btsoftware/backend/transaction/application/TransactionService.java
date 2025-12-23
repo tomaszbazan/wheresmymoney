@@ -8,7 +8,9 @@ import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.domain.TransactionHash;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.error.DuplicateTransactionException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
@@ -16,6 +18,7 @@ import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -25,7 +28,7 @@ public class TransactionService {
     private final CategoryQueryFacade categoryQueryFacade;
     private final UsersModuleFacade usersModuleFacade;
 
-    @Transactional // TODO: Verify if transactional works correctly in integration tests
+    @Transactional
     public Transaction createTransaction(CreateTransactionCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
         var account = accountModuleFacade.getAccount(command.accountId(), user.groupId());
@@ -34,6 +37,9 @@ public class TransactionService {
 
         var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value());
         var transaction = command.toDomain(auditInfo);
+
+        validateNotDuplicate(transaction.accountId(), transaction.transactionHash(), user.groupId());
+
         transactionRepository.store(transaction);
         accountModuleFacade.addTransaction(command.accountId(), transaction.id(), transaction.amount(), transaction.type(), command.userId());
 
@@ -51,6 +57,13 @@ public class TransactionService {
         if (!categoryQueryFacade.hasCategories(categoryType, groupId)) {
             throw new NoCategoriesAvailableException(categoryType);
         }
+    }
+
+    private void validateNotDuplicate(AccountId accountId, TransactionHash hash, GroupId groupId) {
+        transactionRepository.findByAccountIdAndHash(accountId, hash, groupId)
+                .ifPresent(duplicate -> {
+                    throw new DuplicateTransactionException(hash);
+                });
     }
 
     public Transaction getTransactionById(TransactionId transactionId, GroupId groupId) {
@@ -112,5 +125,54 @@ public class TransactionService {
         accountModuleFacade.removeTransaction(transaction.accountId(), transactionId, transaction.amount(), transaction.type(), userId);
         transactionRepository.store(deletedTransaction);
 
+    }
+
+    @Transactional
+    public BulkCreateResult bulkCreateTransactions(BulkCreateTransactionCommand command, UserId userId) {
+        var user = usersModuleFacade.findUserOrThrow(userId);
+        var accountId = command.accountId();
+        var transactions = command.transactions();
+
+        if (transactions.isEmpty()) {
+            return BulkCreateResult.of(List.of(), 0);
+        }
+
+        var account = accountModuleFacade.getAccount(accountId, user.groupId());
+        validateCurrencyForAllCommands(transactions, account.balance().currency());
+
+        var auditInfo = AuditInfo.create(userId.value(), user.groupId().value());
+        var allTransactions = transactions.stream()
+                .map(cmd -> {
+                    validateCategoriesExist(cmd.type(), user.groupId());
+                    return cmd.toDomain(auditInfo);
+                })
+                .toList();
+
+        var allHashes = allTransactions.stream()
+                .map(Transaction::transactionHash)
+                .toList();
+
+        var existingHashes = transactionRepository.findExistingHashes(accountId, allHashes, user.groupId());
+
+        var savedIds = new ArrayList<TransactionId>();
+        var duplicateCount = 0;
+
+        for (var transaction : allTransactions) {
+            if (existingHashes.contains(transaction.transactionHash())) {
+                duplicateCount++;
+            } else {
+                transactionRepository.store(transaction);
+                accountModuleFacade.addTransaction(transaction.accountId(), transaction.id(), transaction.amount(), transaction.type(), userId);
+                savedIds.add(transaction.id());
+            }
+        }
+
+        return BulkCreateResult.of(savedIds, duplicateCount);
+    }
+
+    private void validateCurrencyForAllCommands(List<CreateTransactionCommand> commands, Currency accountCurrency) {
+        for (var command : commands) {
+            validateCurrencyMatch(command.amount().currency(), accountCurrency);
+        }
     }
 }
