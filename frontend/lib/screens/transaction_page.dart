@@ -24,7 +24,7 @@ class TransactionsPage extends StatefulWidget {
 }
 
 class _TransactionsPageState extends State<TransactionsPage> {
-  final TransactionService _transactionService = TransactionService();
+  final RestTransactionService _transactionService = RestTransactionService();
   final RestAccountService _accountService = RestAccountService();
   final RestCategoryService _categoryService = RestCategoryService();
   final CsvImportService _csvImportService = CsvImportService();

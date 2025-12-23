@@ -43,7 +43,7 @@ void main() {
         );
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       final transactions = await transactionService.getTransactions();
 
@@ -58,7 +58,7 @@ void main() {
         return http.Response(jsonEncode({}), 200);
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       final transactions = await transactionService.getTransactions();
 
@@ -70,7 +70,7 @@ void main() {
         return http.Response('Server Error', 500);
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(() => transactionService.getTransactions(), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
     });
@@ -100,7 +100,7 @@ void main() {
         );
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       final transactions = await transactionService.getTransactionsByAccountId('acc-123');
 
@@ -138,7 +138,7 @@ void main() {
         );
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       final transaction = await transactionService.createTransaction(
         accountId: 'acc-1',
@@ -175,7 +175,7 @@ void main() {
         );
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       await transactionService.createTransaction(
         accountId: 'acc-1',
@@ -193,7 +193,7 @@ void main() {
         return http.Response('Validation Error', 422);
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(
         () => transactionService.createTransaction(
@@ -236,7 +236,7 @@ void main() {
         );
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       final transaction = await transactionService.updateTransaction(id: 'trans-123', amount: 150.0, description: 'Updated description', categoryId: 'cat-2', currency: 'eur');
 
@@ -264,7 +264,7 @@ void main() {
         );
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       await transactionService.updateTransaction(id: 'trans-id', amount: 100.0, description: 'Test', categoryId: 'cat-1', currency: 'gbp');
     });
@@ -274,7 +274,7 @@ void main() {
         return http.Response('Not Found', 404);
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(
         () => transactionService.updateTransaction(id: 'non-existent', amount: 100.0, description: 'Test', categoryId: 'cat-1', currency: 'pln'),
@@ -291,7 +291,7 @@ void main() {
         return http.Response('', 204);
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       await transactionService.deleteTransaction('trans-to-delete');
     });
@@ -301,7 +301,7 @@ void main() {
         return http.Response('', 200);
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       await transactionService.deleteTransaction('any-id');
     });
@@ -311,7 +311,7 @@ void main() {
         return http.Response('Forbidden', 403);
       });
 
-      final transactionService = TransactionService(authService: fakeAuthService, httpClient: mockClient);
+      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(() => transactionService.deleteTransaction('forbidden-id'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 403)));
     });

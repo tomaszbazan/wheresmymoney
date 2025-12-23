@@ -13,7 +13,7 @@ class TransactionForm extends StatefulWidget {
   final Transaction? transaction;
   final TransactionType? type;
   final void Function(Transaction) onSaved;
-  final TransactionServiceInterface? transactionService;
+  final TransactionService? transactionService;
 
   const TransactionForm({super.key, required this.accounts, this.transaction, this.type, required this.onSaved, this.transactionService});
 
@@ -38,7 +38,7 @@ class TransactionForm extends StatefulWidget {
 
 class _TransactionFormState extends State<TransactionForm> {
   final _formKey = GlobalKey<FormState>();
-  late final TransactionServiceInterface _transactionService;
+  late final TransactionService _transactionService;
 
   late TextEditingController _amountController;
   late TextEditingController _descriptionController;
@@ -54,7 +54,7 @@ class _TransactionFormState extends State<TransactionForm> {
   void initState() {
     super.initState();
 
-    _transactionService = widget.transactionService ?? TransactionService();
+    _transactionService = widget.transactionService ?? RestTransactionService();
 
     _amountController = TextEditingController(text: widget.transaction?.amount.abs().toStringAsFixed(2) ?? '');
     _descriptionController = TextEditingController(text: widget.transaction?.description ?? '');

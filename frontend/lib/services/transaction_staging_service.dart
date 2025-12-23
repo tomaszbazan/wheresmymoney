@@ -3,6 +3,8 @@ import 'package:frontend/models/csv_parse_result.dart';
 import 'package:frontend/models/transaction_proposal.dart';
 import 'package:frontend/services/transaction_service.dart';
 
+import '../models/bulk_create_response.dart';
+
 class TransactionStagingService extends ChangeNotifier {
   List<TransactionProposal> _proposals = [];
 
@@ -32,18 +34,21 @@ class TransactionStagingService extends ChangeNotifier {
     return _proposals.any((proposal) => proposal.categoryId == null);
   }
 
-  Future<void> saveAll(String accountId, TransactionServiceInterface transactionService) async {
-    for (final proposal in _proposals) {
-      await transactionService.createTransaction(
-        accountId: accountId,
-        amount: proposal.amount,
-        description: proposal.description,
-        date: proposal.transactionDate,
-        type: proposal.type,
-        categoryId: proposal.categoryId ?? '',
-        currency: proposal.currency,
-      );
-    }
+  Future<BulkCreateResponse> saveAll(String accountId, TransactionService transactionService) async {
+    final transactions =
+        _proposals.map((proposal) {
+          return {
+            'amount': {'value': proposal.amount, 'currency': proposal.currency.toUpperCase()},
+            'description': proposal.description,
+            'date': proposal.transactionDate.toUtc().toIso8601String(),
+            'type': proposal.type.name.toUpperCase(),
+            'categoryId': proposal.categoryId ?? '',
+          };
+        }).toList();
+
+    final result = await transactionService.bulkCreateTransactions(accountId: accountId, transactions: transactions);
+
     clear();
+    return result;
   }
 }
