@@ -24,6 +24,7 @@ import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,14 +39,13 @@ class TransactionServiceTest {
     private AccountModuleFacade accountModuleFacade;
     private CategoryQueryFacade categoryQueryFacade;
     private TransactionService transactionService;
-    private UsersModuleFacade usersModuleFacade;
     private GroupId testGroupId;
 
     @BeforeEach
     void setUp() {
         this.transactionRepository = new InMemoryTransactionRepository();
         var accountRepository = new InMemoryAccountRepository();
-        this.usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
+        var usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
         this.categoryQueryFacade = Mockito.mock(CategoryQueryFacade.class);
 
         this.testGroupId = new GroupId(UUID.randomUUID());
@@ -550,6 +550,156 @@ class TransactionServiceTest {
         // Then
         assertThat(transaction.id()).isNotNull();
         assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+    }
+
+    @Test
+    void shouldRejectDuplicateTransaction() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var amount = new BigDecimal("100.00");
+        var description = "Duplicate transaction";
+        var date = LocalDate.of(2024, 1, 15);
+        var type = TransactionType.INCOME;
+        var categoryId = CategoryId.generate();
+
+        var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+        transactionService.createTransaction(command);
+
+        // When & Then
+        assertThatThrownBy(() -> transactionService.createTransaction(command))
+                .isInstanceOf(pl.btsoftware.backend.transaction.domain.error.DuplicateTransactionException.class)
+                .hasMessageContaining("duplicate");
+
+        // Verify only one transaction was created
+        assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+    }
+
+    @Test
+    void shouldAllowNonDuplicateTransaction() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var amount = new BigDecimal("100.00");
+        var description = "First transaction";
+        var date = LocalDate.of(2024, 1, 15);
+        var type = TransactionType.INCOME;
+        var categoryId = CategoryId.generate();
+
+        var command1 = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+        transactionService.createTransaction(command1);
+
+        // When - different description makes it non-duplicate
+        var command2 = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Second transaction", date, type, categoryId, userId);
+        var transaction2 = transactionService.createTransaction(command2);
+
+        // Then
+        assertThat(transaction2).isNotNull();
+        assertThat(transactionRepository.findAll(testGroupId)).hasSize(2);
+    }
+
+    @Test
+    void shouldBulkCreateTransactionsWithNoDuplicates() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        var commands = List.of(
+                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN), "Transaction 1",
+                        LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId),
+                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Transaction 2",
+                        LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId),
+                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("300.00"), PLN), "Transaction 3",
+                        LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId, userId)
+        );
+
+        // When
+        var result = transactionService.bulkCreateTransactions(new BulkCreateTransactionCommand(account.id(), commands), userId);
+
+        // Then
+        assertThat(result.savedCount()).isEqualTo(3);
+        assertThat(result.duplicateCount()).isEqualTo(0);
+        assertThat(result.savedTransactionIds()).hasSize(3);
+        assertThat(transactionRepository.findAll(testGroupId)).hasSize(3);
+
+        // Verify account balance updated correctly: +100 +200 -300 = 0
+        var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("0.00"));
+    }
+
+    @Test
+    void shouldBulkCreateTransactionsSkippingDuplicates() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        // Create initial transaction
+        var existingCommand = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN),
+                "Duplicate transaction", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
+        transactionService.createTransaction(existingCommand);
+
+        // Prepare bulk commands with duplicates
+        var commands = List.of(
+                existingCommand,  // This is a duplicate
+                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Transaction 2",
+                        LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId),
+                existingCommand,  // Another duplicate
+                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("300.00"), PLN), "Transaction 3",
+                        LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId, userId)
+        );
+
+        // When
+        var result = transactionService.bulkCreateTransactions(new BulkCreateTransactionCommand(account.id(), commands), userId);
+
+        // Then
+        assertThat(result.savedCount()).isEqualTo(2);
+        assertThat(result.duplicateCount()).isEqualTo(2);
+        assertThat(result.savedTransactionIds()).hasSize(2);
+        assertThat(transactionRepository.findAll(testGroupId)).hasSize(3); // 1 existing + 2 new
+
+        // Verify account balance updated correctly: +100 (existing) +200 -300 = 0
+        var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("0.00"));
+    }
+
+    @Test
+    void shouldBulkCreateTransactionsSkippingAllDuplicates() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        // Create initial transactions
+        var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN),
+                "Transaction 1", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
+        var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN),
+                "Transaction 2", LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId);
+
+        transactionService.createTransaction(command1);
+        transactionService.createTransaction(command2);
+
+        // Prepare bulk commands with all duplicates
+        var commands = List.of(command1, command2);
+
+        // When
+        var result = transactionService.bulkCreateTransactions(new BulkCreateTransactionCommand(account.id(), commands), userId);
+
+        // Then
+        assertThat(result.savedCount()).isEqualTo(0);
+        assertThat(result.duplicateCount()).isEqualTo(2);
+        assertThat(result.savedTransactionIds()).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId)).hasSize(2);
+
+        // Verify account balance unchanged: +100 +200 = 300
+        var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("300.00"));
     }
 
     @Test

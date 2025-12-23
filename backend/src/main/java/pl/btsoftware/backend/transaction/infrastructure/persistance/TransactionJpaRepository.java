@@ -1,6 +1,8 @@
 package pl.btsoftware.backend.transaction.infrastructure.persistance;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,4 +18,7 @@ public interface TransactionJpaRepository extends JpaRepository<TransactionEntit
     boolean existsByCategoryIdAndCreatedByGroupAndIsDeletedFalse(UUID categoryId, UUID createdByGroup);
 
     Optional<TransactionEntity> findByAccountIdAndTransactionHashAndCreatedByGroupAndIsDeletedFalse(UUID accountId, String transactionHash, UUID createdByGroup);
+
+    @Query("SELECT t.transactionHash FROM TransactionEntity t WHERE t.accountId = :accountId AND t.transactionHash IN :hashes AND t.createdByGroup = :createdByGroup AND t.isDeleted = false")
+    List<String> findExistingHashesByAccountIdAndHashesInAndCreatedByGroup(@Param("accountId") UUID accountId, @Param("hashes") List<String> hashes, @Param("createdByGroup") UUID createdByGroup);
 }

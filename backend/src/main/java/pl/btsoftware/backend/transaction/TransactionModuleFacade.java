@@ -2,15 +2,11 @@ package pl.btsoftware.backend.transaction;
 
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.shared.AccountId;
-import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
-import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
-import pl.btsoftware.backend.transaction.application.TransactionService;
-import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
+import pl.btsoftware.backend.transaction.application.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.users.UsersModuleFacade;
-import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.util.List;
@@ -49,7 +45,7 @@ public class TransactionModuleFacade {
         transactionService.deleteTransaction(TransactionId.of(transactionId), userId);
     }
 
-    public boolean categoryHasTransactions(CategoryId categoryId, GroupId groupId) {
-        return transactionRepository.existsByCategoryId(categoryId, groupId);
+    public BulkCreateResult bulkCreateTransactions(BulkCreateTransactionCommand command, UserId userId) {
+        return transactionService.bulkCreateTransactions(command, userId);
     }
 }
