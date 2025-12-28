@@ -151,7 +151,7 @@ jobs:
             # Start frontend container
             docker run -d \
             --restart unless-stopped \
-            -p 8000:8000 \
+            -p 9081:8000 \
             --network host \
             --name ${{ env.FRONTEND_CONTAINER_NAME }} \
             ${{ env.FRONTEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
