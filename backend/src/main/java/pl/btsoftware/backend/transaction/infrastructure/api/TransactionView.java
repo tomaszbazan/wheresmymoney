@@ -5,6 +5,7 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.function.Function;
@@ -16,6 +17,7 @@ public record TransactionView(
         String type,
         String description,
         CategoryView category,
+        LocalDate transactionDate,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {
@@ -28,6 +30,7 @@ public record TransactionView(
                 transaction.type().name(),
                 transaction.description(),
                 CategoryView.from(category),
+                transaction.transactionDate(),
                 transaction.createdAt(),
                 transaction.lastUpdatedAt()
         );

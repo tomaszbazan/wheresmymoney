@@ -10,6 +10,7 @@ class Transaction {
   final String? categoryName;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime transactionDate;
 
   const Transaction({
     required this.id,
@@ -21,6 +22,7 @@ class Transaction {
     required this.categoryName,
     required this.createdAt,
     required this.updatedAt,
+    required this.transactionDate,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -34,6 +36,7 @@ class Transaction {
       categoryName: json['category'] != null && json['category'] is Map ? json['category']['name'] as String? : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      transactionDate: DateTime.parse(json['transactionDate'] as String),
     );
   }
 
@@ -48,6 +51,7 @@ class Transaction {
       if (categoryName != null) 'categoryName': categoryName,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'transactionDate': transactionDate.toIso8601String(),
     };
   }
 

@@ -55,6 +55,7 @@ void main() {
                             categoryName: 'Salary',
                             createdAt: DateTime(2024, 1, 15),
                             updatedAt: DateTime(2024, 1, 15),
+                            transactionDate: DateTime(2024, 1, 15),
                           ),
                           Transaction(
                             id: 't2',
@@ -66,6 +67,7 @@ void main() {
                             categoryName: 'Food',
                             createdAt: DateTime(2024, 1, 16),
                             updatedAt: DateTime(2024, 1, 16),
+                            transactionDate: DateTime(2024, 1, 16),
                           ),
                           Transaction(
                             id: 't3',
@@ -77,6 +79,7 @@ void main() {
                             categoryName: 'Freelance',
                             createdAt: DateTime(2024, 1, 17),
                             updatedAt: DateTime(2024, 1, 17),
+                            transactionDate: DateTime(2024, 1, 17),
                           ),
                         ],
                         accounts: [Account(id: '1', name: 'PLN Account', balance: 1000.0, currency: 'PLN'), Account(id: '2', name: 'USD Account', balance: 500.0, currency: 'USD')],

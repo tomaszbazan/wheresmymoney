@@ -90,6 +90,7 @@ public class TransactionControllerTest {
                 .andExpect(jsonPath("$.description").value("Test transaction"))
                 .andExpect(jsonPath("$.category.id").value(transaction.categoryId().value().toString()))
                 .andExpect(jsonPath("$.category.name").value("Sample Category"))
+                .andExpect(jsonPath("$.transactionDate").value(transaction.transactionDate().toString()))
                 .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.updatedAt").exists());
     }

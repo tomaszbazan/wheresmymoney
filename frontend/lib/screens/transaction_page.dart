@@ -175,35 +175,46 @@ class _TransactionsPageState extends State<TransactionsPage> {
     _loadData();
   }
 
+  void _showAddTransactionMenu() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Dodaj ręcznie'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAddTransactionDialog();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.file_upload),
+                title: const Text('Importuj z CSV'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showCsvUploadDialog();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.type == TransactionType.income ? 'Przychody' : 'Wydatki'),
-        automaticallyImplyLeading: false,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.add),
-            tooltip: 'Dodaj transakcję',
-            onSelected: (value) {
-              if (value == 'manual') {
-                _showAddTransactionDialog();
-              } else if (value == 'import') {
-                _showCsvUploadDialog();
-              }
-            },
-            itemBuilder:
-                (context) => [
-                  const PopupMenuItem(value: 'manual', child: Row(children: [Icon(Icons.edit), SizedBox(width: 8), Text('Dodaj ręcznie')])),
-                  const PopupMenuItem(value: 'import', child: Row(children: [Icon(Icons.file_upload), SizedBox(width: 8), Text('Importuj z CSV')])),
-                ],
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(widget.type == TransactionType.income ? 'Przychody' : 'Wydatki'), automaticallyImplyLeading: false),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : TransactionList(transactions: _transactions, accounts: _accounts, onEdit: _showEditTransactionDialog, onDelete: _deleteTransaction),
+      floatingActionButton: FloatingActionButton(onPressed: _showAddTransactionMenu, tooltip: 'Dodaj transakcję', child: const Icon(Icons.add)),
     );
   }
 }

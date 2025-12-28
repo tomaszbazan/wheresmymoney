@@ -58,7 +58,7 @@ class TransactionList extends StatelessWidget {
                 Text('Konto: ${_getAccountName(transaction.accountId)}'),
                 Text('Kategoria: ${transaction.categoryName ?? transaction.categoryId}'),
                 Text(
-                  '${transaction.createdAt.day}.${transaction.createdAt.month.toString().padLeft(2, '0')}.${transaction.createdAt.year}',
+                  '${transaction.transactionDate.day}.${transaction.transactionDate.month.toString().padLeft(2, '0')}.${transaction.transactionDate.year}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
