@@ -37,3 +37,5 @@ pom.xml
 .aider*
 .qodo/
 local.properties
+
+.env
