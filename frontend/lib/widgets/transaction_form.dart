@@ -110,7 +110,7 @@ class _TransactionFormState extends State<TransactionForm> {
           accountId: _selectedAccountId!,
           amount: double.parse(normalizedAmount),
           description: _descriptionController.text,
-          date: _selectedDate,
+          transactionDate: _selectedDate,
           type: _selectedType!,
           categoryId: _selectedCategoryId ?? '',
           currency: _selectedCurrency,

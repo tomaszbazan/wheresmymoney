@@ -17,11 +17,9 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     systemTestImplementation 'org.springframework.boot:spring-boot-starter-test'
-    systemTestImplementation "org.testcontainers:localstack:$localstackVersion"
-    systemTestImplementation "org.testcontainers:junit-jupiter:$localstackVersion"
+    systemTestImplementation "org.testcontainers:testcontainers:$localstackVersion"
     systemTestImplementation "org.reflections:reflections:$reflectionsVersion"
 
-    systemTestImplementation 'org.testcontainers:junit-jupiter'
     systemTestImplementation 'org.testcontainers:postgresql'
     systemTestImplementation project
 }

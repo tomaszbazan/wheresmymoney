@@ -36,6 +36,7 @@ void main() {
                 'category': 'cat-1',
                 'createdAt': '2024-01-01T00:00:00Z',
                 'updatedAt': '2024-01-01T00:00:00Z',
+                'transactionDate': '2024-01-01',
               },
             ],
           }),
@@ -93,6 +94,7 @@ void main() {
                 'category': 'cat-2',
                 'createdAt': '2024-01-01T00:00:00Z',
                 'updatedAt': '2024-01-01T00:00:00Z',
+                'transactionDate': '2024-01-01',
               },
             ],
           }),
@@ -121,7 +123,7 @@ void main() {
         expect(body['description'], 'Test transaction');
         expect(body['type'], 'INCOME');
         expect(body['categoryId'], 'cat-1');
-        expect(body['date'], isNotNull);
+        expect(body['transactionDate'], isNotNull);
 
         return http.Response(
           jsonEncode({
@@ -133,6 +135,7 @@ void main() {
             'category': 'cat-1',
             'createdAt': '2024-01-01T00:00:00Z',
             'updatedAt': '2024-01-01T00:00:00Z',
+            'transactionDate': '2024-01-01',
           }),
           201,
         );
@@ -144,7 +147,7 @@ void main() {
         accountId: 'acc-1',
         amount: 100.0,
         description: 'Test transaction',
-        date: DateTime(2024, 1, 1),
+        transactionDate: DateTime(2024, 1, 1),
         type: TransactionType.income,
         categoryId: 'cat-1',
         currency: 'pln',
@@ -170,6 +173,7 @@ void main() {
             'category': 'cat-1',
             'createdAt': '2024-01-01T00:00:00Z',
             'updatedAt': '2024-01-01T00:00:00Z',
+            'transactionDate': '2024-01-01',
           }),
           201,
         );
@@ -181,7 +185,7 @@ void main() {
         accountId: 'acc-1',
         amount: 50.0,
         description: 'Coffee',
-        date: DateTime(2024, 1, 1),
+        transactionDate: DateTime(2024, 1, 1),
         type: TransactionType.expense,
         categoryId: 'cat-1',
         currency: 'usd',
@@ -200,7 +204,7 @@ void main() {
           accountId: 'acc-1',
           amount: 100.0,
           description: 'Test',
-          date: DateTime.now(),
+          transactionDate: DateTime.now(),
           type: TransactionType.income,
           categoryId: 'cat-1',
           currency: 'pln',
@@ -231,6 +235,7 @@ void main() {
             'category': 'cat-2',
             'createdAt': '2024-01-01T00:00:00Z',
             'updatedAt': '2024-01-02T00:00:00Z',
+            'transactionDate': '2024-01-01',
           }),
           200,
         );
@@ -259,6 +264,7 @@ void main() {
             'category': 'cat-1',
             'createdAt': '2024-01-01T00:00:00Z',
             'updatedAt': '2024-01-01T00:00:00Z',
+            'transactionDate': '2024-01-01',
           }),
           200,
         );

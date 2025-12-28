@@ -28,6 +28,7 @@ void main() {
           categoryName: 'Salary',
           createdAt: DateTime(2024, 1, 1),
           updatedAt: DateTime(2024, 1, 1),
+          transactionDate: DateTime(2024, 1, 15),
         ),
         Transaction(
           id: 't2',
@@ -39,6 +40,7 @@ void main() {
           categoryName: 'Food',
           createdAt: DateTime(2024, 1, 2),
           updatedAt: DateTime(2024, 1, 2),
+          transactionDate: DateTime(2024, 1, 20),
         ),
         Transaction(
           id: 't3',
@@ -50,6 +52,7 @@ void main() {
           categoryName: 'Freelance',
           createdAt: DateTime(2024, 1, 3),
           updatedAt: DateTime(2024, 1, 3),
+          transactionDate: DateTime(2024, 1, 25),
         ),
       ];
     });
@@ -75,6 +78,7 @@ void main() {
         categoryName: 'Bonus',
         createdAt: DateTime(2024, 1, 4),
         updatedAt: DateTime(2024, 1, 4),
+        transactionDate: DateTime(2024, 1, 30),
       );
 
       await tester.pumpWidget(
@@ -95,6 +99,7 @@ void main() {
         categoryName: 'Unknown',
         createdAt: DateTime(2024, 1, 5),
         updatedAt: DateTime(2024, 1, 5),
+        transactionDate: DateTime(2024, 2, 1),
       );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [orphanTransaction], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));
@@ -107,6 +112,25 @@ void main() {
 
       expect(find.text('Brak transakcji'), findsOneWidget);
       expect(find.text('Dodaj pierwszą transakcję klikając przycisk +'), findsOneWidget);
+    });
+
+    testWidgets('should display date from transactionDate field', (WidgetTester tester) async {
+      final transaction = Transaction(
+        id: 't-date',
+        accountId: '1',
+        amount: 100.0,
+        type: TransactionType.income,
+        description: 'Date Test',
+        categoryId: 'test-id',
+        categoryName: 'Test',
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
+        transactionDate: DateTime(2024, 3, 15),
+      );
+
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [transaction], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));
+
+      expect(find.text('15.03.2024'), findsOneWidget);
     });
   });
 }
