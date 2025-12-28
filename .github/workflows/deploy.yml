@@ -152,6 +152,5 @@ jobs:
             docker run -d \
             --restart unless-stopped \
             -p 9081:8000 \
-            --network host \
             --name ${{ env.FRONTEND_CONTAINER_NAME }} \
             ${{ env.FRONTEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
