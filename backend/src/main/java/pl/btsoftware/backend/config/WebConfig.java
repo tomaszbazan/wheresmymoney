@@ -27,7 +27,7 @@ public class WebConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new CorsConfiguration();
                     corsConfig.setAllowedOrigins(of(
-                            "http://localhost:8000",
+                            "http://localhost:9081",
                             "https://where.bazan.cloud"
                     ));
                     corsConfig.setAllowedMethods(of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
