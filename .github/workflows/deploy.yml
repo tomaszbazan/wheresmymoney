@@ -106,6 +106,10 @@ jobs:
             ${{ env.BACKEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
   frontend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
