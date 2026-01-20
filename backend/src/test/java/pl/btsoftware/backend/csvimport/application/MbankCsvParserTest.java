@@ -227,6 +227,86 @@ class MbankCsvParserTest {
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 
+    @Test
+    void shouldRemoveMultipleSpacesFromDescription() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "2024-01-15;Test    description   with     multiple  spaces;Account;Category;100.00 PLN\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.proposals()).hasSize(1);
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / Test description with multiple spaces");
+    }
+
+    @Test
+    void shouldRemoveTransakcjaNierozliczonaPhrase() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "2024-01-15;APTEKA ZAKUP transakcja nierozliczona;Account;Category;-100.00 PLN\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.proposals()).hasSize(1);
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / APTEKA ZAKUP");
+    }
+
+    @Test
+    void shouldRemovePrzelewZewnetrznyPrzychodzacyPhrase() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "2024-01-15;FRANCISZEK BELA PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY;Account;Category;1100.00 PLN\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.proposals()).hasSize(1);
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / FRANCISZEK BELA");
+    }
+
+    @Test
+    void shouldRemoveTabsAndNewlinesFromDescription() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "2024-01-15;\"Test\tdescription\nwith               tabs\nand\nnewlines\";Account;Category;100.00 PLN\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.proposals()).hasSize(1);
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / Test description with tabs and newlines");
+    }
+
+    @Test
+    void shouldCleanDescriptionWithMultipleIssues() {
+        // given
+        var content = createValidHeaderLines(26)
+                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                      + "2024-01-15;\"APTEKA    ZAKUP\t\n  PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY   transakcja nierozliczona  \";Account;Category;-100.00 PLN\n";
+        var stream = createInputStream(content);
+
+        // when
+        var result = parser.parse(stream, Currency.PLN);
+
+        // then
+        assertThat(result.proposals()).hasSize(1);
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / APTEKA ZAKUP");
+    }
+
     private String createValidHeaderLines(int count) {
         var builder = new StringBuilder();
         for (var i = 0; i < count; i++) {

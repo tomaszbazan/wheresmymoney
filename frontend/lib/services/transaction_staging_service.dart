@@ -40,7 +40,7 @@ class TransactionStagingService extends ChangeNotifier {
           return {
             'amount': {'value': proposal.amount, 'currency': proposal.currency.toUpperCase()},
             'description': proposal.description,
-            'date': proposal.transactionDate.toUtc().toIso8601String(),
+            'transactionDate': proposal.transactionDate.toIso8601String().split('T').first,
             'type': proposal.type.name.toUpperCase(),
             'categoryId': proposal.categoryId ?? '',
           };

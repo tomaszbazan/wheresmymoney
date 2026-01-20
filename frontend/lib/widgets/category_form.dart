@@ -30,8 +30,6 @@ class _CategoryFormState extends State<CategoryForm> {
   String _selectedColor = '#FF5722';
   String? _selectedParentId;
   bool _isLoading = false;
-  bool _isLoadingParentCategories = false;
-  List<Category> _availableParentCategories = [];
 
   static const List<String> _availableColors = ['#FF5722', '#2196F3', '#4CAF50', '#FF9800', '#9C27B0', '#F44336', '#00BCD4', '#8BC34A', '#FFC107', '#E91E63'];
 
@@ -51,8 +49,6 @@ class _CategoryFormState extends State<CategoryForm> {
     } else if (widget.defaultType != null) {
       _selectedType = widget.defaultType!;
     }
-
-    _loadAvailableParentCategories();
   }
 
   @override
@@ -60,29 +56,6 @@ class _CategoryFormState extends State<CategoryForm> {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadAvailableParentCategories() async {
-    setState(() {
-      _isLoadingParentCategories = true;
-    });
-
-    try {
-      final categories = await _categoryService.getCategoriesByType(_selectedType);
-
-      final filteredCategories =
-          widget.category == null ? categories : categories.where((category) => category.id != widget.category!.id && category.parentId != widget.category!.id).toList();
-
-      setState(() {
-        _availableParentCategories = filteredCategories;
-        _isLoadingParentCategories = false;
-      });
-    } catch (e) {
-      setState(() {
-        _availableParentCategories = [];
-        _isLoadingParentCategories = false;
-      });
-    }
   }
 
   Future<void> _saveCategory() async {
@@ -167,16 +140,14 @@ class _CategoryFormState extends State<CategoryForm> {
                       value: _selectedParentId == null,
                       onChanged: (bool? value) {
                         setState(() {
-                          if (value == true) {
-                            _selectedParentId = null;
-                          }
+                          _selectedParentId = value == true ? null : '';
                         });
                       },
                     ),
                     const Text('Kategoria główna (brak rodzica)'),
                   ],
                 ),
-                if (_selectedParentId != null || !_isLoadingParentCategories && _availableParentCategories.isNotEmpty)
+                if (_selectedParentId != null)
                   SearchableCategoryDropdown(
                     transactionType: _selectedType,
                     selectedCategoryId: _selectedParentId,
@@ -185,7 +156,7 @@ class _CategoryFormState extends State<CategoryForm> {
                         _selectedParentId = categoryId;
                       });
                     },
-                    enabled: _selectedParentId != null,
+                    enabled: true,
                     categoryService: _categoryService,
                   ),
               ],

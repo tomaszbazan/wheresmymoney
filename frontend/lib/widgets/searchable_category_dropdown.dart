@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/category.dart';
 import 'package:frontend/models/category_type.dart';
 
 import '../services/category_service.dart';
@@ -12,6 +13,7 @@ class SearchableCategoryDropdown extends StatefulWidget {
   final String? Function(String?)? validator;
   final bool enabled;
   final CategoryService? categoryService;
+  final List<Category>? preloadedCategories;
 
   const SearchableCategoryDropdown({
     super.key,
@@ -21,6 +23,7 @@ class SearchableCategoryDropdown extends StatefulWidget {
     this.validator,
     this.enabled = true,
     this.categoryService,
+    this.preloadedCategories,
   });
 
   @override
@@ -40,13 +43,21 @@ class _SearchableCategoryDropdownState extends State<SearchableCategoryDropdown>
     super.initState();
     _categoryService = widget.categoryService ?? RestCategoryService();
     _selectedCategoryId = widget.selectedCategoryId;
-    _loadCategories();
+    if (widget.preloadedCategories != null) {
+      _categoriesWithLevel = CategoryHierarchy.buildHierarchy(widget.preloadedCategories!);
+      _updateTextController();
+    } else {
+      _loadCategories();
+    }
   }
 
   @override
   void didUpdateWidget(SearchableCategoryDropdown oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.transactionType != widget.transactionType) {
+    if (oldWidget.preloadedCategories != widget.preloadedCategories && widget.preloadedCategories != null) {
+      _categoriesWithLevel = CategoryHierarchy.buildHierarchy(widget.preloadedCategories!);
+      _updateTextController();
+    } else if (oldWidget.transactionType != widget.transactionType && widget.preloadedCategories == null) {
       _loadCategories();
     }
     if (oldWidget.selectedCategoryId != widget.selectedCategoryId) {

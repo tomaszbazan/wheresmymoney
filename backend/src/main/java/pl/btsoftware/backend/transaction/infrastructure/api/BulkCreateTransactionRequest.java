@@ -13,6 +13,7 @@ public record BulkCreateTransactionRequest(UUID accountId, List<CreateTransactio
     }
 
     public BulkCreateTransactionCommand toCommands(UserId userId) {
-        return new BulkCreateTransactionCommand(AccountId.from(accountId), transactions.stream().map(req -> req.toCommand(userId)).toList());
+        var accountId = AccountId.from(this.accountId);
+        return new BulkCreateTransactionCommand(accountId, transactions.stream().map(req -> req.toCommand(userId, accountId)).toList());
     }
 }

@@ -19,8 +19,12 @@ public record CreateTransactionRequest(
         UUID categoryId
 ) {
     public CreateTransactionCommand toCommand(UserId userId) {
+        return toCommand(userId, AccountId.from(accountId));
+    }
+
+    public CreateTransactionCommand toCommand(UserId userId, AccountId accountId) {
         return new CreateTransactionCommand(
-                AccountId.from(accountId),
+                accountId,
                 amount,
                 description,
                 transactionDate,

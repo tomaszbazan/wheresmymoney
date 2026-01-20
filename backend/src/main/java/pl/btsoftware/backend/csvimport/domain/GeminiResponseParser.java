@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.btsoftware.backend.ai.infrastructure.client.GeminiClientException;
 import pl.btsoftware.backend.shared.CategoryId;
-import pl.btsoftware.backend.shared.TransactionId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +46,7 @@ public class GeminiResponseParser {
                 return;
             }
 
-            var transactionIdStr = node.get("transactionId").asText();
-            var transactionId = UUID.fromString(transactionIdStr);
+            var transactionId = UUID.fromString(node.get("transactionId").asText());
 
             double confidence = node.get("confidence").asDouble();
 
@@ -58,7 +56,7 @@ public class GeminiResponseParser {
                 categoryId = CategoryId.of(UUID.fromString(uuidStr));
             }
 
-            suggestions.add(new CategorySuggestion(TransactionId.of(transactionId), categoryId, confidence));
+            suggestions.add(new CategorySuggestion(TransactionProposalId.from(transactionId), categoryId, confidence));
         } catch (IllegalArgumentException e) {
             log.warn("Skipping invalid suggestion: {}", e.getMessage());
         } catch (Exception e) {

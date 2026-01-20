@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 class InMemoryCategoryService implements CategoryService {
   final Map<String, Category> _categories = {};
   Exception? _apiError;
+  int _getCategoriesByTypeCallCount = 0;
 
   @override
   Future<List<Category>> getCategories() async {
@@ -18,6 +19,7 @@ class InMemoryCategoryService implements CategoryService {
 
   @override
   Future<List<Category>> getCategoriesByType(CategoryType type) async {
+    _getCategoriesByTypeCallCount++;
     if (_apiError != null) {
       throw _apiError!;
     }
@@ -94,5 +96,12 @@ class InMemoryCategoryService implements CategoryService {
   void clear() {
     _categories.clear();
     _apiError = null;
+    _getCategoriesByTypeCallCount = 0;
+  }
+
+  int get getCategoriesByTypeCallCount => _getCategoriesByTypeCallCount;
+
+  void resetCallCount() {
+    _getCategoriesByTypeCallCount = 0;
   }
 }

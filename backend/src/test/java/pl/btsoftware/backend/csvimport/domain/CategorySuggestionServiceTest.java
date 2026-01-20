@@ -17,6 +17,7 @@ import pl.btsoftware.backend.users.domain.UserId;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,8 +28,6 @@ class CategorySuggestionServiceTest {
 
     private InMemoryCategoryRepository categoryRepository;
     private GeminiClient geminiClient;
-    private CategorizationPromptBuilder promptBuilder;
-    private GeminiResponseParser responseParser;
     private CategorySuggestionService service;
     private GroupId testGroupId;
     private AuditInfo testAuditInfo;
@@ -37,8 +36,8 @@ class CategorySuggestionServiceTest {
     void setUp() {
         categoryRepository = new InMemoryCategoryRepository();
         geminiClient = mock(GeminiClient.class);
-        promptBuilder = new CategorizationPromptBuilder();
-        responseParser = new GeminiResponseParser();
+        var promptBuilder = new CategorizationPromptBuilder();
+        var responseParser = new GeminiResponseParser();
         service = new CategorySuggestionService(categoryRepository, geminiClient, promptBuilder, responseParser);
         testGroupId = GroupId.generate();
         testAuditInfo = AuditInfo.create(UserId.generate(), testGroupId);
@@ -53,7 +52,7 @@ class CategorySuggestionServiceTest {
         var geminiResponse = String.format("""
                 [
                   {
-                    "transactionId": "00000000-0000-0000-0000-000000000000",
+                    "transactionId": "4517b374-b493-4ef0-ab64-f381fd70585d",
                     "categoryId": "%s",
                     "confidence": 0.95
                   }
@@ -82,7 +81,7 @@ class CategorySuggestionServiceTest {
         var geminiResponse = String.format("""
                 [
                   {
-                    "transactionId": "00000000-0000-0000-0000-000000000000",
+                    "transactionId": 0,
                     "categoryId": "%s",
                     "confidence": 0.95
                   }
@@ -139,7 +138,7 @@ class CategorySuggestionServiceTest {
         var expenseResponse = String.format("""
                 [
                   {
-                    "transactionId": "00000000-0000-0000-0000-000000000000",
+                    "transactionId": "2dce750e-6ddc-4e42-8b5b-4637898cc394",
                     "categoryId": "%s",
                     "confidence": 0.95
                   }
@@ -149,7 +148,7 @@ class CategorySuggestionServiceTest {
         var incomeResponse = String.format("""
                 [
                   {
-                    "transactionId": "00000000-0000-0000-0000-000000000001",
+                    "transactionId": "bdcaebd1-fc55-428c-ad53-c7ed5867b102",
                     "categoryId": "%s",
                     "confidence": 0.90
                   }
@@ -187,6 +186,14 @@ class CategorySuggestionServiceTest {
     }
 
     private TransactionProposal createTransaction(String description, TransactionType type) {
-        return new TransactionProposal(LocalDate.now(), description, BigDecimal.valueOf(100), Currency.PLN, type, null);
+        return new TransactionProposal(
+                new TransactionProposalId(UUID.randomUUID()),
+                LocalDate.now(),
+                description,
+                BigDecimal.valueOf(100),
+                Currency.PLN,
+                type,
+                null
+        );
     }
 }

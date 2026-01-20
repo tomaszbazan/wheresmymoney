@@ -10,15 +10,16 @@ import '../widgets/category_list_item.dart';
 
 class CategoriesPage extends StatefulWidget {
   final CategoryType transactionType;
+  final CategoryService? categoryService;
 
-  const CategoriesPage({super.key, required this.transactionType});
+  const CategoriesPage({super.key, required this.transactionType, this.categoryService});
 
   @override
   State<CategoriesPage> createState() => _CategoriesPageState();
 }
 
 class _CategoriesPageState extends State<CategoriesPage> {
-  final CategoryService _categoryService = RestCategoryService();
+  late final CategoryService _categoryService;
   List<CategoryWithLevel> _hierarchicalCategories = [];
   bool _isLoading = false;
 
@@ -27,6 +28,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   @override
   void initState() {
     super.initState();
+    _categoryService = widget.categoryService ?? RestCategoryService();
     _loadCategories();
   }
 
@@ -61,7 +63,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
               constraints: const BoxConstraints(maxHeight: 600),
               child: CategoryForm(
                 category: category,
-                defaultType: CategoryType.expense,
+                defaultType: widget.transactionType,
+                categoryService: _categoryService,
                 onSaved: (newCategory) {
                   Navigator.of(context).pop();
                   _loadCategories();

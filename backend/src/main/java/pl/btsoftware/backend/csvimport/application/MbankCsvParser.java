@@ -96,14 +96,15 @@ public class MbankCsvParser implements TransactionCsvParser {
         var category = record.get(CATEGORY_COLUMN).trim();
         var amountString = record.get(AMOUNT_COLUMN).trim();
 
-        var descriptionWithCategory = category + " / " + rawDescription;
+        var cleanedDescription = cleanDescription(rawDescription);
+        var descriptionWithCategory = category + " / " + cleanedDescription;
         var description = truncateDescription(descriptionWithCategory);
 
         var currency = extractCurrency(amountString);
         var amount = parseAmount(amountString);
         var type = determineType(amount);
 
-        return new TransactionProposal(date, description, amount, currency, type, null);
+        return new TransactionProposal(TransactionProposalId.generate(), date, description, amount, currency, type, null);
     }
 
     private String truncateDescription(String description) {
@@ -111,6 +112,14 @@ public class MbankCsvParser implements TransactionCsvParser {
             return description.substring(0, TransactionProposal.MAX_DESCRIPTION_LENGTH);
         }
         return description;
+    }
+
+    private String cleanDescription(String description) {
+        return description
+                .replaceAll("\\s+", " ")
+                .replace("transakcja nierozliczona", "")
+                .replace("PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY", "")
+                .trim();
     }
 
     private LocalDate parseDate(String dateString) {

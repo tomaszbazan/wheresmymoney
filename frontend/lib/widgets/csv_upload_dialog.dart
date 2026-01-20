@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/models/account.dart';
@@ -20,17 +18,17 @@ class CsvUploadDialog extends StatefulWidget {
 }
 
 class _CsvUploadDialogState extends State<CsvUploadDialog> {
-  File? _selectedFile;
+  PlatformFile? _selectedFile;
   String? _selectedAccountId;
   bool _isUploading = false;
   List<String> _errors = [];
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv'], allowMultiple: false);
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv'], allowMultiple: false, withData: true);
 
-    if (result != null && result.files.single.path != null) {
+    if (result != null) {
       setState(() {
-        _selectedFile = File(result.files.single.path!);
+        _selectedFile = result.files.single;
         _errors = [];
       });
     }
@@ -41,12 +39,20 @@ class _CsvUploadDialogState extends State<CsvUploadDialog> {
       return;
     }
 
-    final fileSize = await _selectedFile!.length();
+    final fileSize = _selectedFile!.size;
     const maxFileSize = 10 * 1024 * 1024;
 
     if (fileSize > maxFileSize) {
       setState(() {
         _errors = ['Plik jest za duży (maksymalnie 10MB)'];
+      });
+      return;
+    }
+
+    final bytes = _selectedFile!.bytes;
+    if (bytes == null) {
+      setState(() {
+        _errors = ['Nie można odczytać zawartości pliku'];
       });
       return;
     }
@@ -57,7 +63,7 @@ class _CsvUploadDialogState extends State<CsvUploadDialog> {
     });
 
     try {
-      final result = await widget.csvImportService.uploadCsv(_selectedFile!, _selectedAccountId!);
+      final result = await widget.csvImportService.uploadCsv(bytes, _selectedFile!.name, _selectedAccountId!);
 
       if (!mounted) return;
 
@@ -72,7 +78,7 @@ class _CsvUploadDialogState extends State<CsvUploadDialog> {
     }
   }
 
-  void _handleUploadResult(CsvParseResult result) {
+  Future<void> _handleUploadResult(CsvParseResult result) async {
     if (result.hasErrors) {
       setState(() {
         _isUploading = false;
@@ -86,9 +92,13 @@ class _CsvUploadDialogState extends State<CsvUploadDialog> {
       final stagingService = TransactionStagingService();
       stagingService.loadFromCsv(result);
 
-      Navigator.of(context).pop();
+      final savedSuccessfully = await Navigator.of(
+        context,
+      ).push<bool>(MaterialPageRoute(builder: (context) => TransactionStagingScreen(stagingService: stagingService, accountId: _selectedAccountId!)));
 
-      Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) => TransactionStagingScreen(stagingService: stagingService, accountId: _selectedAccountId!)));
+      if (mounted && savedSuccessfully == true) {
+        Navigator.of(context).pop(true);
+      }
     } else {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Brak transakcji do zaimportowania')));
@@ -107,7 +117,7 @@ class _CsvUploadDialogState extends State<CsvUploadDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_selectedFile != null) Text('Wybrany plik: ${_selectedFile!.path.split('/').last}', style: Theme.of(context).textTheme.bodyMedium),
+            if (_selectedFile != null) Text('Wybrany plik: ${_selectedFile!.name}', style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 16),
             ElevatedButton.icon(onPressed: _isUploading ? null : _pickFile, icon: const Icon(Icons.file_upload), label: const Text('Wybierz plik CSV')),
             const SizedBox(height: 16),

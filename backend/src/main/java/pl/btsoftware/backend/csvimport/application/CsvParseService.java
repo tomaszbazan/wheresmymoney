@@ -4,11 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.btsoftware.backend.account.AccountModuleFacade;
-import pl.btsoftware.backend.csvimport.domain.CategorySuggestion;
-import pl.btsoftware.backend.csvimport.domain.CategorySuggestionService;
-import pl.btsoftware.backend.csvimport.domain.CsvParseResult;
-import pl.btsoftware.backend.csvimport.domain.TransactionProposal;
+import pl.btsoftware.backend.csvimport.domain.*;
 import pl.btsoftware.backend.users.UsersModuleFacade;
+import pl.btsoftware.backend.users.domain.GroupId;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +36,7 @@ public class CsvParseService {
         );
     }
 
-    private List<TransactionProposal> applyCategorySuggestions(List<TransactionProposal> proposals, pl.btsoftware.backend.users.domain.GroupId groupId) {
+    private List<TransactionProposal> applyCategorySuggestions(List<TransactionProposal> proposals, GroupId groupId) {
         if (proposals.isEmpty()) {
             return proposals;
         }
@@ -58,17 +56,17 @@ public class CsvParseService {
     }
 
     private List<TransactionProposal> applySuggestions(List<TransactionProposal> proposals, List<CategorySuggestion> suggestions) {
-        var suggestionMap = new HashMap<Integer, CategorySuggestion>();
-        for (int i = 0; i < suggestions.size(); i++) {
-            suggestionMap.put(i, suggestions.get(i));
+        var suggestionMap = new HashMap<TransactionProposalId, CategorySuggestion>();
+        for (var suggestion : suggestions) {
+            suggestionMap.put(suggestion.transactionProposalId(), suggestion);
         }
 
         return proposals.stream()
                 .map(proposal -> {
-                    var index = proposals.indexOf(proposal);
-                    var suggestion = suggestionMap.get(index);
+                    var suggestion = suggestionMap.get(proposal.transactionId());
                     if (suggestion != null) {
                         return new TransactionProposal(
+                                proposal.transactionId(),
                                 proposal.transactionDate(),
                                 proposal.description(),
                                 proposal.amount(),

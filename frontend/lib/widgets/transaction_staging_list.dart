@@ -1,4 +1,7 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
+import 'package:frontend/models/category.dart';
 import 'package:frontend/models/category_type.dart';
 import 'package:frontend/models/transaction_proposal.dart';
 import 'package:frontend/models/transaction_type.dart';
@@ -22,11 +25,53 @@ class TransactionStagingList extends StatefulWidget {
 class _TransactionStagingListState extends State<TransactionStagingList> {
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   final NumberFormat _numberFormat = NumberFormat('#,##0.00', 'pl_PL');
+  late final CategoryService _categoryService;
+  List<Category> _expenseCategories = [];
+  List<Category> _incomeCategories = [];
+  bool _isLoadingCategories = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _categoryService = widget.categoryService ?? RestCategoryService();
     widget.stagingService.addListener(_onStagingChanged);
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final proposals = widget.stagingService.proposals;
+      final hasExpenseTransactions = proposals.any((p) => p.type == TransactionType.expense);
+      final hasIncomeTransactions = proposals.any((p) => p.type == TransactionType.income);
+
+      final futures = <Future<List<Category>>>[];
+      if (hasExpenseTransactions) {
+        futures.add(_categoryService.getCategoriesByType(CategoryType.expense));
+      }
+      if (hasIncomeTransactions) {
+        futures.add(_categoryService.getCategoriesByType(CategoryType.income));
+      }
+
+      final results = await Future.wait(futures);
+
+      setState(() {
+        var resultIndex = 0;
+        if (hasExpenseTransactions) {
+          _expenseCategories = results[resultIndex++];
+        }
+        if (hasIncomeTransactions) {
+          _incomeCategories = results[resultIndex++];
+        }
+        _isLoadingCategories = false;
+      });
+    } catch (e, s) {
+      developer.log('Failed to load categories', name: 'transaction_staging_list', level: 1000, error: e, stackTrace: s);
+      setState(() {
+        _errorMessage = 'Nie udało się załadować kategorii';
+        _isLoadingCategories = false;
+      });
+    }
   }
 
   @override
@@ -43,8 +88,20 @@ class _TransactionStagingListState extends State<TransactionStagingList> {
     return type == TransactionType.income ? CategoryType.income : CategoryType.expense;
   }
 
+  List<Category> _getCategoriesForType(TransactionType type) {
+    return type == TransactionType.income ? _incomeCategories : _expenseCategories;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingCategories) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(child: Text(_errorMessage!));
+    }
+
     final proposals = widget.stagingService.proposals;
 
     if (proposals.isEmpty) {
@@ -124,7 +181,8 @@ class _TransactionStagingListState extends State<TransactionStagingList> {
                               widget.stagingService.updateCategory(index, categoryId);
                             }
                           },
-                          categoryService: widget.categoryService,
+                          categoryService: _categoryService,
+                          preloadedCategories: _getCategoriesForType(proposal.type),
                         ),
                       ),
                       const SizedBox(width: 8),

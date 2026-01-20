@@ -72,6 +72,7 @@ public class CategorySuggestionService {
             var prompt = promptBuilder.build(transactions, categories);
             var responseFuture = geminiClient.generateContent(prompt.jsonPrompt());
             var response = responseFuture.join();
+            log.info("Received category suggestions response from Gemini API: {}", response);
             return responseParser.parse(response);
         } catch (Exception e) {
             log.warn("Failed to get category suggestions from Gemini API: {}", e.getMessage(), e);

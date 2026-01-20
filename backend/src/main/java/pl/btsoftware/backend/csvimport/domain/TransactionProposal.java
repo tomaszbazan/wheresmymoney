@@ -9,11 +9,13 @@ import java.time.LocalDate;
 
 import static java.util.Objects.requireNonNull;
 
-public record TransactionProposal(LocalDate transactionDate, String description, BigDecimal amount, Currency currency,
+public record TransactionProposal(TransactionProposalId transactionId, LocalDate transactionDate, String description,
+                                  BigDecimal amount, Currency currency,
                                   TransactionType type, CategoryId categoryId) {
     public static final int MAX_DESCRIPTION_LENGTH = 200;
 
     public TransactionProposal {
+        requireNonNull(transactionId, "Transaction id cannot be null");
         requireNonNull(transactionDate, "Transaction date cannot be null");
         requireNonNull(amount, "Amount cannot be null");
         requireNonNull(currency, "Currency cannot be null");

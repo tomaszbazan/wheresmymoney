@@ -14,7 +14,9 @@ import pl.btsoftware.backend.users.domain.UserId;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CategorizationPromptBuilderTest {
@@ -49,13 +51,13 @@ class CategorizationPromptBuilderTest {
 
         var transactions = json.get("transactions");
         assertEquals(1, transactions.size());
-        assertEquals(0, transactions.get(0).get("transactionId").asInt());
+        assertThat(transactions.get(0).get("transactionId").asText()).isEqualTo(transaction.transactionId().value().toString());
         assertEquals("McDonald's Downtown", transactions.get(0).get("description").asText());
         assertEquals("EXPENSE", transactions.get(0).get("type").asText());
 
         var categories = json.get("categories");
         assertEquals(1, categories.size());
-        assertEquals(category.id().value().toString(), categories.get(0).get("id").asText());
+        assertThat(categories.get(0).get("categoryId").asText()).isEqualTo(category.id().value().toString());
         assertEquals("Fast Food", categories.get(0).get("name").asText());
         assertEquals("EXPENSE", categories.get(0).get("type").asText());
     }
@@ -71,10 +73,10 @@ class CategorizationPromptBuilderTest {
 
         var json = objectMapper.readTree(prompt.jsonPrompt());
         var transactions = json.get("transactions");
-        assertEquals(3, transactions.size());
-        assertEquals(0, transactions.get(0).get("transactionId").asInt());
-        assertEquals(1, transactions.get(1).get("transactionId").asInt());
-        assertEquals(2, transactions.get(2).get("transactionId").asInt());
+        assertThat(transactions.size()).isEqualTo(3);
+        assertThat(transactions.get(0).get("transactionId").asText()).isEqualTo(transaction1.transactionId().value().toString());
+        assertThat(transactions.get(1).get("transactionId").asText()).isEqualTo(transaction2.transactionId().value().toString());
+        assertThat(transactions.get(2).get("transactionId").asText()).isEqualTo(transaction3.transactionId().value().toString());
     }
 
     @Test
@@ -118,6 +120,7 @@ class CategorizationPromptBuilderTest {
 
     private TransactionProposal createTransaction(String description, TransactionType type) {
         return new TransactionProposal(
+                new TransactionProposalId(UUID.randomUUID()),
                 LocalDate.now(),
                 description,
                 BigDecimal.valueOf(100),
@@ -142,17 +145,17 @@ class CategorizationPromptBuilderTest {
         assertEquals(1, categories.size());
 
         var foodNode = categories.get(0);
-        assertEquals(food.id().value().toString(), foodNode.get("id").asText());
+        assertEquals(food.id().value().toString(), foodNode.get("categoryId").asText());
         assertEquals("Food", foodNode.get("name").asText());
         assertEquals(1, foodNode.get("children").size());
 
         var restaurantsNode = foodNode.get("children").get(0);
-        assertEquals(restaurants.id().value().toString(), restaurantsNode.get("id").asText());
+        assertEquals(restaurants.id().value().toString(), restaurantsNode.get("categoryId").asText());
         assertEquals("Restaurants", restaurantsNode.get("name").asText());
         assertEquals(1, restaurantsNode.get("children").size());
 
         var fastFoodNode = restaurantsNode.get("children").get(0);
-        assertEquals(fastFood.id().value().toString(), fastFoodNode.get("id").asText());
+        assertEquals(fastFood.id().value().toString(), fastFoodNode.get("categoryId").asText());
         assertEquals("Fast Food", fastFoodNode.get("name").asText());
         assertEquals(0, fastFoodNode.get("children").size());
     }

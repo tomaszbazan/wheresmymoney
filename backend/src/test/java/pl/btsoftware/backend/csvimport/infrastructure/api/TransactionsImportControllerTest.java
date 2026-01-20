@@ -9,10 +9,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.csvimport.application.CsvParseService;
-import pl.btsoftware.backend.csvimport.domain.CsvImportException;
-import pl.btsoftware.backend.csvimport.domain.CsvParseResult;
-import pl.btsoftware.backend.csvimport.domain.ParseError;
-import pl.btsoftware.backend.csvimport.domain.TransactionProposal;
+import pl.btsoftware.backend.csvimport.domain.*;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionType;
 
@@ -20,6 +17,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -45,6 +43,7 @@ public class TransactionsImportControllerTest {
     void shouldParseCsvAndReturnProposals() throws Exception {
         // given
         var proposal1 = new TransactionProposal(
+                new TransactionProposalId(UUID.randomUUID()),
                 LocalDate.of(2025, 12, 17),
                 "Wpływy - inne / FRANCISZEK BELA",
                 new BigDecimal("1100.00"),
@@ -54,6 +53,7 @@ public class TransactionsImportControllerTest {
         );
 
         var proposal2 = new TransactionProposal(
+                new TransactionProposalId(UUID.randomUUID()),
                 LocalDate.of(2025, 12, 17),
                 "Zdrowie i uroda / APTEKARIUS SPOLKA",
                 new BigDecimal("-239.22"),

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/http_exception.dart';
@@ -12,24 +12,18 @@ import '../mocks/fake_auth_service.dart';
 void main() {
   group('CsvImportService', () {
     late FakeAuthService fakeAuthService;
-    late File testFile;
+    late Uint8List testFileBytes;
+    const testFileName = 'test.csv';
 
-    setUp(() async {
+    setUp(() {
       fakeAuthService = FakeAuthService();
-      testFile = File('test_temp.csv');
-      await testFile.writeAsString('test data');
-    });
-
-    tearDown(() async {
-      if (await testFile.exists()) {
-        await testFile.delete();
-      }
+      testFileBytes = Uint8List.fromList('test data'.codeUnits);
     });
 
     test('uploadCsv sends multipart POST request to /transactions/import', () async {
       final mockClient = MockClient((request) async {
         expect(request.method, 'POST');
-        expect(request.url.path, '/api/api/transactions/import');
+        expect(request.url.path, '/api/transactions/import');
         expect(request.headers['Authorization'], 'Bearer fake-jwt-token');
 
         return http.Response(jsonEncode({'proposals': <Map<String, dynamic>>[], 'errors': <Map<String, dynamic>>[], 'totalRows': 0, 'successCount': 0, 'errorCount': 0}), 200);
@@ -37,7 +31,7 @@ void main() {
 
       final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
-      await csvImportService.uploadCsv(testFile, 'account-123');
+      await csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123');
     });
 
     test('uploadCsv returns CsvParseResult with proposals', () async {
@@ -57,7 +51,7 @@ void main() {
 
       final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
-      final result = await csvImportService.uploadCsv(testFile, 'account-123');
+      final result = await csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123');
 
       expect(result.totalRows, 1);
       expect(result.successCount, 1);
@@ -86,7 +80,7 @@ void main() {
 
       final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
-      final result = await csvImportService.uploadCsv(testFile, 'account-123');
+      final result = await csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123');
 
       expect(result.totalRows, 2);
       expect(result.successCount, 0);
@@ -104,7 +98,7 @@ void main() {
 
       final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
-      expect(() => csvImportService.uploadCsv(testFile, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 400)));
+      expect(() => csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 400)));
     });
 
     test('uploadCsv throws HttpException on 401 error', () async {
@@ -114,7 +108,7 @@ void main() {
 
       final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
-      expect(() => csvImportService.uploadCsv(testFile, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 401)));
+      expect(() => csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 401)));
     });
 
     test('uploadCsv throws HttpException on 500 error', () async {
@@ -124,7 +118,7 @@ void main() {
 
       final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
-      expect(() => csvImportService.uploadCsv(testFile, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
+      expect(() => csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
     });
   });
 }

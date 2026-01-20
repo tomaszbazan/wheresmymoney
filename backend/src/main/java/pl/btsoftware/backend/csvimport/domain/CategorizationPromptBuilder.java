@@ -11,6 +11,7 @@ import pl.btsoftware.backend.shared.TransactionType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class CategorizationPromptBuilder {
@@ -25,12 +26,7 @@ public class CategorizationPromptBuilder {
             throw new IllegalArgumentException("Category list cannot be empty");
         }
 
-        var promptStructure = new PromptStructure(
-                buildSystemInstructions(),
-                buildTransactions(transactions),
-                buildCategoryTree(categories),
-                buildExpectedResponseFormat()
-        );
+        var promptStructure = new PromptStructure(buildSystemInstructions(), buildTransactions(transactions), buildCategoryTree(categories), buildExpectedResponseFormat());
 
         return new CategorizationPrompt(toJson(promptStructure));
     }
@@ -50,11 +46,11 @@ public class CategorizationPromptBuilder {
                 7. Use the exact categoryId from the provided category tree
                 
                 Response format:
-                Return a JSON array of objects, one for each transaction, with the following structure:
+                Return a JSON array of objects without any other characters like: json or `, one for each transaction, with the following structure:
                 [
                   {
                     "transactionId": <transactionId>,
-                    "categoryId": "<uuid>",
+                    "categoryId": "<categoryId>",
                     "confidence": <0.0-1.0>
                   }
                 ]""";
@@ -67,21 +63,22 @@ public class CategorizationPromptBuilder {
                     "transactionId": "90185632-c640-476a-8a16-57abbcd777ee",
                     "categoryId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
                     "confidence": 0.95
+                  },
+                  {
+                    "transactionId": "130b1c97-dbd0-45e3-9315-c0a4a98a3159",
+                    "categoryId": "51fb28d0-285e-4071-8da9-3980be3d5e2a",
+                    "confidence": 0.75
+                  },
+                  {
+                    "transactionId": "dce20a09-8c7e-4300-a5c0-4799d7c85aa0",
+                    "categoryId": null,
+                    "confidence": 0.95
                   }
                 ]""";
     }
 
     private List<TransactionForPrompt> buildTransactions(List<TransactionProposal> transactions) {
-        var result = new ArrayList<TransactionForPrompt>();
-        for (int i = 0; i < transactions.size(); i++) {
-            var transaction = transactions.get(i);
-            result.add(new TransactionForPrompt(
-                    i,
-                    transaction.description(),
-                    transaction.type()
-            ));
-        }
-        return result;
+        return transactions.stream().map(TransactionForPrompt::from).toList();
     }
 
     private List<CategoryNode> buildCategoryTree(List<Category> categories) {
@@ -89,12 +86,7 @@ public class CategorizationPromptBuilder {
         var roots = new ArrayList<CategoryNode>();
 
         for (var category : categories) {
-            var node = new CategoryNode(
-                    category.id().value().toString(),
-                    category.name(),
-                    category.type(),
-                    new ArrayList<>()
-            );
+            var node = new CategoryNode(category.id().value(), category.name(), category.type(), new ArrayList<>());
             categoryMap.put(category.id(), node);
         }
 
@@ -121,26 +113,16 @@ public class CategorizationPromptBuilder {
         }
     }
 
-    private record PromptStructure(
-            String systemInstructions,
-            List<TransactionForPrompt> transactions,
-            List<CategoryNode> categories,
-            String expectedResponseFormat
-    ) {
+    private record PromptStructure(String systemInstructions, List<TransactionForPrompt> transactions,
+                                   List<CategoryNode> categories, String expectedResponseFormat) {
     }
 
-    private record TransactionForPrompt(
-            int transactionId,
-            String description,
-            TransactionType type
-    ) {
+    private record TransactionForPrompt(UUID transactionId, String description, TransactionType type) {
+        private static TransactionForPrompt from(TransactionProposal proposal) {
+            return new TransactionForPrompt(proposal.transactionId().value(), proposal.description(), proposal.type());
+        }
     }
 
-    private record CategoryNode(
-            String id,
-            String name,
-            CategoryType type,
-            List<CategoryNode> children
-    ) {
+    private record CategoryNode(UUID categoryId, String name, CategoryType type, List<CategoryNode> children) {
     }
 }

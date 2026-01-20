@@ -142,11 +142,10 @@ public class TransactionService {
 
         var auditInfo = AuditInfo.create(userId.value(), user.groupId().value());
         var allTransactions = transactions.stream()
-                .map(cmd -> {
-                    validateCategoriesExist(cmd.type(), user.groupId());
-                    return cmd.toDomain(auditInfo);
-                })
-                .toList();
+                .map(createTransactionCommand -> {
+                    validateCategoriesExist(createTransactionCommand.type(), user.groupId());
+                    return createTransactionCommand.toDomain(auditInfo);
+                }).toList();
 
         var allHashes = allTransactions.stream()
                 .map(Transaction::transactionHash)

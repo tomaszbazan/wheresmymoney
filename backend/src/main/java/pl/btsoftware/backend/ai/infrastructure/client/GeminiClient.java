@@ -13,7 +13,7 @@ import pl.btsoftware.backend.ai.infrastructure.config.GeminiConfig;
 import java.util.concurrent.CompletableFuture;
 
 @Component
-@ConditionalOnProperty(name = "gemini.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(name = "gemini.enabled", havingValue = "true")
 @Slf4j
 public class GeminiClient {
     private final GeminiConfig config;
@@ -34,7 +34,6 @@ public class GeminiClient {
     @Async
     @Retryable(
             retryFor = {Exception.class},
-            maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000)
     )
     public CompletableFuture<String> generateContent(String prompt) {
@@ -42,10 +41,10 @@ public class GeminiClient {
 
         log.debug("Generating content with Gemini API");
 
+        log.info("Calling Gemini API with prompt: {}", prompt);
         var response = executeGenerateContent(prompt);
         var text = response.text();
 
-        log.debug("Successfully generated content with {} characters", text.length());
         return CompletableFuture.completedFuture(text);
     }
 

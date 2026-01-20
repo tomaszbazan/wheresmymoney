@@ -44,7 +44,7 @@ class _TransactionStagingScreenState extends State<TransactionStagingScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Zapisać $totalCount transakcji?'),
+                Text('Transakcji do zapisania: $totalCount. Zapisać?'),
                 if (aiSuggestedCount > 0) ...[
                   const SizedBox(height: 8),
                   Row(children: [const Icon(Icons.auto_awesome, size: 16), const SizedBox(width: 4), Text('$aiSuggestedCount kategorii zasugerowanych przez AI')]),
@@ -72,7 +72,7 @@ class _TransactionStagingScreenState extends State<TransactionStagingScreen> {
       Navigator.of(context).pop(true);
 
       final message =
-          result.duplicateCount > 0 ? 'Zapisano ${result.savedCount} transakcji. ${result.duplicateCount} duplikatów pominięto.' : 'Zapisano ${result.savedCount} transakcji.';
+          result.duplicateCount > 0 ? 'Zapisano transakcji: ${result.savedCount}. Pominięto duplikatów: ${result.duplicateCount}.' : 'Zapisano transakcji: ${result.savedCount}.';
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {

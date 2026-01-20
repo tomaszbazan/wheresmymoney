@@ -44,5 +44,34 @@ void main() {
       expect(find.text('Test Account 1').hitTestable(), findsOneWidget);
       expect(find.text('Test Account 2').hitTestable(), findsOneWidget);
     });
+
+    testWidgets('should return null when dialog is cancelled', (WidgetTester tester) async {
+      bool? result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () async {
+                    result = await showDialog<bool>(context: context, builder: (context) => CsvUploadDialog(csvImportService: csvImportService, accounts: accounts));
+                  },
+                  child: const Text('Show Dialog'),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show Dialog'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Anuluj'));
+      await tester.pumpAndSettle();
+
+      expect(result, isNull);
+    });
   });
 }

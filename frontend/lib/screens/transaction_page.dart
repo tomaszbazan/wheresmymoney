@@ -170,9 +170,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
       return;
     }
 
-    await showDialog<void>(context: context, builder: (context) => CsvUploadDialog(csvImportService: _csvImportService, accounts: _accounts));
+    final result = await showDialog<bool>(context: context, builder: (context) => CsvUploadDialog(csvImportService: _csvImportService, accounts: _accounts));
 
-    _loadData();
+    if (result == true) {
+      _loadData();
+    }
   }
 
   void _showAddTransactionMenu() {
