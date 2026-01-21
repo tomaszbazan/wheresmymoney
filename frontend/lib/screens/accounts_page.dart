@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../models/http_exception.dart';
 import '../services/account_service.dart';
+import '../utils/error_handler.dart';
 
 class AccountsPage extends StatefulWidget {
   final AccountService? accountService;
@@ -98,8 +98,6 @@ class _AccountsPageState extends State<AccountsPage> {
   }
 
   Future<void> _addAccount(BuildContext context, String accountName, {String? type, String? currency}) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
     try {
       final createdAccount = await _accountService.createAccount(accountName, type: type, currency: currency);
 
@@ -113,11 +111,13 @@ class _AccountsPageState extends State<AccountsPage> {
         });
       });
 
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Konto "$accountName" zostało dodane')));
-    } on HttpException catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
+      if (mounted) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Konto "$accountName" zostało dodane')));
+      }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
+      // ignore: use_build_context_synchronously
+      ErrorHandler.showError(context, e);
     }
   }
 
@@ -138,7 +138,7 @@ class _AccountsPageState extends State<AccountsPage> {
         false;
   }
 
-  Future<void> _deleteAccountById(Map<String, dynamic> account, ScaffoldMessengerState scaffoldMessenger) async {
+  Future<void> _deleteAccountById(Map<String, dynamic> account, BuildContext context) async {
     final accountId = account['id'] as String;
     final accountName = account['name'] as String;
 
@@ -149,11 +149,13 @@ class _AccountsPageState extends State<AccountsPage> {
         accounts.removeWhere((account) => account['id'] == accountId);
       });
 
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Konto "$accountName" zostało usunięte')));
-    } on HttpException catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
+      if (mounted) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Konto "$accountName" zostało usunięte')));
+      }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
+      // ignore: use_build_context_synchronously
+      ErrorHandler.showError(context, e);
     }
   }
 
@@ -193,15 +195,9 @@ class _AccountsPageState extends State<AccountsPage> {
                 .toList();
         _isLoading = false;
       });
-    } on HttpException catch (e) {
-      setState(() {
-        _error = e.userFriendlyMessage;
-        _isLoading = false;
-        accounts = [];
-      });
     } catch (e) {
       setState(() {
-        _error = 'Nieoczekiwany błąd: $e';
+        _error = ErrorHandler.getErrorMessage(e);
         _isLoading = false;
         accounts = [];
       });
@@ -274,9 +270,8 @@ class _AccountsPageState extends State<AccountsPage> {
                                 return await _showDeleteConfirmationDialog(context, account['name'] as String);
                               },
                               onDismissed: (direction) {
-                                final scaffoldMessenger = ScaffoldMessenger.of(context);
                                 final accountToDelete = Map<String, dynamic>.from(account);
-                                _deleteAccountById(accountToDelete, scaffoldMessenger);
+                                _deleteAccountById(accountToDelete, context);
                               },
                               child: ListTile(
                                 leading: CircleAvatar(backgroundColor: _getAccountColor(account['type'] as String?), child: _getAccountIcon(account['type'] as String?)),
@@ -293,11 +288,11 @@ class _AccountsPageState extends State<AccountsPage> {
                                       icon: const Icon(Icons.delete_outline, color: Colors.red),
                                       onPressed: () {
                                         final accountToDelete = Map<String, dynamic>.from(account);
-                                        final scaffoldMessenger = ScaffoldMessenger.of(context);
 
                                         _showDeleteConfirmationDialog(context, account['name'] as String).then((confirmed) {
                                           if (confirmed && mounted) {
-                                            _deleteAccountById(accountToDelete, scaffoldMessenger);
+                                            // ignore: use_build_context_synchronously
+                                            _deleteAccountById(accountToDelete, context);
                                           }
                                         });
                                       },

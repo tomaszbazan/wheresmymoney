@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../models/category.dart';
 import '../models/category_type.dart';
-import '../models/http_exception.dart';
 import '../services/category_service.dart';
 import '../utils/category_hierarchy.dart';
+import '../utils/error_handler.dart';
 import '../widgets/category_form.dart';
 import '../widgets/category_list_item.dart';
 
@@ -40,14 +40,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
       setState(() {
         _hierarchicalCategories = CategoryHierarchy.buildHierarchy(categories);
       });
-    } on HttpException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nie udało się załadować kategorii: $e'), backgroundColor: Colors.red));
-      }
+      // ignore: use_build_context_synchronously
+      ErrorHandler.showError(context, e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -106,14 +101,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kategoria ${_isExpense ? 'wydatku' : 'przychodu'} została usunięta'), backgroundColor: Colors.green));
         }
-      } on HttpException catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
-        }
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nie udało się usunąć kategorii: $e'), backgroundColor: Colors.red));
-        }
+        // ignore: use_build_context_synchronously
+        ErrorHandler.showError(context, e);
       }
     }
   }

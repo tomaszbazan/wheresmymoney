@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../models/account.dart';
 import '../models/category_type.dart';
-import '../models/http_exception.dart';
 import '../models/transaction.dart';
 import '../models/transaction_type.dart';
 import '../services/account_service.dart';
 import '../services/category_service.dart';
 import '../services/csv_import_service.dart';
 import '../services/transaction_service.dart';
+import '../utils/error_handler.dart';
 import '../widgets/csv_upload_dialog.dart';
 import '../widgets/no_categories_dialog.dart';
 import '../widgets/transaction_form.dart';
@@ -50,14 +50,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
         _transactions = allTransactions.where((t) => widget.type == TransactionType.income ? t.isIncome : t.isExpense).toList();
         _accounts = accounts;
       });
-    } on HttpException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
-      }
+      // ignore: use_build_context_synchronously
+      ErrorHandler.showError(context, e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -152,14 +147,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transakcja została usunięta')));
         }
-      } on HttpException catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
-        }
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
-        }
+        // ignore: use_build_context_synchronously
+        ErrorHandler.showError(context, e);
       }
     }
   }

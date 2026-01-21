@@ -3,9 +3,9 @@ import 'package:frontend/models/category_type.dart';
 import 'package:frontend/models/transaction_type.dart';
 
 import '../models/account.dart';
-import '../models/http_exception.dart';
 import '../models/transaction.dart';
 import '../services/transaction_service.dart';
+import '../utils/error_handler.dart';
 import 'category_selector.dart';
 
 class TransactionForm extends StatefulWidget {
@@ -118,14 +118,9 @@ class _TransactionFormState extends State<TransactionForm> {
       }
 
       widget.onSaved(transaction);
-    } on HttpException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
-      }
+      // ignore: use_build_context_synchronously
+      ErrorHandler.showError(context, e);
     } finally {
       setState(() => _isLoading = false);
     }

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/category.dart';
 import '../models/category_type.dart';
-import '../models/http_exception.dart';
 import '../services/category_service.dart';
+import '../utils/error_handler.dart';
 import 'searchable_category_dropdown.dart';
 
 class CategoryForm extends StatefulWidget {
@@ -85,14 +85,9 @@ class _CategoryFormState extends State<CategoryForm> {
       }
 
       widget.onSaved(category);
-    } on HttpException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userFriendlyMessage), backgroundColor: Colors.red));
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nieoczekiwany błąd: $e'), backgroundColor: Colors.red));
-      }
+      // ignore: use_build_context_synchronously
+      ErrorHandler.showError(context, e);
     } finally {
       setState(() => _isLoading = false);
     }
