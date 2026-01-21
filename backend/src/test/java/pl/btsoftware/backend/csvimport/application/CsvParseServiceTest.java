@@ -1,8 +1,8 @@
 package pl.btsoftware.backend.csvimport.application;
 
 import org.instancio.Instancio;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import pl.btsoftware.backend.account.AccountModuleFacade;
@@ -322,7 +322,7 @@ class CsvParseServiceTest {
     }
 
     @Test
-    @Ignore("This test needs to be rewritten as system test")
+    @Disabled("This test needs to be rewritten as system test")
     void shouldApplyCategorySuggestionsWhenAvailable() {
         // given
         var csv = createMbankTransactionListCsv("""
@@ -333,10 +333,7 @@ class CsvParseServiceTest {
 
         var categoryId1 = CategoryId.generate();
         var categoryId2 = CategoryId.generate();
-        var suggestions = List.of(
-                new CategorySuggestion(generate(), categoryId1, 0.95),
-                new CategorySuggestion(generate(), categoryId2, 0.90)
-        );
+        var suggestions = List.of(new CategorySuggestion(generate(), categoryId1, 0.95), new CategorySuggestion(generate(), categoryId2, 0.90));
 
         when(categorySuggestionService.suggestCategories(any(), eq(groupId))).thenReturn(suggestions);
 
@@ -388,7 +385,7 @@ class CsvParseServiceTest {
     }
 
     @Test
-    @Ignore("This test needs to be rewritten as system test")
+    @Disabled("This test needs to be rewritten as system test")
     void shouldHandleMixedIncomeAndExpenseTransactions() {
         // given
         var csv = createMbankTransactionListCsv("""
@@ -399,10 +396,7 @@ class CsvParseServiceTest {
 
         var incomeCategoryId = CategoryId.generate();
         var expenseCategoryId = CategoryId.generate();
-        var suggestions = List.of(
-                new CategorySuggestion(generate(), incomeCategoryId, 0.95),
-                new CategorySuggestion(generate(), expenseCategoryId, 0.90)
-        );
+        var suggestions = List.of(new CategorySuggestion(generate(), incomeCategoryId, 0.95), new CategorySuggestion(generate(), expenseCategoryId, 0.90));
 
         when(categorySuggestionService.suggestCategories(any(), eq(groupId))).thenReturn(suggestions);
 
