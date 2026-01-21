@@ -27,7 +27,6 @@ class CategoryServiceTest {
 
     private CategoryService categoryService;
     private InMemoryCategoryRepository categoryRepository;
-    private UsersModuleFacade usersModuleFacade;
     private TransactionQueryFacade transactionQueryFacade;
     private User testUser;
     private GroupId testGroupId;
@@ -35,7 +34,7 @@ class CategoryServiceTest {
     @BeforeEach
     void setUp() {
         categoryRepository = new InMemoryCategoryRepository();
-        usersModuleFacade = mock(UsersModuleFacade.class);
+        var usersModuleFacade = mock(UsersModuleFacade.class);
         transactionQueryFacade = mock(TransactionQueryFacade.class);
         categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade);
 
@@ -431,7 +430,7 @@ class CategoryServiceTest {
         var category = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(category);
 
-        when(transactionQueryFacade.categoryHasTransactions(categoryId, testGroupId)).thenReturn(true);
+        when(transactionQueryFacade.hasTransactions(categoryId, testGroupId)).thenReturn(true);
 
         assertThatThrownBy(() -> categoryService.deleteCategory(categoryId, testUser.id()))
                 .isInstanceOf(CategoryHasTransactionsException.class);
@@ -443,7 +442,7 @@ class CategoryServiceTest {
         var category = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
         categoryRepository.store(category);
 
-        when(transactionQueryFacade.categoryHasTransactions(categoryId, testGroupId)).thenReturn(false);
+        when(transactionQueryFacade.hasTransactions(categoryId, testGroupId)).thenReturn(false);
 
         categoryService.deleteCategory(categoryId, testUser.id());
 

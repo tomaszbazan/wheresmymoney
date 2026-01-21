@@ -2,6 +2,8 @@ package pl.btsoftware.backend.shared;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import pl.btsoftware.backend.shared.error.ColorInvalidFormatException;
+import pl.btsoftware.backend.shared.error.ColorValueNullException;
 
 import java.util.regex.Pattern;
 
@@ -12,10 +14,10 @@ public record Color(String value) {
 
     public Color {
         if (isNull(value)) {
-            throw new IllegalArgumentException("Color value cannot be null");
+            throw new ColorValueNullException();
         }
         if (!HEX_COLOR_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("Color must be in format #AABBCC, got: " + value);
+            throw new ColorInvalidFormatException(value);
         }
     }
 

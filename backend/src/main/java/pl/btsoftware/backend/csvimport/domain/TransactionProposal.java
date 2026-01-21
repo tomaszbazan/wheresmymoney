@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.csvimport.domain;
 
+import pl.btsoftware.backend.csvimport.domain.error.TransactionProposalDescriptionTooLongException;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionType;
@@ -22,7 +23,7 @@ public record TransactionProposal(TransactionProposalId transactionId, LocalDate
         requireNonNull(type, "Transaction type cannot be null");
 
         if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
-            throw new IllegalArgumentException("Description cannot exceed " + MAX_DESCRIPTION_LENGTH + " characters");
+            throw new TransactionProposalDescriptionTooLongException(MAX_DESCRIPTION_LENGTH);
         }
     }
 }

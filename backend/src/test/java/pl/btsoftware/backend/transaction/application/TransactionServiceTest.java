@@ -11,6 +11,7 @@ import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountR
 import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
@@ -49,16 +50,11 @@ class TransactionServiceTest {
         this.categoryQueryFacade = Mockito.mock(CategoryQueryFacade.class);
 
         this.testGroupId = new GroupId(UUID.randomUUID());
-        var mockUser = User.create(
-                new UserId("user-123"),
-                "test@example.com",
-                "Test User",
-                testGroupId
-        );
+        var mockUser = User.create(new UserId("user-123"), "test@example.com", "Test User", testGroupId);
         when(usersModuleFacade.findUserOrThrow(any(UserId.class))).thenReturn(mockUser);
         when(categoryQueryFacade.hasCategories(any(CategoryType.class), any(GroupId.class))).thenReturn(true);
 
-        var accountService = new AccountService(accountRepository, usersModuleFacade);
+        var accountService = new AccountService(accountRepository, usersModuleFacade, Mockito.mock(TransactionQueryFacade.class));
         this.accountModuleFacade = new AccountModuleFacade(accountService, usersModuleFacade);
         this.transactionService = new TransactionService(transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade);
     }
@@ -94,9 +90,6 @@ class TransactionServiceTest {
         // Verify account balance updated by +1000.12
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("1000.12"));
-
-        // Verify transaction ID added to account's transaction list
-        assertThat(updatedAccount.transactionIds()).contains(transaction.id());
     }
 
     @Test
@@ -130,9 +123,6 @@ class TransactionServiceTest {
         // Verify account balance updated by -250.50
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("-250.50"));
-
-        // Verify transaction ID added to account's transaction list
-        assertThat(updatedAccount.transactionIds()).contains(transaction.id());
     }
 
     @Test
@@ -147,9 +137,7 @@ class TransactionServiceTest {
 
         // When & Then
         var command = new CreateTransactionCommand(nonExistentAccountId, Money.of(amount, PLN), description, date, type, categoryId, UserId.generate());
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(AccountNotFoundException.class)
-                .hasMessageContaining("Account not found");
+        assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(AccountNotFoundException.class).hasMessageContaining("Account not found");
 
         // Verify no transaction was created
         assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
@@ -211,9 +199,7 @@ class TransactionServiceTest {
 
         // When & Then
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(TransactionDescriptionTooLongException.class)
-                .hasMessageContaining("Description cannot exceed 200 characters");
+        assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(TransactionDescriptionTooLongException.class).hasMessageContaining("Description cannot exceed 200 characters");
 
         // Verify no transaction was created
         assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
@@ -233,9 +219,7 @@ class TransactionServiceTest {
 
         // When & Then
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, USD), description, date, type, categoryId, userId);
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(TransactionCurrencyMismatchException.class)
-                .hasMessageContaining("Transaction currency (USD) must match account currency (PLN)");
+        assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(TransactionCurrencyMismatchException.class).hasMessageContaining("Transaction currency (USD) must match account currency (PLN)");
 
         // Verify no transaction was created
         assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
@@ -274,9 +258,7 @@ class TransactionServiceTest {
         var nonExistentTransactionId = TransactionId.generate();
 
         // When & Then
-        assertThatThrownBy(() -> transactionService.getTransactionById(nonExistentTransactionId, testGroupId))
-                .isInstanceOf(TransactionNotFoundException.class)
-                .hasMessageContaining("Transaction not found with id: " + nonExistentTransactionId.value());
+        assertThatThrownBy(() -> transactionService.getTransactionById(nonExistentTransactionId, testGroupId)).isInstanceOf(TransactionNotFoundException.class).hasMessageContaining("Transaction not found with id: " + nonExistentTransactionId.value());
     }
 
     @Test
@@ -287,10 +269,8 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var categoryId1 = CategoryId.generate();
         var categoryId2 = CategoryId.generate();
-        var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("1000.00"), PLN), "Salary",
-                LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId1, userId);
-        var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("250.50"), PLN), "Groceries",
-                LocalDate.of(2024, 1, 16), TransactionType.EXPENSE, categoryId2, userId);
+        var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("1000.00"), PLN), "Salary", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId1, userId);
+        var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("250.50"), PLN), "Groceries", LocalDate.of(2024, 1, 16), TransactionType.EXPENSE, categoryId2, userId);
 
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
@@ -300,8 +280,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(allTransactions).hasSize(2);
-        assertThat(allTransactions.stream().map(Transaction::description).toList())
-                .containsExactlyInAnyOrder("Salary", "Groceries");
+        assertThat(allTransactions.stream().map(Transaction::description).toList()).containsExactlyInAnyOrder("Salary", "Groceries");
     }
 
     @Test
@@ -317,12 +296,9 @@ class TransactionServiceTest {
         var categoryId1 = CategoryId.generate();
         var categoryId2 = CategoryId.generate();
         var categoryId3 = CategoryId.generate();
-        var command1 = new CreateTransactionCommand(account1.id(), Money.of(new BigDecimal("1000.00"), PLN), "Salary",
-                LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId1, userId1);
-        var command2 = new CreateTransactionCommand(account2.id(), Money.of(new BigDecimal("250.50"), PLN), "Groceries",
-                LocalDate.of(2024, 1, 16), TransactionType.EXPENSE, categoryId2, userId2);
-        var command3 = new CreateTransactionCommand(account1.id(), Money.of(new BigDecimal("100.00"), PLN), "Coffee",
-                LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId3, userId1);
+        var command1 = new CreateTransactionCommand(account1.id(), Money.of(new BigDecimal("1000.00"), PLN), "Salary", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId1, userId1);
+        var command2 = new CreateTransactionCommand(account2.id(), Money.of(new BigDecimal("250.50"), PLN), "Groceries", LocalDate.of(2024, 1, 16), TransactionType.EXPENSE, categoryId2, userId2);
+        var command3 = new CreateTransactionCommand(account1.id(), Money.of(new BigDecimal("100.00"), PLN), "Coffee", LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId3, userId1);
 
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
@@ -333,8 +309,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(account1Transactions).hasSize(2);
-        assertThat(account1Transactions.stream().map(Transaction::description).toList())
-                .containsExactlyInAnyOrder("Salary", "Coffee");
+        assertThat(account1Transactions.stream().map(Transaction::description).toList()).containsExactlyInAnyOrder("Salary", "Coffee");
         assertThat(account1Transactions).allMatch(t -> t.accountId().equals(account1.id()));
     }
 
@@ -346,8 +321,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var initialAmount = new BigDecimal("500.00");
         var categoryId = CategoryId.generate();
-        var createCommand = new CreateTransactionCommand(account.id(), Money.of(initialAmount, PLN), "Initial transaction",
-                LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
+        var createCommand = new CreateTransactionCommand(account.id(), Money.of(initialAmount, PLN), "Initial transaction", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newAmount = Money.of(new BigDecimal("750.00"), PLN);
@@ -376,8 +350,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
-        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Original description",
-                LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
+        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Original description", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newDescription = "Updated description";
@@ -406,8 +379,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
-        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Test transaction",
-                LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, categoryId, userId);
+        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Test transaction", LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, categoryId, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newCategoryId = CategoryId.generate();
@@ -435,9 +407,7 @@ class TransactionServiceTest {
         var updateCommand = new UpdateTransactionCommand(nonExistentTransactionId, null, "Updated description", null);
 
         // When & Then
-        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, UserId.generate()))
-                .isInstanceOf(TransactionNotFoundException.class)
-                .hasMessageContaining("Transaction not found with id: " + nonExistentTransactionId.value());
+        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, UserId.generate())).isInstanceOf(TransactionNotFoundException.class).hasMessageContaining("Transaction not found with id: " + nonExistentTransactionId.value());
     }
 
     @Test
@@ -448,17 +418,14 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
-        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Transaction to delete",
-                LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, categoryId, userId);
+        var createCommand = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), "Transaction to delete", LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, categoryId, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         // When
         transactionService.deleteTransaction(transaction.id(), userId);
 
         // Then
-        assertThatThrownBy(() -> transactionService.getTransactionById(transaction.id(), testGroupId))
-                .isInstanceOf(TransactionNotFoundException.class)
-                .hasMessageContaining("Transaction not found with id: " + transaction.id().value());
+        assertThatThrownBy(() -> transactionService.getTransactionById(transaction.id(), testGroupId)).isInstanceOf(TransactionNotFoundException.class).hasMessageContaining("Transaction not found with id: " + transaction.id().value());
 
         // Verify account balance reversed (+100.00)
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -467,9 +434,6 @@ class TransactionServiceTest {
         // Verify transaction not in normal queries
         assertThat(transactionService.getAllTransactions(testGroupId)).isEmpty();
         assertThat(transactionService.getTransactionsByAccountId(account.id(), testGroupId)).isEmpty();
-
-        // Verify transaction ID removed fromGroup account's transaction list
-        assertThat(updatedAccount.transactionIds()).doesNotContain(transaction.id());
     }
 
     @Test
@@ -478,9 +442,7 @@ class TransactionServiceTest {
         var nonExistentTransactionId = TransactionId.generate();
 
         // When & Then
-        assertThatThrownBy(() -> transactionService.deleteTransaction(nonExistentTransactionId, UserId.generate()))
-                .isInstanceOf(TransactionNotFoundException.class)
-                .hasMessageContaining("Transaction not found with id: " + nonExistentTransactionId.value());
+        assertThatThrownBy(() -> transactionService.deleteTransaction(nonExistentTransactionId, UserId.generate())).isInstanceOf(TransactionNotFoundException.class).hasMessageContaining("Transaction not found with id: " + nonExistentTransactionId.value());
     }
 
     @Test
@@ -499,9 +461,7 @@ class TransactionServiceTest {
 
         // When & Then
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(NoCategoriesAvailableException.class)
-                .hasMessageContaining("No categories of type INCOME are available");
+        assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(NoCategoriesAvailableException.class).hasMessageContaining("No categories of type INCOME are available");
 
         assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
     }
@@ -522,9 +482,7 @@ class TransactionServiceTest {
 
         // When & Then
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(NoCategoriesAvailableException.class)
-                .hasMessageContaining("No categories of type EXPENSE are available");
+        assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(NoCategoriesAvailableException.class).hasMessageContaining("No categories of type EXPENSE are available");
 
         assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
     }
@@ -568,9 +526,7 @@ class TransactionServiceTest {
         transactionService.createTransaction(command);
 
         // When & Then
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(pl.btsoftware.backend.transaction.domain.error.DuplicateTransactionException.class)
-                .hasMessageContaining("duplicate");
+        assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(pl.btsoftware.backend.transaction.domain.error.DuplicateTransactionException.class).hasMessageContaining("duplicate");
 
         // Verify only one transaction was created
         assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
@@ -608,14 +564,7 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var categoryId = CategoryId.generate();
 
-        var commands = List.of(
-                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN), "Transaction 1",
-                        LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId),
-                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Transaction 2",
-                        LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId),
-                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("300.00"), PLN), "Transaction 3",
-                        LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId, userId)
-        );
+        var commands = List.of(new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN), "Transaction 1", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId), new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Transaction 2", LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId), new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("300.00"), PLN), "Transaction 3", LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId, userId));
 
         // When
         var result = transactionService.bulkCreateTransactions(new BulkCreateTransactionCommand(account.id(), commands), userId);
@@ -640,19 +589,13 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // Create initial transaction
-        var existingCommand = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN),
-                "Duplicate transaction", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
+        var existingCommand = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN), "Duplicate transaction", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
         transactionService.createTransaction(existingCommand);
 
         // Prepare bulk commands with duplicates
-        var commands = List.of(
-                existingCommand,  // This is a duplicate
-                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Transaction 2",
-                        LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId),
-                existingCommand,  // Another duplicate
-                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("300.00"), PLN), "Transaction 3",
-                        LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId, userId)
-        );
+        var commands = List.of(existingCommand,  // This is a duplicate
+                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Transaction 2", LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId), existingCommand,  // Another duplicate
+                new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("300.00"), PLN), "Transaction 3", LocalDate.of(2024, 1, 17), TransactionType.EXPENSE, categoryId, userId));
 
         // When
         var result = transactionService.bulkCreateTransactions(new BulkCreateTransactionCommand(account.id(), commands), userId);
@@ -677,10 +620,8 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // Create initial transactions
-        var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN),
-                "Transaction 1", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
-        var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN),
-                "Transaction 2", LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId);
+        var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN), "Transaction 1", LocalDate.of(2024, 1, 15), TransactionType.INCOME, categoryId, userId);
+        var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Transaction 2", LocalDate.of(2024, 1, 16), TransactionType.INCOME, categoryId, userId);
 
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
@@ -722,8 +663,6 @@ class TransactionServiceTest {
 
         // When & Then
         var updateCommand = new UpdateTransactionCommand(transaction.id(), Money.of(new BigDecimal("2000.00"), PLN), "Updated description", categoryId);
-        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
-                .isInstanceOf(NoCategoriesAvailableException.class)
-                .hasMessageContaining("No categories of type INCOME are available");
+        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId)).isInstanceOf(NoCategoriesAvailableException.class).hasMessageContaining("No categories of type INCOME are available");
     }
 }

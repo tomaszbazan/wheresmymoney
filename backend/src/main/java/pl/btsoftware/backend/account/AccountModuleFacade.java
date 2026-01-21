@@ -7,7 +7,6 @@ import pl.btsoftware.backend.account.application.UpdateAccountCommand;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
@@ -45,16 +44,16 @@ public class AccountModuleFacade {
         accountService.deleteAccount(accountId, userId);
     }
 
-    public void addTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType, UserId userId) {
-        accountService.addTransaction(accountId, transactionId, amount, transactionType, userId);
+    public void addTransaction(AccountId accountId, Money amount, TransactionType transactionType, UserId userId) {
+        accountService.addTransaction(accountId, amount, transactionType, userId);
     }
 
-    public void removeTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType, UserId userId) {
-        accountService.removeTransaction(accountId, transactionId, amount, transactionType, userId);
+    public void removeTransaction(AccountId accountId, Money amount, TransactionType transactionType, UserId userId) {
+        accountService.removeTransaction(accountId, amount, transactionType, userId);
     }
 
-    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount,
+    public void changeTransaction(AccountId accountId, Money oldAmount, Money newAmount,
                                   TransactionType transactionType, UserId userId) {
-        accountService.changeTransaction(accountId, transactionId, oldAmount, newAmount, transactionType, userId);
+        accountService.changeTransaction(accountId, oldAmount, newAmount, transactionType, userId);
     }
 }

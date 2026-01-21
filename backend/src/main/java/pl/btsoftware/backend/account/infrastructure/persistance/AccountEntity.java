@@ -4,20 +4,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.Tombstone;
-import pl.btsoftware.backend.shared.TransactionId;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -42,12 +37,22 @@ public class AccountEntity {
     private OffsetDateTime updatedAt;
     @Column(name = "updated_by")
     private String updatedBy;
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "data", columnDefinition = "jsonb")
-    private AccountData data;
+    @Version
+    private Long version;
+
+    public AccountEntity(UUID id, String name, BigDecimal balance, Currency currency, OffsetDateTime createdAt, String createdBy, UUID ownedByGroup, OffsetDateTime updatedAt, String updatedBy) {
+        this.id = id;
+        this.name = name;
+        this.balance = balance;
+        this.currency = currency;
+        this.createdAt = createdAt;
+        this.createdBy = createdBy;
+        this.ownedByGroup = ownedByGroup;
+        this.updatedAt = updatedAt;
+        this.updatedBy = updatedBy;
+    }
 
     public static AccountEntity fromDomain(Account account) {
-        var accountData = AccountData.from(account);
         return new AccountEntity(
                 account.id().value(),
                 account.name(),
@@ -57,18 +62,14 @@ public class AccountEntity {
                 account.createdBy().value(),
                 account.ownedBy().value(),
                 account.lastUpdatedAt(),
-                account.lastUpdatedBy().value(),
-                accountData
+                account.lastUpdatedBy().value()
         );
     }
 
     public Account toDomain() {
         AccountId accountId = AccountId.from(id);
-        List<TransactionId> domainTransactionIds = (data != null)
-                ? data.toTransactionIds()
-                : new ArrayList<>();
         var createdAuditInfo = AuditInfo.create(createdBy, ownedByGroup, createdAt);
         var updatedAuditInfo = AuditInfo.create(updatedBy, ownedByGroup, updatedAt);
-        return new Account(accountId, name, Money.of(balance, currency), domainTransactionIds, createdAuditInfo, updatedAuditInfo, Tombstone.active());
+        return new Account(accountId, name, Money.of(balance, currency), createdAuditInfo, updatedAuditInfo, Tombstone.active());
     }
 }

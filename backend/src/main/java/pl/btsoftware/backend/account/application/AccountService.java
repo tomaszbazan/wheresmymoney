@@ -5,9 +5,13 @@ import org.springframework.stereotype.Service;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.account.domain.AccountRepository;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
+import pl.btsoftware.backend.account.domain.error.AccountHasTransactionsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
-import pl.btsoftware.backend.account.domain.error.CannotDeleteAccountWithTransactionsException;
-import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.TransactionType;
+import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -19,6 +23,7 @@ import java.util.List;
 public class AccountService {
     private final AccountRepository accountRepository;
     private final UsersModuleFacade usersModuleFacade;
+    private final TransactionQueryFacade transactionQueryFacade;
 
     public Account createAccount(CreateAccountCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
@@ -65,41 +70,41 @@ public class AccountService {
 
     public void deleteAccount(AccountId accountId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var account = accountRepository.findById(accountId, user.groupId())
+        accountRepository.findById(accountId, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
-        if (account.hasAnyTransaction()) {
-            throw new CannotDeleteAccountWithTransactionsException();
+        var hasTransactions = transactionQueryFacade.hasTransactions(accountId, user.groupId());
+        if (hasTransactions) {
+            throw new AccountHasTransactionsException();
         }
 
         accountRepository.deleteById(accountId);
     }
 
-    public void addTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType, UserId userId) {
+    public void addTransaction(AccountId accountId, Money amount, TransactionType transactionType, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var account = accountRepository.findById(accountId, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
-        var updatedAccount = account.addTransaction(transactionId, amount, transactionType);
+        var updatedAccount = account.addTransaction(amount, transactionType);
         accountRepository.store(updatedAccount);
     }
 
-    public void removeTransaction(AccountId accountId, TransactionId transactionId, Money amount, TransactionType transactionType, UserId userId) {
+    public void removeTransaction(AccountId accountId, Money amount, TransactionType transactionType, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var account = accountRepository.findById(accountId, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
-        var updatedAccount = account.removeTransaction(transactionId, amount, transactionType);
+        var updatedAccount = account.removeTransaction(amount, transactionType);
         accountRepository.store(updatedAccount);
     }
 
-    public void changeTransaction(AccountId accountId, TransactionId transactionId, Money oldAmount, Money newAmount,
-                                  TransactionType transactionType, UserId userId) {
+    public void changeTransaction(AccountId accountId, Money oldAmount, Money newAmount, TransactionType transactionType, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var account = accountRepository.findById(accountId, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
-        var updatedAccount = account.changeTransaction(transactionId, oldAmount, newAmount, transactionType);
+        var updatedAccount = account.changeTransaction(oldAmount, newAmount, transactionType);
         accountRepository.store(updatedAccount);
     }
 }

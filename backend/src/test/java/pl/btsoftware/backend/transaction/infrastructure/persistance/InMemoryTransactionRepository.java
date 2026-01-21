@@ -60,6 +60,14 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     }
 
     @Override
+    public boolean existsByAccountId(AccountId accountId, GroupId groupId) {
+        return database.values().stream()
+                .anyMatch(transaction -> transaction.accountId().equals(accountId)
+                                         && transaction.ownedBy().equals(groupId)
+                                         && !transaction.tombstone().isDeleted());
+    }
+
+    @Override
     public Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId) {
         return database.values().stream()
                 .filter(transaction -> transaction.accountId().equals(accountId))

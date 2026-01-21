@@ -13,32 +13,31 @@ import pl.btsoftware.backend.account.domain.error.*;
 import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountRepository;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
-import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionId;
+import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.math.BigDecimal;
-
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
 import static org.mockito.Mockito.when;
 import static pl.btsoftware.backend.shared.Currency.*;
-import static pl.btsoftware.backend.shared.TransactionType.EXPENSE;
 
 public class AccountServiceTest {
     private AccountRepository accountRepository;
+    private TransactionQueryFacade transactionQueryFacade;
     private UsersModuleFacade usersModuleFacade;
     private AccountService accountService;
 
     @BeforeEach
     void setUp() {
         this.accountRepository = new InMemoryAccountRepository();
+        this.transactionQueryFacade = Mockito.mock(TransactionQueryFacade.class);
         this.usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
-        this.accountService = new AccountService(accountRepository, usersModuleFacade);
+        this.accountService = new AccountService(accountRepository, usersModuleFacade, transactionQueryFacade);
     }
 
     private void userExistsInGroup(UserId userAId, GroupId groupId) {
@@ -94,8 +93,7 @@ public class AccountServiceTest {
             var user = userExists(command);
 
             // when & then
-            assertThatThrownBy(() -> accountService.createAccount(command))
-                    .isInstanceOf(AccountNameEmptyException.class);
+            assertThatThrownBy(() -> accountService.createAccount(command)).isInstanceOf(AccountNameEmptyException.class);
             assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
@@ -106,8 +104,7 @@ public class AccountServiceTest {
             var user = userExists(command);
 
             // when & then
-            assertThatThrownBy(() -> accountService.createAccount(command))
-                    .isInstanceOf(AccountNameEmptyException.class);
+            assertThatThrownBy(() -> accountService.createAccount(command)).isInstanceOf(AccountNameEmptyException.class);
             assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
@@ -118,8 +115,7 @@ public class AccountServiceTest {
             var user = userExists(command);
 
             // when & then
-            assertThatThrownBy(() -> accountService.createAccount(command))
-                    .isInstanceOf(AccountNameEmptyException.class);
+            assertThatThrownBy(() -> accountService.createAccount(command)).isInstanceOf(AccountNameEmptyException.class);
             assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
@@ -131,8 +127,7 @@ public class AccountServiceTest {
             var user = userExists(command);
 
             // when & then
-            assertThatThrownBy(() -> accountService.createAccount(command))
-                    .isInstanceOf(AccountNameTooLongException.class);
+            assertThatThrownBy(() -> accountService.createAccount(command)).isInstanceOf(AccountNameTooLongException.class);
             assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
@@ -144,8 +139,7 @@ public class AccountServiceTest {
             var user = userExists(command);
 
             // when & then
-            assertThatThrownBy(() -> accountService.createAccount(command))
-                    .isInstanceOf(AccountNameInvalidCharactersException.class);
+            assertThatThrownBy(() -> accountService.createAccount(command)).isInstanceOf(AccountNameInvalidCharactersException.class);
             assertThat(accountRepository.findAllBy(user.groupId())).isEmpty();
         }
 
@@ -168,18 +162,14 @@ public class AccountServiceTest {
         void shouldRejectDuplicateAccountNamesAndCurrencies() {
             // given
             var accountName = "Duplicate Account";
-            var command = Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), accountName)
-                    .set(field(CreateAccountCommand::currency), PLN).create();
+            var command = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), accountName).set(field(CreateAccountCommand::currency), PLN).create();
             var user = userExists(command);
 
             // when
             accountService.createAccount(command);
 
             // then
-            assertThatThrownBy(() -> accountService.createAccount(command))
-                    .isInstanceOf(AccountAlreadyExistsException.class)
-                    .hasMessageContaining("Account with provided name and currency already exists");
+            assertThatThrownBy(() -> accountService.createAccount(command)).isInstanceOf(AccountAlreadyExistsException.class).hasMessageContaining("Account with provided name and currency already exists");
             assertThat(accountRepository.findAllBy(user.groupId())).hasSize(1);
         }
 
@@ -187,14 +177,8 @@ public class AccountServiceTest {
         void shouldAllowSameNameWithDifferentCurrencies() {
             // given
             var accountName = "Multi-Currency Account";
-            var command1 = Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), accountName)
-                    .set(field(CreateAccountCommand::currency), PLN)
-                    .create();
-            var command2 = Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), accountName)
-                    .set(field(CreateAccountCommand::currency), EUR)
-                    .create();
+            var command1 = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), accountName).set(field(CreateAccountCommand::currency), PLN).create();
+            var command2 = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), accountName).set(field(CreateAccountCommand::currency), EUR).create();
             var user1 = userExists(command1);
             var user2 = userExists(command2);
 
@@ -220,21 +204,9 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), "Checking Account")
-                    .set(field(CreateAccountCommand::currency), PLN)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
-            var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), "Savings Account")
-                    .set(field(CreateAccountCommand::currency), EUR)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
-            var account3 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), "Investment Account")
-                    .set(field(CreateAccountCommand::currency), USD)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
+            var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "Checking Account").set(field(CreateAccountCommand::currency), PLN).set(field(CreateAccountCommand::userId), userId).create());
+            var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "Savings Account").set(field(CreateAccountCommand::currency), EUR).set(field(CreateAccountCommand::userId), userId).create());
+            var account3 = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "Investment Account").set(field(CreateAccountCommand::currency), USD).set(field(CreateAccountCommand::userId), userId).create());
 
             // when
             var result = accountService.getAccounts(userId);
@@ -275,11 +247,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), accountName)
-                    .set(field(CreateAccountCommand::currency), currency)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), accountName).set(field(CreateAccountCommand::currency), currency).set(field(CreateAccountCommand::userId), userId).create());
 
             // when
             var result = accountService.getById(account.id(), userId);
@@ -303,9 +271,7 @@ public class AccountServiceTest {
             userExistsInGroup(userId, groupId);
 
             // when & then
-            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, userId))
-                    .isInstanceOf(AccountNotFoundException.class)
-                    .hasMessageContaining("Account not found");
+            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, userId)).isInstanceOf(AccountNotFoundException.class).hasMessageContaining("Account not found");
         }
 
         @Test
@@ -314,11 +280,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), "Complete Account")
-                    .set(field(CreateAccountCommand::currency), GBP)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "Complete Account").set(field(CreateAccountCommand::currency), GBP).set(field(CreateAccountCommand::userId), userId).create());
 
             // when
             var retrievedAccount = accountService.getById(account.id(), userId);
@@ -366,8 +328,7 @@ public class AccountServiceTest {
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
 
             // when & then
-            assertThatThrownBy(() -> accountService.getById(account.id(), requestingUserId))
-                    .isInstanceOf(AccountNotFoundException.class);
+            assertThatThrownBy(() -> accountService.getById(account.id(), requestingUserId)).isInstanceOf(AccountNotFoundException.class);
         }
 
         @Test
@@ -379,9 +340,7 @@ public class AccountServiceTest {
             var nonExistentAccountId = AccountId.generate();
 
             // when & then
-            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, userId))
-                    .isInstanceOf(AccountNotFoundException.class)
-                    .hasMessageContaining("Account not found");
+            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, userId)).isInstanceOf(AccountNotFoundException.class).hasMessageContaining("Account not found");
         }
 
         @Test
@@ -409,9 +368,7 @@ public class AccountServiceTest {
             var nonExistentAccountId = AccountId.generate();
 
             // when & then
-            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, groupId))
-                    .isInstanceOf(AccountNotFoundException.class)
-                    .hasMessageContaining("Account not found");
+            assertThatThrownBy(() -> accountService.getById(nonExistentAccountId, groupId)).isInstanceOf(AccountNotFoundException.class).hasMessageContaining("Account not found");
         }
 
         @Test
@@ -425,8 +382,7 @@ public class AccountServiceTest {
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
 
             // when & then
-            assertThatThrownBy(() -> accountService.getById(account.id(), differentGroupId))
-                    .isInstanceOf(AccountNotFoundException.class);
+            assertThatThrownBy(() -> accountService.getById(account.id(), differentGroupId)).isInstanceOf(AccountNotFoundException.class);
         }
     }
 
@@ -438,11 +394,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), "Original Name")
-                    .set(field(CreateAccountCommand::currency), PLN)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "Original Name").set(field(CreateAccountCommand::currency), PLN).set(field(CreateAccountCommand::userId), userId).create());
             var newName = "Updated Name";
 
             // when
@@ -461,8 +413,7 @@ public class AccountServiceTest {
             var newName = "Updated Name";
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(nonExistentAccountId, newName, GroupId.generate()))
-                    .isInstanceOf(AccountNotFoundException.class);
+            assertThatThrownBy(() -> accountService.updateAccount(nonExistentAccountId, newName, GroupId.generate())).isInstanceOf(AccountNotFoundException.class);
         }
 
         @Test
@@ -471,16 +422,11 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), "Original Name")
-                    .set(field(CreateAccountCommand::currency), PLN)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "Original Name").set(field(CreateAccountCommand::currency), PLN).set(field(CreateAccountCommand::userId), userId).create());
             var emptyName = "";
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(account.id(), emptyName, groupId))
-                    .isInstanceOf(AccountNameEmptyException.class);
+            assertThatThrownBy(() -> accountService.updateAccount(account.id(), emptyName, groupId)).isInstanceOf(AccountNameEmptyException.class);
 
             // and
             var retrievedAccount = accountService.getById(account.id(), userId);
@@ -493,20 +439,11 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), "Account One")
-                    .set(field(CreateAccountCommand::currency), PLN)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
-            var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
-                    .set(field(CreateAccountCommand::name), "Account Two")
-                    .set(field(CreateAccountCommand::currency), PLN)
-                    .set(field(CreateAccountCommand::userId), userId)
-                    .create());
+            var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "Account One").set(field(CreateAccountCommand::currency), PLN).set(field(CreateAccountCommand::userId), userId).create());
+            var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::name), "Account Two").set(field(CreateAccountCommand::currency), PLN).set(field(CreateAccountCommand::userId), userId).create());
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(account2.id(), "Account One", groupId))
-                    .isInstanceOf(AccountAlreadyExistsException.class);
+            assertThatThrownBy(() -> accountService.updateAccount(account2.id(), "Account One", groupId)).isInstanceOf(AccountAlreadyExistsException.class);
 
             // verify original names are preserved
             var retrievedAccount1 = accountService.getById(account1.id(), userId);
@@ -524,13 +461,30 @@ public class AccountServiceTest {
             // given
             var userId = UserId.generate();
             userExistsInGroup(userId, GroupId.generate());
-            var account = accountService.createAccount(new CreateAccountCommand("Test Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand(randomUUID().toString(), PLN, userId));
 
             // when
             accountService.deleteAccount(account.id(), userId);
 
             // then
             assertThat(accountService.getAccounts(userId)).isEmpty();
+        }
+
+        @Test
+        void shouldRejectDeletionWhenAccountHasTransactions() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand(randomUUID().toString(), PLN, userId));
+
+            when(transactionQueryFacade.hasTransactions(account.id(), groupId)).thenReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> accountService.deleteAccount(account.id(), userId)).isInstanceOf(AccountHasTransactionsException.class);
+
+            // and
+            assertThat(accountService.getAccounts(userId)).hasSize(1);
         }
 
         @Test
@@ -541,22 +495,7 @@ public class AccountServiceTest {
             userExistsInGroup(userId, GroupId.generate());
 
             // when & then
-            assertThatThrownBy(() -> accountService.deleteAccount(nonExistentAccountId, userId))
-                    .isInstanceOf(AccountNotFoundException.class);
-        }
-
-        @Test
-        void shouldRejectDeletionOfAccountWithTransactionHistory() {
-            // given
-            var userId = UserId.generate();
-            userExistsInGroup(userId, GroupId.generate());
-            var account = accountService.createAccount(new CreateAccountCommand("Account With Transactions", PLN, userId));
-            accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("100.00"), PLN), EXPENSE, userId);
-
-            // when & then
-            assertThatThrownBy(() -> accountService.deleteAccount(account.id(), userId))
-                    .isInstanceOf(CannotDeleteAccountWithTransactionsException.class);
-            assertThat(accountService.getAccounts(userId)).hasSize(1);
+            assertThatThrownBy(() -> accountService.deleteAccount(nonExistentAccountId, userId)).isInstanceOf(AccountNotFoundException.class);
         }
 
         @Test
@@ -565,7 +504,7 @@ public class AccountServiceTest {
             var groupId = GroupId.generate();
             var userId = UserId.generate();
             userExistsInGroup(userId, groupId);
-            var account = accountService.createAccount(new CreateAccountCommand("Test Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand(randomUUID().toString(), PLN, userId));
 
             // when
             accountService.deleteAccount(account.id(), userId);
@@ -588,10 +527,9 @@ public class AccountServiceTest {
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
-            assertThatThrownBy(() -> accountService.deleteAccount(account.id(), attemptingUserId))
-                    .isInstanceOf(AccountNotFoundException.class);
+            assertThatThrownBy(() -> accountService.deleteAccount(account.id(), attemptingUserId)).isInstanceOf(AccountNotFoundException.class);
 
-            // verify account still exists
+            // and
             assertThat(accountService.getAccounts(accountOwnerUserId)).hasSize(1);
         }
     }
@@ -673,8 +611,7 @@ public class AccountServiceTest {
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
-            assertThatThrownBy(() -> accountService.getById(account.id(), requestingUserId))
-                    .isInstanceOf(AccountNotFoundException.class);
+            assertThatThrownBy(() -> accountService.getById(account.id(), requestingUserId)).isInstanceOf(AccountNotFoundException.class);
         }
 
         @Test
@@ -688,8 +625,7 @@ public class AccountServiceTest {
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
-            assertThatThrownBy(() -> accountService.updateAccount(account.id(), "New Name", attemptingGroupId))
-                    .isInstanceOf(AccountNotFoundException.class);
+            assertThatThrownBy(() -> accountService.updateAccount(account.id(), "New Name", attemptingGroupId)).isInstanceOf(AccountNotFoundException.class);
         }
 
         @Test
@@ -706,8 +642,7 @@ public class AccountServiceTest {
             var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
-            assertThatThrownBy(() -> accountService.deleteAccount(account.id(), attemptingUserId))
-                    .isInstanceOf(AccountNotFoundException.class);
+            assertThatThrownBy(() -> accountService.deleteAccount(account.id(), attemptingUserId)).isInstanceOf(AccountNotFoundException.class);
 
             // verify account still exists
             assertThat(accountService.getAccounts(accountOwnerUserId)).hasSize(1);

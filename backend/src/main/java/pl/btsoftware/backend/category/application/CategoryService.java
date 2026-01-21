@@ -76,7 +76,7 @@ public class CategoryService {
             throw new CategoryAccessDeniedException();
         }
 
-        if (transactionQueryFacade.categoryHasTransactions(categoryId, user.groupId())) {
+        if (transactionQueryFacade.hasTransactions(categoryId, user.groupId())) {
             throw new CategoryHasTransactionsException(categoryId);
         }
 

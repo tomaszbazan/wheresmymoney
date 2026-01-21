@@ -8,6 +8,7 @@ import pl.btsoftware.backend.account.domain.AccountRepository;
 import pl.btsoftware.backend.account.infrastructure.api.AccountController;
 import pl.btsoftware.backend.account.infrastructure.persistance.AccountJpaRepository;
 import pl.btsoftware.backend.account.infrastructure.persistance.JpaAccountRepository;
+import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 
 @Configuration
@@ -19,8 +20,8 @@ public class AccountModuleConfiguration {
     }
 
     @Bean
-    public AccountService accountService(AccountRepository accountRepository, UsersModuleFacade usersModuleFacade) {
-        return new AccountService(accountRepository, usersModuleFacade);
+    public AccountService accountService(AccountRepository accountRepository, UsersModuleFacade usersModuleFacade, TransactionQueryFacade transactionQueryFacade) {
+        return new AccountService(accountRepository, usersModuleFacade, transactionQueryFacade);
     }
 
     @Bean

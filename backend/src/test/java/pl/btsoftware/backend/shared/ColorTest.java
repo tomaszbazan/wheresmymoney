@@ -3,6 +3,8 @@ package pl.btsoftware.backend.shared;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import pl.btsoftware.backend.shared.error.ColorInvalidFormatException;
+import pl.btsoftware.backend.shared.error.ColorValueNullException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -61,7 +63,7 @@ class ColorTest {
     void shouldRejectInvalidHexColors(String invalidColor) {
         // when & then
         assertThatThrownBy(() -> Color.of(invalidColor))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ColorInvalidFormatException.class)
                 .hasMessage("Color must be in format #AABBCC, got: " + invalidColor);
     }
 
@@ -69,7 +71,7 @@ class ColorTest {
     void shouldRejectNullColor() {
         // when & then
         assertThatThrownBy(() -> Color.of(null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ColorValueNullException.class)
                 .hasMessage("Color value cannot be null");
     }
 

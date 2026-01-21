@@ -128,7 +128,7 @@ public class TransactionServiceTest {
         var userId = createTestUser();
         var categoryId = createExpenseCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        accountModuleFacade.addTransaction(accountId.id(), TransactionId.generate(), Money.of(new BigDecimal("200.00"), PLN), INCOME, userId);
+        accountModuleFacade.addTransaction(accountId.id(), Money.of(new BigDecimal("200.00"), PLN), INCOME, userId);
 
         var command = new CreateTransactionCommand(
                 accountId.id(),
@@ -515,7 +515,7 @@ public class TransactionServiceTest {
         var userId = createTestUser();
         var categoryId = createExpenseCategory(userId);
         var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        accountModuleFacade.addTransaction(accountId.id(), TransactionId.generate(), new Money(new BigDecimal("200.00"), PLN), INCOME, userId);
+        accountModuleFacade.addTransaction(accountId.id(), new Money(new BigDecimal("200.00"), PLN), INCOME, userId);
 
         var createCommand = new CreateTransactionCommand(
                 accountId.id(),

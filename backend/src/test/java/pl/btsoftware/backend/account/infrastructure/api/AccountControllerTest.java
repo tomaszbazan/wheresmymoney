@@ -25,7 +25,6 @@ import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.users.domain.UserId;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -346,7 +345,6 @@ public class AccountControllerTest {
                 accountId,
                 name,
                 Money.of(BigDecimal.ZERO, currency),
-                new ArrayList<>(),
                 Instancio.create(AuditInfo.class),
                 Instancio.create(AuditInfo.class),
                 Tombstone.active()
@@ -358,7 +356,6 @@ public class AccountControllerTest {
                 accountId,
                 name,
                 Money.of(BigDecimal.ZERO, currency),
-                new ArrayList<>(),
                 Instancio.of(AuditInfo.class).set(field(AuditInfo::who), userId).create(),
                 Instancio.create(AuditInfo.class),
                 Tombstone.active()

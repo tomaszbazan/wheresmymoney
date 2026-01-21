@@ -8,7 +8,6 @@ import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -130,7 +129,7 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), INCOME, userId);
+        accountService.addTransaction(account.id(), Money.of(new BigDecimal("500"), PLN), INCOME, userId);
 
         // then
         var updatedAccount = accountService.getById(account.id(), userId);
@@ -145,7 +144,7 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        accountService.addTransaction(account.id(), TransactionId.generate(), Money.of(new BigDecimal("500"), PLN), EXPENSE, userId);
+        accountService.addTransaction(account.id(), Money.of(new BigDecimal("500"), PLN), EXPENSE, userId);
 
         // then
         var updatedAccount = accountService.getById(account.id(), userId);

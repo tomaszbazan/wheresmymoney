@@ -10,11 +10,19 @@ import java.util.Optional;
 
 public interface TransactionRepository {
     void store(Transaction transaction);
+
     Optional<Transaction> findById(TransactionId id, GroupId groupId);
+
     Optional<Transaction> findByIdIncludingDeleted(TransactionId id, GroupId groupId);
+
     List<Transaction> findAll(GroupId groupId);
+
     List<Transaction> findByAccountId(AccountId accountId, GroupId groupId);
+
     boolean existsByCategoryId(CategoryId categoryId, GroupId groupId);
+
+    boolean existsByAccountId(AccountId accountId, GroupId groupId);
+
     Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId);
 
     List<TransactionHash> findExistingHashes(AccountId accountId, List<TransactionHash> hashes, GroupId groupId);

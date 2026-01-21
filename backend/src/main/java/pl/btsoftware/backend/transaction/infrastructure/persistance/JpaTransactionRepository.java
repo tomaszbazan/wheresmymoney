@@ -29,28 +29,22 @@ public class JpaTransactionRepository implements TransactionRepository {
 
     @Override
     public Optional<Transaction> findById(TransactionId id, GroupId groupId) {
-        return repository.findByIdAndCreatedByGroupAndIsDeletedFalse(id.value(), groupId.value())
-                .map(TransactionEntity::toDomain);
+        return repository.findByIdAndCreatedByGroupAndIsDeletedFalse(id.value(), groupId.value()).map(TransactionEntity::toDomain);
     }
 
     @Override
     public Optional<Transaction> findByIdIncludingDeleted(TransactionId id, GroupId groupId) {
-        return repository.findByIdAndCreatedByGroup(id.value(), groupId.value())
-                .map(TransactionEntity::toDomain);
+        return repository.findByIdAndCreatedByGroup(id.value(), groupId.value()).map(TransactionEntity::toDomain);
     }
 
     @Override
     public List<Transaction> findAll(GroupId groupId) {
-        return repository.findByCreatedByGroupAndIsDeletedFalse(groupId.value()).stream()
-                .map(TransactionEntity::toDomain)
-                .toList();
+        return repository.findByCreatedByGroupAndIsDeletedFalse(groupId.value()).stream().map(TransactionEntity::toDomain).toList();
     }
 
     @Override
     public List<Transaction> findByAccountId(AccountId accountId, GroupId groupId) {
-        return repository.findByAccountIdAndCreatedByGroupAndIsDeletedFalse(accountId.value(), groupId.value()).stream()
-                .map(TransactionEntity::toDomain)
-                .toList();
+        return repository.findByAccountIdAndCreatedByGroupAndIsDeletedFalse(accountId.value(), groupId.value()).stream().map(TransactionEntity::toDomain).toList();
     }
 
     @Override
@@ -59,20 +53,19 @@ public class JpaTransactionRepository implements TransactionRepository {
     }
 
     @Override
+    public boolean existsByAccountId(AccountId accountId, GroupId groupId) {
+        return repository.existsByAccountIdAndCreatedByGroupAndIsDeletedFalse(accountId.value(), groupId.value());
+    }
+
+    @Override
     public Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId) {
-        return repository.findByAccountIdAndTransactionHashAndCreatedByGroupAndIsDeletedFalse(accountId.value(), hash.value(), groupId.value())
-                .map(TransactionEntity::toDomain);
+        return repository.findByAccountIdAndTransactionHashAndCreatedByGroupAndIsDeletedFalse(accountId.value(), hash.value(), groupId.value()).map(TransactionEntity::toDomain);
     }
 
     @Override
     public List<TransactionHash> findExistingHashes(AccountId accountId, List<TransactionHash> hashes, GroupId groupId) {
-        var hashValues = hashes.stream()
-                .map(TransactionHash::value)
-                .toList();
+        var hashValues = hashes.stream().map(TransactionHash::value).toList();
 
-        return repository.findExistingHashesByAccountIdAndHashesInAndCreatedByGroup(accountId.value(), hashValues, groupId.value())
-                .stream()
-                .map(TransactionHash::new)
-                .toList();
+        return repository.findExistingHashesByAccountIdAndHashesInAndCreatedByGroup(accountId.value(), hashValues, groupId.value()).stream().map(TransactionHash::new).toList();
     }
 }

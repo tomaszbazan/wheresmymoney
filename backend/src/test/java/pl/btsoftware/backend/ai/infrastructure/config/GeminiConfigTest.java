@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class GeminiConfigTest {
 
@@ -37,6 +38,7 @@ class GeminiConfigTest {
     @Test
     void shouldThrowExceptionWhenApiKeyIsMissing() {
         // given
+        assumeTrue(System.getenv("GEMINI_API_KEY") == null, "Test skipped because GEMINI_API_KEY environment variable is set");
         System.clearProperty("GEMINI_API_KEY");
 
         // when & then

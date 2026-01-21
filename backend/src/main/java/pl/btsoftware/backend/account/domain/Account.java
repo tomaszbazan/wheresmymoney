@@ -5,59 +5,51 @@ import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 import pl.btsoftware.backend.account.domain.error.AccountNameInvalidCharactersException;
 import pl.btsoftware.backend.account.domain.error.AccountNameTooLongException;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.shared.validation.NameValidationRules;
+import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import static pl.btsoftware.backend.shared.Currency.DEFAULT;
 import static pl.btsoftware.backend.shared.Money.zero;
 
-public record Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds,
+public record Account(AccountId id, String name, Money balance,
                       AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
-    public Account(AccountId id, String name, Money balance, List<TransactionId> transactionIds, AuditInfo createdInfo,
+    public Account(AccountId id, String name, Money balance, AuditInfo createdInfo,
                    AuditInfo updatedInfo, Tombstone tombstone) {
         validateAccountName(name);
         this.id = id;
         this.name = name.trim();
         this.balance = balance;
-        this.transactionIds = transactionIds != null ? List.copyOf(transactionIds) : List.of();
         this.createdInfo = createdInfo;
         this.updatedInfo = updatedInfo;
         this.tombstone = tombstone;
     }
 
     public Account(AccountId id, String name, @Nullable Currency currency, UserView createdBy) {
-        this(id, name, zero(currency == null ? DEFAULT : currency), new ArrayList<>(),
+        this(id, name, zero(currency == null ? DEFAULT : currency),
                 AuditInfo.create(createdBy.id(), createdBy.groupId()), AuditInfo.create(createdBy.id(), createdBy.groupId()), Tombstone.active());
     }
 
     public Account(AccountId id, String name, Money balance, AuditInfo createBy) {
-        this(id, name, balance, new ArrayList<>(), createBy, createBy.updateTimestamp(), Tombstone.active());
+        this(id, name, balance, createBy, createBy.updateTimestamp(), Tombstone.active());
     }
 
     private static void validateAccountName(String newName) {
-        if (newName == null || newName.isBlank()) {
-            throw new AccountNameEmptyException();
-        }
-        if (newName.length() > 100) {
-            throw new AccountNameTooLongException();
-        }
-        if (!newName.matches("^[^<>&\"'\\;\\\\/\\|\\$\\`\\n\\r\\t\\x00-\\x1F]+$")) {
-            throw new AccountNameInvalidCharactersException();
-        }
+        NameValidationRules.validate(
+                newName,
+                AccountNameEmptyException::new,
+                AccountNameTooLongException::new,
+                AccountNameInvalidCharactersException::new
+        );
     }
 
     public Account changeName(String newName) {
         validateAccountName(newName);
-        return new Account(id, newName, balance, transactionIds, createdInfo, updatedInfo.updateTimestamp(), tombstone);
-    }
-
-    public boolean hasAnyTransaction() {
-        return !transactionIds.isEmpty();
+        return new Account(id, newName, balance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     public UserId createdBy() {
@@ -80,16 +72,16 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
         return updatedInfo.when();
     }
 
-    public Account addTransaction(TransactionId transactionId, Money amount, TransactionType transactionType) {
+    public Account addTransaction(Money amount, TransactionType transactionType) {
         if (balance().currency() != amount.currency()) {
-            throw new IllegalArgumentException("Transaction currency must match account currency");
+            throw new TransactionCurrencyMismatchException(amount.currency(), balance().currency());
         }
         switch (transactionType) {
             case INCOME -> {
-                return updateBalance(amount).addTransactionId(transactionId);
+                return updateBalance(amount);
             }
             case EXPENSE -> {
-                return updateBalance(amount.negate()).addTransactionId(transactionId);
+                return updateBalance(amount.negate());
             }
             default -> {
                 return this;
@@ -97,16 +89,16 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
         }
     }
 
-    public Account removeTransaction(TransactionId transactionId, Money amount, TransactionType transactionType) {
+    public Account removeTransaction(Money amount, TransactionType transactionType) {
         if (balance().currency() != amount.currency()) {
-            throw new IllegalArgumentException("Transaction currency must match account currency");
+            throw new TransactionCurrencyMismatchException(amount.currency(), balance().currency());
         }
         switch (transactionType) {
             case INCOME -> {
-                return updateBalance(amount.negate()).removeTransactionId(transactionId);
+                return updateBalance(amount.negate());
             }
             case EXPENSE -> {
-                return updateBalance(amount).removeTransactionId(transactionId);
+                return updateBalance(amount);
             }
             default -> {
                 return this;
@@ -114,20 +106,17 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
         }
     }
 
-    public Account changeTransaction(TransactionId transactionId, Money oldAmount, Money newAmount, TransactionType transactionType) {
+    public Account changeTransaction(Money oldAmount, Money newAmount, TransactionType transactionType) {
         if (balance().currency() != oldAmount.currency() && balance().currency() != newAmount.currency()) {
-            throw new IllegalArgumentException("Transaction currency must match account currency");
-        }
-        if (!transactionIds.contains(transactionId)) {
-            throw new IllegalArgumentException("Transaction ID not found in account");
+            throw new TransactionCurrencyMismatchException(newAmount.currency(), balance().currency());
         }
         var balanceChange = newAmount.subtract(oldAmount);
         switch (transactionType) {
             case INCOME -> {
-                return updateBalance(balanceChange).removeTransactionId(transactionId).addTransactionId(transactionId);
+                return updateBalance(balanceChange);
             }
             case EXPENSE -> {
-                return updateBalance(balanceChange.negate()).removeTransactionId(transactionId).addTransactionId(transactionId);
+                return updateBalance(balanceChange.negate());
             }
             default -> {
                 return this;
@@ -135,25 +124,13 @@ public record Account(AccountId id, String name, Money balance, List<Transaction
         }
     }
 
-    private Account addTransactionId(TransactionId transactionId) {
-        List<TransactionId> updatedTransactionIds = new ArrayList<>(transactionIds);
-        updatedTransactionIds.add(transactionId);
-        return new Account(id, name, balance, updatedTransactionIds, createdInfo, updatedInfo.updateTimestamp(), tombstone);
-    }
-
-    private Account removeTransactionId(TransactionId transactionId) {
-        List<TransactionId> updatedTransactionIds = new ArrayList<>(transactionIds);
-        updatedTransactionIds.remove(transactionId);
-        return new Account(id, name, balance, updatedTransactionIds, createdInfo, updatedInfo.updateTimestamp(), tombstone);
-    }
-
     private Account updateBalance(Money transactionAmount) {
         Money newBalance = balance.add(transactionAmount);
-        return new Account(id, name, newBalance, transactionIds, createdInfo, updatedInfo.updateTimestamp(), tombstone);
+        return new Account(id, name, newBalance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     public Account delete() {
-        return new Account(id, name, balance, transactionIds, createdInfo, updatedInfo, Tombstone.deleted());
+        return new Account(id, name, balance, createdInfo, updatedInfo, Tombstone.deleted());
     }
 
     public boolean isDeleted() {

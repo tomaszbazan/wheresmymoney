@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.domain;
 
 import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.transaction.domain.error.TransactionHashInvalidException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -11,35 +12,35 @@ class TransactionHashTest {
     void shouldThrowExceptionWhenHashIsNull() {
         // given & when & then
         assertThatThrownBy(() -> new TransactionHash(null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(TransactionHashInvalidException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenHashIsNotHexadecimal() {
         // given & when & then
         assertThatThrownBy(() -> new TransactionHash("not-a-hash"))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(TransactionHashInvalidException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenHashIsTooShort() {
         // given & when & then
         assertThatThrownBy(() -> new TransactionHash("a".repeat(63)))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(TransactionHashInvalidException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenHashIsTooLong() {
         // given & when & then
         assertThatThrownBy(() -> new TransactionHash("a".repeat(65)))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(TransactionHashInvalidException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenHashContainsUppercaseLetters() {
         // given & when & then
         assertThatThrownBy(() -> new TransactionHash("A".repeat(64)))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(TransactionHashInvalidException.class);
     }
 
     @Test

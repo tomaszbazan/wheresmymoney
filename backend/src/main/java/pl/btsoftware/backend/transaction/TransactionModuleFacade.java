@@ -5,7 +5,6 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.application.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.UserId;
 
@@ -16,7 +15,6 @@ import java.util.UUID;
 public class TransactionModuleFacade {
     private final TransactionService transactionService;
     private final UsersModuleFacade usersModuleFacade;
-    private final TransactionRepository transactionRepository;
 
     public Transaction createTransaction(CreateTransactionCommand command) {
         return transactionService.createTransaction(command);
