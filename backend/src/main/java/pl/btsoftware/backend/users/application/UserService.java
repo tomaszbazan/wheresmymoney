@@ -57,7 +57,7 @@ public class UserService {
     private User registerUserInNewGroup(RegisterUserCommand command) {
         String groupName = command.groupName() != null && !command.groupName().trim().isEmpty()
                 ? command.groupName().trim()
-                : command.displayName() + "'s Group";
+                : command.displayName() + " Group";
 
         var user = User.create(
                 new UserId(command.externalAuthId()),

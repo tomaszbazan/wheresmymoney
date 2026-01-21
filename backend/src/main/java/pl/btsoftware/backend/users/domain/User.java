@@ -1,6 +1,9 @@
 package pl.btsoftware.backend.users.domain;
 
+import pl.btsoftware.backend.shared.validation.NameValidationRules;
 import pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException;
+import pl.btsoftware.backend.users.domain.error.DisplayNameInvalidCharactersException;
+import pl.btsoftware.backend.users.domain.error.DisplayNameTooLongException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
 import java.time.Instant;
@@ -46,8 +49,11 @@ public record User(UserId id, String email, String displayName, GroupId groupId,
     }
 
     private void validateDisplayName(String displayName) {
-        if (displayName == null || displayName.trim().isEmpty()) {
-            throw new DisplayNameEmptyException();
-        }
+        NameValidationRules.validate(
+                displayName,
+                DisplayNameEmptyException::new,
+                DisplayNameTooLongException::new,
+                DisplayNameInvalidCharactersException::new
+        );
     }
 }

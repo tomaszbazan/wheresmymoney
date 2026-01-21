@@ -2,6 +2,8 @@ package pl.btsoftware.backend.users.domain;
 
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException;
+import pl.btsoftware.backend.users.domain.error.DisplayNameInvalidCharactersException;
+import pl.btsoftware.backend.users.domain.error.DisplayNameTooLongException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
 import java.time.Instant;
@@ -67,6 +69,18 @@ class UserTest {
     void shouldThrowExceptionWhenDisplayNameIsBlank() {
         assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "test@example.com", "   ", GroupId.generate()))
                 .isInstanceOf(DisplayNameEmptyException.class);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDisplayNameIsTooLong() {
+        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "test@example.com", "a".repeat(101), GroupId.generate()))
+                .isInstanceOf(DisplayNameTooLongException.class);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDisplayNameContainsInvalidCharacters() {
+        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "test@example.com", "John<Doe>", GroupId.generate()))
+                .isInstanceOf(DisplayNameInvalidCharactersException.class);
     }
 
     @Test

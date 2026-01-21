@@ -2,6 +2,7 @@ package pl.btsoftware.backend.users.domain;
 
 import lombok.AccessLevel;
 import lombok.With;
+import pl.btsoftware.backend.users.domain.error.InvitationNotPendingException;
 import pl.btsoftware.backend.users.domain.error.InvitationTokenExpiredException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
@@ -59,7 +60,7 @@ public record GroupInvitation(GroupInvitationId id, GroupId groupId, String invi
 
     private void invitationIsPending() {
         if (!isPending()) {
-            throw new IllegalStateException("Invitation is not in pending status");
+            throw new InvitationNotPendingException();
         }
     }
 

@@ -1,7 +1,10 @@
 package pl.btsoftware.backend.users.domain;
 
 import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.users.domain.error.CannotRemoveLastGroupMemberException;
 import pl.btsoftware.backend.users.domain.error.GroupNameEmptyException;
+import pl.btsoftware.backend.users.domain.error.GroupNameInvalidCharactersException;
+import pl.btsoftware.backend.users.domain.error.GroupNameTooLongException;
 
 import java.time.Instant;
 import java.util.Set;
@@ -57,6 +60,18 @@ class GroupTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenNameIsTooLong() {
+        assertThatThrownBy(() -> Group.create("a".repeat(101), "Description", UserId.generate()))
+                .isInstanceOf(GroupNameTooLongException.class);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenNameContainsInvalidCharacters() {
+        assertThatThrownBy(() -> Group.create("Test<Group>", "Description", UserId.generate()))
+                .isInstanceOf(GroupNameInvalidCharactersException.class);
+    }
+
+    @Test
     void shouldTrimNameAndDescription() {
         String name = "  Test Group  ";
         String description = "  Test Description  ";
@@ -100,7 +115,7 @@ class GroupTest {
 
         // when & then
         assertThatThrownBy(() -> group.removeMember(creator))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(CannotRemoveLastGroupMemberException.class);
     }
 
     @Test

@@ -3,11 +3,14 @@ package pl.btsoftware.backend.category.domain;
 import lombok.With;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.category.application.UpdateCategoryCommand;
+import pl.btsoftware.backend.category.domain.error.CategoryNameEmptyException;
+import pl.btsoftware.backend.category.domain.error.CategoryNameInvalidCharactersException;
 import pl.btsoftware.backend.category.domain.error.CategoryNameTooLongException;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.shared.Color;
 import pl.btsoftware.backend.shared.Tombstone;
+import pl.btsoftware.backend.shared.validation.NameValidationRules;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
@@ -26,7 +29,7 @@ public record Category(
         Tombstone tombstone) {
     public Category(CategoryId id, String name, CategoryType type, Color color, CategoryId parentId, AuditInfo createdInfo,
                     AuditInfo updatedInfo, Tombstone tombstone) {
-        validateNameLength(name);
+        validateName(name);
         this.id = id;
         this.name = name.trim();
         this.type = type;
@@ -85,10 +88,13 @@ public record Category(
         return updatedInfo.when();
     }
 
-    private static void validateNameLength(String name) {
-        if (name != null && name.length() > 100) {
-            throw new CategoryNameTooLongException();
-        }
+    private static void validateName(String name) {
+        NameValidationRules.validate(
+                name,
+                CategoryNameEmptyException::new,
+                CategoryNameTooLongException::new,
+                CategoryNameInvalidCharactersException::new
+        );
     }
 
     public boolean isDeleted() {

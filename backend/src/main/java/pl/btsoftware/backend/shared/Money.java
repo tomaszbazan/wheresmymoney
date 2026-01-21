@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.shared;
 
 import org.jetbrains.annotations.NotNull;
+import pl.btsoftware.backend.shared.error.MoneyCurrencyMismatchException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -36,14 +37,14 @@ public record Money(BigDecimal value, Currency currency) {
 
     public Money add(Money other) {
         if (!this.currency.equals(other.currency)) {
-            throw new IllegalArgumentException("Cannot add balance with different currencies");
+            throw MoneyCurrencyMismatchException.forAdd(this.currency, other.currency);
         }
         return new Money(this.value.add(other.value), this.currency);
     }
 
     public Money subtract(Money other) {
         if (!this.currency.equals(other.currency)) {
-            throw new IllegalArgumentException("Cannot subtract balance with different currencies");
+            throw MoneyCurrencyMismatchException.forSubtract(this.currency, other.currency);
         }
         return new Money(this.value.subtract(other.value), this.currency);
     }

@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.users.domain;
 
-import pl.btsoftware.backend.users.domain.error.GroupNameEmptyException;
+import pl.btsoftware.backend.shared.validation.NameValidationRules;
+import pl.btsoftware.backend.users.domain.error.*;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -27,7 +28,7 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
         this(id, name, description, memberIds, createdBy, createdAt);
 
         if (validateMembers && memberIds.isEmpty()) {
-            throw new IllegalArgumentException("Group must have at least one member");
+            throw new GroupMustHaveAtLeastOneMemberException();
         }
     }
 
@@ -82,7 +83,7 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
         Objects.requireNonNull(userId, "UserId cannot be null");
 
         if (memberIds.size() <= 1) {
-            throw new IllegalStateException("Cannot remove last member fromGroup group");
+            throw new CannotRemoveLastGroupMemberException();
         }
 
         var newMemberIds = new HashSet<>(memberIds);
@@ -103,8 +104,11 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
     }
 
     private void validateName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new GroupNameEmptyException();
-        }
+        NameValidationRules.validate(
+                name,
+                GroupNameEmptyException::new,
+                GroupNameTooLongException::new,
+                GroupNameInvalidCharactersException::new
+        );
     }
 }

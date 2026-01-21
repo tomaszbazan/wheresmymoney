@@ -58,7 +58,7 @@ class UserServiceTest {
         User user = userService.registerUser(command);
 
         Group group = groupRepository.findById(user.groupId()).get();
-        assertThat(group.name()).isEqualTo("John Doe's Group");
+        assertThat(group.name()).isEqualTo("John Doe Group");
     }
 
     @Test
@@ -70,7 +70,7 @@ class UserServiceTest {
         User user = userService.registerUser(command);
 
         Group group = groupRepository.findById(user.groupId()).get();
-        assertThat(group.name()).isEqualTo("John Doe's Group");
+        assertThat(group.name()).isEqualTo("John Doe Group");
     }
 
     @Test
@@ -169,7 +169,7 @@ class UserServiceTest {
         User user = userService.registerUser(command);
 
         Group group = groupRepository.findById(user.groupId()).get();
-        assertThat(group.name()).isEqualTo("John Doe's Group");
+        assertThat(group.name()).isEqualTo("John Doe Group");
     }
 
     @Test
@@ -217,12 +217,12 @@ class UserServiceTest {
     @Test
     void shouldRegisterUserWithSpecialCharactersInName() {
         RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "Jöhn Döe-Smith", "My Group", null
+                "ext-auth-123", "test@example.com", "John Doe-Smith", "My Group", null
         );
 
         User user = userService.registerUser(command);
 
-        assertThat(user.displayName()).isEqualTo("Jöhn Döe-Smith");
+        assertThat(user.displayName()).isEqualTo("John Doe-Smith");
     }
 
     @Test
@@ -352,13 +352,13 @@ class UserServiceTest {
     @Test
     void shouldCreateDefaultGroupNameWhenDisplayNameContainsSpecialCharacters() {
         RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "Jöhn Döe-Smith", null, null
+                "ext-auth-123", "test@example.com", "John Doe-Smith", null, null
         );
 
         User user = userService.registerUser(command);
 
         Group group = groupRepository.findById(user.groupId()).get();
-        assertThat(group.name()).isEqualTo("Jöhn Döe-Smith's Group");
+        assertThat(group.name()).isEqualTo("John Doe-Smith Group");
     }
 
     @Test

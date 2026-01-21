@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.users.domain;
 
 import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.users.domain.error.InvitationNotPendingException;
 import pl.btsoftware.backend.users.domain.error.InvitationTokenExpiredException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
@@ -102,7 +103,7 @@ class GroupInvitationTest {
         );
 
         assertThatThrownBy(acceptedInvitation::accept)
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(InvitationNotPendingException.class);
     }
 
     @Test

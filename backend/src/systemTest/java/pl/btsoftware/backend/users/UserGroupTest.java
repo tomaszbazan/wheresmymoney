@@ -25,7 +25,7 @@ public class UserGroupTest {
                 externalAuthId1,
                 "user1@example.com",
                 "John Doe",
-                "John's Family Group",
+                "Johns Family Group",
                 null
         );
 
@@ -43,7 +43,7 @@ public class UserGroupTest {
                 .orElseThrow(() -> new AssertionError("Group should exist"));
 
         assertThat(createdGroup).isNotNull();
-        assertThat(createdGroup.name()).isEqualTo("John's Family Group");
+        assertThat(createdGroup.name()).isEqualTo("Johns Family Group");
         assertThat(createdGroup.getMemberCount()).isEqualTo(1);
         assertThat(createdGroup.memberIds()).contains(registeredUser.id());
         assertThat(createdGroup.createdBy()).isEqualTo(registeredUser.id());
@@ -76,7 +76,7 @@ public class UserGroupTest {
                 externalAuthId2,
                 "user2@example.com",
                 "Jane Smith",
-                "Jane's Group",
+                "Janes Group",
                 invitation.invitationToken()
         );
 
@@ -93,7 +93,7 @@ public class UserGroupTest {
                 .orElseThrow(() -> new AssertionError("Group should exist"));
 
         assertThat(finalGroup).isNotNull();
-        assertThat(finalGroup.name()).isEqualTo("John's Family Group");
+        assertThat(finalGroup.name()).isEqualTo("Johns Family Group");
         assertThat(finalGroup.getMemberCount()).isEqualTo(2);
         assertThat(finalGroup.memberIds()).contains(registeredUser.id(), secondUser.id());
 
@@ -105,5 +105,4 @@ public class UserGroupTest {
         assertThat(finalInvitation.isPending()).isFalse();
         assertThat(finalInvitation.status().name()).isEqualTo("ACCEPTED");
     }
-
 }

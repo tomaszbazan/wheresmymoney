@@ -2,6 +2,7 @@ package pl.btsoftware.backend.account.domain;
 
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.error.MoneyCurrencyMismatchException;
 
 import java.math.BigDecimal;
 
@@ -106,7 +107,7 @@ class MoneyTest {
 
         // when & then
         assertThatThrownBy(() -> money1.add(money2))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(MoneyCurrencyMismatchException.class);
     }
 
     @Test
@@ -131,7 +132,7 @@ class MoneyTest {
 
         // when & then
         assertThatThrownBy(() -> money1.subtract(money2))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(MoneyCurrencyMismatchException.class);
     }
 
     @Test
