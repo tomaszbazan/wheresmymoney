@@ -5,8 +5,10 @@ import 'package:frontend/models/transaction_type.dart';
 import '../models/account.dart';
 import '../models/transaction.dart';
 import '../services/transaction_service.dart';
+import '../utils/amount_validator.dart';
 import '../utils/error_handler.dart';
 import 'category_selector.dart';
+import 'date_selector.dart';
 
 class TransactionForm extends StatefulWidget {
   final List<Account> accounts;
@@ -16,21 +18,6 @@ class TransactionForm extends StatefulWidget {
   final TransactionService? transactionService;
 
   const TransactionForm({super.key, required this.accounts, this.transaction, this.type, required this.onSaved, this.transactionService});
-
-  static String normalizeAmount(String amount) {
-    String normalized = amount.trim().replaceAll(',', '.');
-
-    if (!normalized.contains('.')) {
-      normalized = '$normalized.00';
-    } else {
-      final parts = normalized.split('.');
-      if (parts.length == 2 && parts[1].length == 1) {
-        normalized = '${parts[0]}.${parts[1]}0';
-      }
-    }
-
-    return normalized;
-  }
 
   @override
   State<TransactionForm> createState() => _TransactionFormState();
@@ -94,7 +81,7 @@ class _TransactionFormState extends State<TransactionForm> {
     setState(() => _isLoading = true);
 
     try {
-      final normalizedAmount = TransactionForm.normalizeAmount(_amountController.text);
+      final normalizedAmount = AmountValidator.normalize(_amountController.text);
       final Transaction transaction;
 
       if (widget.transaction != null) {
@@ -123,14 +110,6 @@ class _TransactionFormState extends State<TransactionForm> {
       ErrorHandler.showError(context, e);
     } finally {
       setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2020), lastDate: DateTime.now().add(const Duration(days: 365)));
-
-    if (picked != null && picked != _selectedDate) {
-      setState(() => _selectedDate = picked);
     }
   }
 
@@ -176,28 +155,7 @@ class _TransactionFormState extends State<TransactionForm> {
               controller: _amountController,
               decoration: InputDecoration(labelText: 'Kwota', border: const OutlineInputBorder(), prefixText: '$_selectedCurrency ', hintText: '0.00'),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Wprowadź kwotę';
-                }
-
-                final normalizedValue = TransactionForm.normalizeAmount(value);
-                final doubleValue = double.tryParse(normalizedValue);
-                if (doubleValue == null) {
-                  return 'Wprowadź poprawną kwotę';
-                }
-
-                if (doubleValue <= 0) {
-                  return 'Kwota musi być większa od zera';
-                }
-
-                final regex = RegExp(r'^\d+([.,]\d{1,2})?$');
-                if (!regex.hasMatch(value.trim())) {
-                  return 'Wprowadź poprawną kwotę (np. 100, 100.00, 100,50)';
-                }
-
-                return null;
-              },
+              validator: AmountValidator.validate,
             ),
             const SizedBox(height: 16),
 
@@ -221,16 +179,7 @@ class _TransactionFormState extends State<TransactionForm> {
             ),
             const SizedBox(height: 16),
 
-            if (!isEditing) ...[
-              ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: const Text('Data'),
-                subtitle: Text('${_selectedDate.day}.${_selectedDate.month.toString().padLeft(2, '0')}.${_selectedDate.year}'),
-                onTap: _selectDate,
-                contentPadding: EdgeInsets.zero,
-              ),
-              const SizedBox(height: 16),
-            ],
+            if (!isEditing) ...[DateSelector(selectedDate: _selectedDate, onDateChanged: (date) => setState(() => _selectedDate = date)), const SizedBox(height: 16)],
 
             Row(
               mainAxisAlignment: MainAxisAlignment.end,

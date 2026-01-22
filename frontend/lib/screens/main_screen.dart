@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/category_type.dart';
 import '../models/transaction_type.dart';
 import '../widgets/bottom_navigation.dart';
+import '../widgets/keyboard_navigation_wrapper.dart';
 import '../widgets/logout_dialog.dart';
 import '../widgets/side_menu.dart';
 import 'accounts_page.dart';
@@ -21,6 +22,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
   int _selectedIndex = 0;
   bool _isMenuExpanded = true;
   late TabController _tabController;
+  late FocusNode _focusNode;
 
   final List<Widget> _pages = <Widget>[
     const StatisticsPage(),
@@ -35,6 +37,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _tabController = TabController(length: _pages.length, vsync: this);
+    _focusNode = FocusNode();
   }
 
   void _onItemTapped(int index) {
@@ -47,6 +50,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
   @override
   void dispose() {
     _tabController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -65,22 +69,30 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     final isMobile = _isMobile(context);
 
     if (isMobile) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Where\'s My Money'),
-          actions: [IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: () => _showLogoutDialog(context))],
+      return KeyboardNavigationWrapper(
+        focusNode: _focusNode,
+        onTabSelected: _onItemTapped,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Where\'s My Money'),
+            actions: [IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: () => _showLogoutDialog(context))],
+          ),
+          body: TabBarView(controller: _tabController, physics: const NeverScrollableScrollPhysics(), children: _pages),
+          bottomNavigationBar: BottomNavigation(selectedIndex: _selectedIndex, onItemTapped: _onItemTapped),
         ),
-        body: TabBarView(controller: _tabController, physics: const NeverScrollableScrollPhysics(), children: _pages),
-        bottomNavigationBar: BottomNavigation(selectedIndex: _selectedIndex, onItemTapped: _onItemTapped),
       );
     }
 
-    return Scaffold(
-      body: Row(
-        children: [
-          SideMenu(isExpanded: _isMenuExpanded, selectedIndex: _selectedIndex, onItemTapped: _onItemTapped, onToggle: _toggleMenu),
-          Expanded(child: TabBarView(controller: _tabController, physics: const NeverScrollableScrollPhysics(), children: _pages)),
-        ],
+    return KeyboardNavigationWrapper(
+      focusNode: _focusNode,
+      onTabSelected: _onItemTapped,
+      child: Scaffold(
+        body: Row(
+          children: [
+            SideMenu(isExpanded: _isMenuExpanded, selectedIndex: _selectedIndex, onItemTapped: _onItemTapped, onToggle: _toggleMenu, isFocused: _focusNode.hasFocus),
+            Expanded(child: TabBarView(controller: _tabController, physics: const NeverScrollableScrollPhysics(), children: _pages)),
+          ],
+        ),
       ),
     );
   }

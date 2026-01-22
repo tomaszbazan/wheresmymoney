@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
+import 'package:frontend/utils/amount_validator.dart';
 import 'package:frontend/widgets/transaction_form.dart';
 
 import '../mocks/in_memory_transaction_service.dart';
@@ -9,27 +10,27 @@ import '../test_setup.dart';
 void main() {
   group('TransactionForm Amount Normalization', () {
     test('should normalize amount 100 to 100.00', () {
-      expect(TransactionForm.normalizeAmount('100'), equals('100.00'));
+      expect(AmountValidator.normalize('100'), equals('100.00'));
     });
 
     test('should normalize amount 100,00 to 100.00', () {
-      expect(TransactionForm.normalizeAmount('100,00'), equals('100.00'));
+      expect(AmountValidator.normalize('100,00'), equals('100.00'));
     });
 
     test('should normalize amount 100,5 to 100.50', () {
-      expect(TransactionForm.normalizeAmount('100,5'), equals('100.50'));
+      expect(AmountValidator.normalize('100,5'), equals('100.50'));
     });
 
     test('should normalize amount 100.5 to 100.50', () {
-      expect(TransactionForm.normalizeAmount('100.5'), equals('100.50'));
+      expect(AmountValidator.normalize('100.5'), equals('100.50'));
     });
 
     test('should keep amount 100.00 as 100.00', () {
-      expect(TransactionForm.normalizeAmount('100.00'), equals('100.00'));
+      expect(AmountValidator.normalize('100.00'), equals('100.00'));
     });
 
     test('should handle whitespace in amount', () {
-      expect(TransactionForm.normalizeAmount(' 100 '), equals('100.00'));
+      expect(AmountValidator.normalize(' 100 '), equals('100.00'));
     });
   });
 

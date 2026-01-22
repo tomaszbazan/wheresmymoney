@@ -7,8 +7,9 @@ class SideMenu extends StatelessWidget {
   final int selectedIndex;
   final void Function(int) onItemTapped;
   final VoidCallback onToggle;
+  final bool isFocused;
 
-  const SideMenu({super.key, required this.isExpanded, required this.selectedIndex, required this.onItemTapped, required this.onToggle});
+  const SideMenu({super.key, required this.isExpanded, required this.selectedIndex, required this.onItemTapped, required this.onToggle, this.isFocused = false});
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +66,13 @@ class SideMenu extends StatelessWidget {
   }
 
   Widget _buildMenuItem({required int index, required IconData icon, required String title}) {
-    return ListTile(leading: Icon(icon), title: isExpanded ? Text(title) : null, selected: selectedIndex == index, onTap: () => onItemTapped(index));
+    final isSelected = selectedIndex == index;
+    final showFocusIndicator = isFocused && isSelected;
+
+    return Container(
+      decoration: BoxDecoration(border: showFocusIndicator ? Border.all(color: Colors.blue.shade300, width: 2) : null),
+      child: ListTile(leading: Icon(icon), title: isExpanded ? Text(title) : null, selected: isSelected, onTap: () => onItemTapped(index)),
+    );
   }
 
   void _showLogoutDialog(BuildContext context) {
