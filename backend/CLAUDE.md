@@ -24,6 +24,14 @@ with a modular monolith structure.
 - Integration tests use `@IntegrationTest` annotation with Testcontainers
 - In-memory repository implementations for unit testing
 - Test fixtures in `infrastructure/persistance/` package
+- **ALWAYS use AssertJ for assertions** - never use JUnit assertions (assertEquals, assertTrue, etc.)
+  - Use `assertThat(actual).isEqualTo(expected)` instead of `assertEquals(expected, actual)`
+  - Use `assertThat(value).isNull()` instead of `assertNull(value)`
+  - Use `assertThat(value).isNotNull()` instead of `assertNotNull(value)`
+  - Use `assertThat(collection).isEmpty()` instead of `assertTrue(collection.isEmpty())`
+  - Use `assertThat(collection).hasSize(n)` instead of `assertEquals(n, collection.size())`
+  - Use `assertThatThrownBy(() -> code).isInstanceOf(Exception.class)` instead of
+    `assertThrows(Exception.class, () -> code)`
 
 ## Commands
 

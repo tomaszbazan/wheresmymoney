@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CategorizationPromptBuilderTest {
 
@@ -27,13 +27,15 @@ class CategorizationPromptBuilderTest {
     @Test
     void shouldRejectEmptyTransactionList() {
         var category = createCategory("Food", CategoryType.EXPENSE);
-        assertThrows(IllegalArgumentException.class, () -> builder.build(List.of(), List.of(category)));
+        assertThatThrownBy(() -> builder.build(List.of(), List.of(category)))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void shouldRejectEmptyCategoryList() {
         var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
-        assertThrows(IllegalArgumentException.class, () -> builder.build(List.of(transaction), List.of()));
+        assertThatThrownBy(() -> builder.build(List.of(transaction), List.of()))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -44,22 +46,22 @@ class CategorizationPromptBuilderTest {
         var prompt = builder.build(List.of(transaction), List.of(category));
 
         var json = objectMapper.readTree(prompt.jsonPrompt());
-        assertNotNull(json.get("systemInstructions"));
-        assertNotNull(json.get("transactions"));
-        assertNotNull(json.get("categories"));
-        assertNotNull(json.get("expectedResponseFormat"));
+        assertThat(json.get("systemInstructions")).isNotNull();
+        assertThat(json.get("transactions")).isNotNull();
+        assertThat(json.get("categories")).isNotNull();
+        assertThat(json.get("expectedResponseFormat")).isNotNull();
 
         var transactions = json.get("transactions");
-        assertEquals(1, transactions.size());
+        assertThat(transactions).hasSize(1);
         assertThat(transactions.get(0).get("transactionId").asText()).isEqualTo(transaction.transactionId().value().toString());
-        assertEquals("McDonald's Downtown", transactions.get(0).get("description").asText());
-        assertEquals("EXPENSE", transactions.get(0).get("type").asText());
+        assertThat(transactions.get(0).get("description").asText()).isEqualTo("McDonald's Downtown");
+        assertThat(transactions.get(0).get("type").asText()).isEqualTo("EXPENSE");
 
         var categories = json.get("categories");
-        assertEquals(1, categories.size());
+        assertThat(categories).hasSize(1);
         assertThat(categories.get(0).get("categoryId").asText()).isEqualTo(category.id().value().toString());
-        assertEquals("Fast Food", categories.get(0).get("name").asText());
-        assertEquals("EXPENSE", categories.get(0).get("type").asText());
+        assertThat(categories.get(0).get("name").asText()).isEqualTo("Fast Food");
+        assertThat(categories.get(0).get("type").asText()).isEqualTo("EXPENSE");
     }
 
     @Test
@@ -88,7 +90,7 @@ class CategorizationPromptBuilderTest {
 
         var json = objectMapper.readTree(prompt.jsonPrompt());
         var transactions = json.get("transactions");
-        assertEquals("\"McDonald's\" - Special\nOffer", transactions.get(0).get("description").asText());
+        assertThat(transactions.get(0).get("description").asText()).isEqualTo("\"McDonald's\" - Special\nOffer");
     }
 
     @Test
@@ -100,8 +102,8 @@ class CategorizationPromptBuilderTest {
 
         var json = objectMapper.readTree(prompt.jsonPrompt());
         var instructions = json.get("systemInstructions").asText();
-        assertTrue(instructions.contains("financial transaction categorization"));
-        assertTrue(instructions.contains("confidence"));
+        assertThat(instructions).contains("financial transaction categorization");
+        assertThat(instructions).contains("confidence");
     }
 
     @Test
@@ -113,9 +115,9 @@ class CategorizationPromptBuilderTest {
 
         var json = objectMapper.readTree(prompt.jsonPrompt());
         var format = json.get("expectedResponseFormat").asText();
-        assertTrue(format.contains("transactionId"));
-        assertTrue(format.contains("categoryId"));
-        assertTrue(format.contains("confidence"));
+        assertThat(format).contains("transactionId");
+        assertThat(format).contains("categoryId");
+        assertThat(format).contains("confidence");
     }
 
     private TransactionProposal createTransaction(String description, TransactionType type) {
@@ -142,22 +144,22 @@ class CategorizationPromptBuilderTest {
 
         var json = objectMapper.readTree(prompt.jsonPrompt());
         var categories = json.get("categories");
-        assertEquals(1, categories.size());
+        assertThat(categories).hasSize(1);
 
         var foodNode = categories.get(0);
-        assertEquals(food.id().value().toString(), foodNode.get("categoryId").asText());
-        assertEquals("Food", foodNode.get("name").asText());
-        assertEquals(1, foodNode.get("children").size());
+        assertThat(foodNode.get("categoryId").asText()).isEqualTo(food.id().value().toString());
+        assertThat(foodNode.get("name").asText()).isEqualTo("Food");
+        assertThat(foodNode.get("children")).hasSize(1);
 
         var restaurantsNode = foodNode.get("children").get(0);
-        assertEquals(restaurants.id().value().toString(), restaurantsNode.get("categoryId").asText());
-        assertEquals("Restaurants", restaurantsNode.get("name").asText());
-        assertEquals(1, restaurantsNode.get("children").size());
+        assertThat(restaurantsNode.get("categoryId").asText()).isEqualTo(restaurants.id().value().toString());
+        assertThat(restaurantsNode.get("name").asText()).isEqualTo("Restaurants");
+        assertThat(restaurantsNode.get("children")).hasSize(1);
 
         var fastFoodNode = restaurantsNode.get("children").get(0);
-        assertEquals(fastFood.id().value().toString(), fastFoodNode.get("categoryId").asText());
-        assertEquals("Fast Food", fastFoodNode.get("name").asText());
-        assertEquals(0, fastFoodNode.get("children").size());
+        assertThat(fastFoodNode.get("categoryId").asText()).isEqualTo(fastFood.id().value().toString());
+        assertThat(fastFoodNode.get("name").asText()).isEqualTo("Fast Food");
+        assertThat(fastFoodNode.get("children")).hasSize(0);
     }
 
     @Test
@@ -170,7 +172,7 @@ class CategorizationPromptBuilderTest {
 
         var json = objectMapper.readTree(prompt.jsonPrompt());
         var categories = json.get("categories");
-        assertEquals(2, categories.size());
+        assertThat(categories).hasSize(2);
     }
 
     private Category createCategory(String name, CategoryType type) {

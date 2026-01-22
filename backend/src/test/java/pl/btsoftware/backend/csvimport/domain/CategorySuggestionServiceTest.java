@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -65,10 +66,10 @@ class CategorySuggestionServiceTest {
         var result = service.suggestCategories(List.of(transaction), testGroupId);
 
         // then
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(foodCategory.id(), result.getFirst().categoryId());
-        assertEquals(0.95, result.getFirst().confidence());
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().categoryId()).isEqualTo(foodCategory.id());
+        assertThat(result.getFirst().confidence()).isEqualTo(0.95);
     }
 
     @Test
@@ -109,13 +110,14 @@ class CategorySuggestionServiceTest {
         var result = service.suggestCategories(List.of(transaction), testGroupId);
 
         // then
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
     void shouldThrowExceptionWhenTransactionListIsEmpty() {
         // when & then
-        assertThrows(IllegalArgumentException.class, () -> service.suggestCategories(List.of(), testGroupId));
+        assertThatThrownBy(() -> service.suggestCategories(List.of(), testGroupId))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -124,7 +126,8 @@ class CategorySuggestionServiceTest {
         var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
 
         // when & then
-        assertThrows(IllegalArgumentException.class, () -> service.suggestCategories(List.of(transaction), null));
+        assertThatThrownBy(() -> service.suggestCategories(List.of(transaction), null))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -161,8 +164,8 @@ class CategorySuggestionServiceTest {
         var result = service.suggestCategories(List.of(expenseTransaction, incomeTransaction), testGroupId);
 
         // then
-        assertNotNull(result);
-        assertEquals(2, result.size());
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
     }
 
     @Test
@@ -174,8 +177,8 @@ class CategorySuggestionServiceTest {
         var result = service.suggestCategories(List.of(transaction), testGroupId);
 
         // then
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
         verify(geminiClient, never()).generateContent(any());
     }
 
