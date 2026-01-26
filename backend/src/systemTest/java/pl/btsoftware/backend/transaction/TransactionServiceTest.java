@@ -3,6 +3,7 @@ package pl.btsoftware.backend.transaction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.audit.domain.AuditEntityType;
@@ -317,7 +318,7 @@ public class TransactionServiceTest {
 
                 // When
                 var user = usersModuleFacade.findUserOrThrow(userId);
-                var allTransactions = transactionService.getAllTransactions(user.groupId());
+                var allTransactions = transactionService.getAllTransactions(user.groupId(), Pageable.ofSize(20));
 
                 // Then
                 assertThat(allTransactions).hasSizeGreaterThanOrEqualTo(2);

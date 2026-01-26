@@ -81,7 +81,7 @@ class CsvParseServiceTest {
 
         var firstRow = result.proposals().getFirst();
         assertThat(firstRow.transactionDate()).isEqualTo(LocalDate.of(2025, 12, 17));
-        assertThat(firstRow.description()).isEqualTo("Category / Income description");
+        assertThat(firstRow.description()).isEqualTo("Category: Income description");
         assertThat(firstRow.amount()).isEqualTo(new BigDecimal("100.00"));
         assertThat(firstRow.currency()).isEqualTo(Currency.PLN);
         assertThat(firstRow.type()).isEqualTo(TransactionType.INCOME);
@@ -89,7 +89,7 @@ class CsvParseServiceTest {
 
         var secondRow = result.proposals().getLast();
         assertThat(secondRow.transactionDate()).isEqualTo(LocalDate.of(2025, 12, 18));
-        assertThat(secondRow.description()).isEqualTo("Another Category / Expense description");
+        assertThat(secondRow.description()).isEqualTo("Another Category: Expense description");
         assertThat(secondRow.amount()).isEqualTo(new BigDecimal("-100.00"));
         assertThat(secondRow.currency()).isEqualTo(Currency.PLN);
         assertThat(secondRow.type()).isEqualTo(TransactionType.EXPENSE);
@@ -288,7 +288,7 @@ class CsvParseServiceTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / Test; with; semicolons");
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: Test; with; semicolons");
     }
 
     @Test

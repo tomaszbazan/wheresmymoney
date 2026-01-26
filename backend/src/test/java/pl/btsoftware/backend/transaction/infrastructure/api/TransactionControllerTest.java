@@ -128,7 +128,7 @@ public class TransactionControllerTest {
         var transaction2 = createTransaction(randomUUID(), randomUUID(), new BigDecimal("50.00"), "Transaction 2", TransactionType.EXPENSE);
 
         var page = new PageImpl<>(List.of(transaction1, transaction2), PageRequest.of(0, 20), 2);
-        when(transactionModuleFacade.getAllTransactionsPaginated(any(UserId.class), any())).thenReturn(page);
+        when(transactionModuleFacade.getAllTransactions(any(UserId.class), any())).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/api/transactions")
@@ -150,7 +150,7 @@ public class TransactionControllerTest {
         // given
         var userId = new UserId("user123");
         var emptyPage = new PageImpl<Transaction>(emptyList(), PageRequest.of(0, 20), 0);
-        when(transactionModuleFacade.getAllTransactionsPaginated(any(UserId.class), any())).thenReturn(emptyPage);
+        when(transactionModuleFacade.getAllTransactions(any(UserId.class), any())).thenReturn(emptyPage);
 
         // when & then
         mockMvc.perform(get("/api/transactions")

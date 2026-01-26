@@ -51,7 +51,7 @@ public class TransactionController {
 
         var validatedSize = paginationValidator.validatePageSize(size);
         var pageable = PageRequest.of(page, validatedSize, Sort.by("transactionDate", "createdAt").descending());
-        var transactionsPage = transactionModuleFacade.getAllTransactionsPaginated(userId, pageable);
+        var transactionsPage = transactionModuleFacade.getAllTransactions(userId, pageable);
 
         return TransactionsPaginatedView.from(
                 transactionsPage,

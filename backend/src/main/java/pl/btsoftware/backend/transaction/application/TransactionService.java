@@ -79,11 +79,7 @@ public class TransactionService {
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
     }
 
-    public List<Transaction> getAllTransactions(GroupId groupId) {
-        return transactionRepository.findAll(groupId, Pageable.unpaged()).getContent();
-    }
-
-    public Page<Transaction> getAllTransactionsPaginated(GroupId groupId, Pageable pageable) {
+    public Page<Transaction> getAllTransactions(GroupId groupId, Pageable pageable) {
         return transactionRepository.findAll(groupId, pageable);
     }
 

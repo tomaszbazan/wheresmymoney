@@ -91,7 +91,7 @@ class TransactionServiceTest {
 
         // Verify transaction is stored in repository
         assertThat(transactionRepository.findById(transaction.id(), testGroupId)).isPresent();
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(1);
 
         // Verify account balance updated by +1000.12
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -124,7 +124,7 @@ class TransactionServiceTest {
 
         // Verify transaction is stored in repository
         assertThat(transactionRepository.findById(transaction.id(), testGroupId)).isPresent();
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(1);
 
         // Verify account balance updated by -250.50
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -146,7 +146,7 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(AccountNotFoundException.class).hasMessageContaining("Account not found");
 
         // Verify no transaction was created
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).isEmpty();
     }
 
     @Test
@@ -167,7 +167,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(transaction.description()).isEqualTo("");
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(1);
     }
 
     @Test
@@ -188,7 +188,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(transaction.description()).isNull();
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(1);
     }
 
     @Test
@@ -208,7 +208,7 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(TransactionDescriptionTooLongException.class).hasMessageContaining("Description cannot exceed 100 characters");
 
         // Verify no transaction was created
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).isEmpty();
     }
 
     @Test
@@ -228,7 +228,7 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(TransactionCurrencyMismatchException.class).hasMessageContaining("Transaction currency (USD) must match account currency (PLN)");
 
         // Verify no transaction was created
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).isEmpty();
     }
 
     @Test
@@ -282,7 +282,7 @@ class TransactionServiceTest {
         transactionService.createTransaction(command2);
 
         // When
-        var allTransactions = transactionService.getAllTransactions(testGroupId);
+        var allTransactions = transactionService.getAllTransactions(testGroupId, Pageable.ofSize(20));
 
         // Then
         assertThat(allTransactions).hasSize(2);
@@ -438,7 +438,7 @@ class TransactionServiceTest {
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("0.00"));
 
         // Verify transaction not in normal queries
-        assertThat(transactionService.getAllTransactions(testGroupId)).isEmpty();
+        assertThat(transactionService.getAllTransactions(testGroupId, Pageable.ofSize(20))).isEmpty();
         assertThat(transactionService.getTransactionsByAccountId(account.id(), testGroupId)).isEmpty();
     }
 
@@ -469,7 +469,7 @@ class TransactionServiceTest {
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(NoCategoriesAvailableException.class).hasMessageContaining("No categories of type INCOME are available");
 
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).isEmpty();
     }
 
     @Test
@@ -490,7 +490,7 @@ class TransactionServiceTest {
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(NoCategoriesAvailableException.class).hasMessageContaining("No categories of type EXPENSE are available");
 
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).isEmpty();
     }
 
     @Test
@@ -513,7 +513,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(transaction.id()).isNotNull();
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(1);
     }
 
     @Test
@@ -535,7 +535,7 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(pl.btsoftware.backend.transaction.domain.error.DuplicateTransactionException.class).hasMessageContaining("duplicate");
 
         // Verify only one transaction was created
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(1);
     }
 
     @Test
@@ -559,7 +559,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(transaction2).isNotNull();
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(2);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(2);
     }
 
     @Test
@@ -579,7 +579,7 @@ class TransactionServiceTest {
         assertThat(result.savedCount()).isEqualTo(3);
         assertThat(result.duplicateCount()).isEqualTo(0);
         assertThat(result.savedTransactionIds()).hasSize(3);
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(3);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(3);
 
         // Verify account balance updated correctly: +100 +200 -300 = 0
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -610,7 +610,7 @@ class TransactionServiceTest {
         assertThat(result.savedCount()).isEqualTo(2);
         assertThat(result.duplicateCount()).isEqualTo(2);
         assertThat(result.savedTransactionIds()).hasSize(2);
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(3); // 1 existing + 2 new
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(3); // 1 existing + 2 new
 
         // Verify account balance updated correctly: +100 (existing) +200 -300 = 0
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -642,7 +642,7 @@ class TransactionServiceTest {
         assertThat(result.savedCount()).isEqualTo(0);
         assertThat(result.duplicateCount()).isEqualTo(2);
         assertThat(result.savedTransactionIds()).isEmpty();
-        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(2);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).getContent()).hasSize(2);
 
         // Verify account balance unchanged: +100 +200 = 300
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);

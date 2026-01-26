@@ -27,9 +27,9 @@ public class TransactionModuleFacade {
         return transactionService.getTransactionById(TransactionId.of(id), user.groupId());
     }
 
-    public Page<Transaction> getAllTransactionsPaginated(UserId userId, Pageable pageable) {
+    public Page<Transaction> getAllTransactions(UserId userId, Pageable pageable) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        return transactionService.getAllTransactionsPaginated(user.groupId(), pageable);
+        return transactionService.getAllTransactions(user.groupId(), pageable);
     }
 
     public List<Transaction> getTransactionsByAccountId(UUID accountId, UserId userId) {
