@@ -93,6 +93,7 @@ public class AccountService {
 
         var updatedAccount = account.deposit(amount);
         accountRepository.store(updatedAccount);
+        auditModuleFacade.logAccountDeposit(accountId, account.name(), userId, user.groupId(), amount);
     }
 
     public void withdraw(AccountId accountId, Money amount, UserId userId) {
@@ -102,5 +103,6 @@ public class AccountService {
 
         var updatedAccount = account.withdraw(amount);
         accountRepository.store(updatedAccount);
+        auditModuleFacade.logAccountWithdraw(accountId, account.name(), userId, user.groupId(), amount);
     }
 }

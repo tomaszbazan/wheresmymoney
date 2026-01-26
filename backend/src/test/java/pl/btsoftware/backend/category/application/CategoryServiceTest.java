@@ -3,6 +3,7 @@ package pl.btsoftware.backend.category.application;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.account.domain.AuditInfo;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.category.domain.error.CategoryHasTransactionsException;
 import pl.btsoftware.backend.category.domain.error.CategoryHierarchyTooDeepException;
@@ -20,14 +21,14 @@ import pl.btsoftware.backend.users.domain.UserId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class CategoryServiceTest {
 
     private CategoryService categoryService;
     private InMemoryCategoryRepository categoryRepository;
     private TransactionQueryFacade transactionQueryFacade;
+    private AuditModuleFacade auditModuleFacade;
     private User testUser;
     private GroupId testGroupId;
 
@@ -36,7 +37,8 @@ class CategoryServiceTest {
         categoryRepository = new InMemoryCategoryRepository();
         var usersModuleFacade = mock(UsersModuleFacade.class);
         transactionQueryFacade = mock(TransactionQueryFacade.class);
-        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade);
+        auditModuleFacade = mock(AuditModuleFacade.class);
+        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
 
         testGroupId = GroupId.generate();
         testUser = createUser(UserId.generate(), testGroupId);
@@ -497,5 +499,56 @@ class CategoryServiceTest {
         var hasCategories = categoryService.hasCategories(CategoryType.EXPENSE, testGroupId);
 
         assertThat(hasCategories).isFalse();
+    }
+
+    @Test
+    void shouldLogAuditWhenCreatingCategory() {
+        var command = new CreateCategoryCommand("Food", CategoryType.EXPENSE, Color.of("#FF5722"), testUser.id());
+
+        var createdCategory = categoryService.createCategory(command);
+
+        verify(auditModuleFacade).logCategoryCreated(
+                createdCategory.id(),
+                "Food",
+                "EXPENSE",
+                testUser.id(),
+                testGroupId
+        );
+    }
+
+    @Test
+    void shouldLogAuditWhenUpdatingCategory() {
+        var categoryId = CategoryId.generate();
+        var originalCategory = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
+        categoryRepository.store(originalCategory);
+
+        var command = new UpdateCategoryCommand(categoryId, "Updated Food", Color.of("#FF9800"), null);
+        categoryService.updateCategory(command, testUser.id());
+
+        verify(auditModuleFacade).logCategoryUpdated(
+                categoryId,
+                "Food",
+                "Updated Food",
+                testUser.id(),
+                testGroupId
+        );
+    }
+
+    @Test
+    void shouldLogAuditWhenDeletingCategory() {
+        var categoryId = CategoryId.generate();
+        var category = createCategory(categoryId, "Food", CategoryType.EXPENSE, "#FF5722");
+        categoryRepository.store(category);
+
+        when(transactionQueryFacade.hasTransactions(categoryId, testGroupId)).thenReturn(false);
+
+        categoryService.deleteCategory(categoryId, testUser.id());
+
+        verify(auditModuleFacade).logCategoryDeleted(
+                categoryId,
+                "Food",
+                testUser.id(),
+                testGroupId
+        );
     }
 }

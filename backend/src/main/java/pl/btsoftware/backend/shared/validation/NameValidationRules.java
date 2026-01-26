@@ -20,18 +20,27 @@ public final class NameValidationRules {
     }
 
     private static void validateNotEmpty(String name, Supplier<RuntimeException> exceptionSupplier) {
+        if (exceptionSupplier == null) {
+            return;
+        }
         if (name == null || name.isBlank()) {
             throw exceptionSupplier.get();
         }
     }
 
     private static void validateLength(String name, Supplier<RuntimeException> exceptionSupplier) {
+        if (exceptionSupplier == null || name == null) {
+            return;
+        }
         if (name.length() > MAX_NAME_LENGTH) {
             throw exceptionSupplier.get();
         }
     }
 
     private static void validateCharacters(String name, Supplier<RuntimeException> exceptionSupplier) {
+        if (exceptionSupplier == null || name == null || name.isEmpty()) {
+            return;
+        }
         if (!NameValidator.isValid(name)) {
             throw exceptionSupplier.get();
         }

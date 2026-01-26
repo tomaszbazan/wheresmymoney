@@ -2,8 +2,11 @@ package pl.btsoftware.backend.transaction.application;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.domain.AuditInfo;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.shared.*;
@@ -27,6 +30,7 @@ public class TransactionService {
     private final AccountModuleFacade accountModuleFacade;
     private final CategoryQueryFacade categoryQueryFacade;
     private final UsersModuleFacade usersModuleFacade;
+    private final AuditModuleFacade auditModuleFacade;
 
     @Transactional
     public Transaction createTransaction(CreateTransactionCommand command) {
@@ -41,8 +45,13 @@ public class TransactionService {
         validateNotDuplicate(transaction.accountId(), transaction.transactionHash(), user.groupId());
 
         transactionRepository.store(transaction);
-        accountModuleFacade.addTransaction(command.accountId(), transaction.amount(), transaction.type(), command.userId());
+        if (transaction.type() == TransactionType.INCOME) {
+            accountModuleFacade.deposit(command.accountId(), transaction.amount(), command.userId());
+        } else {
+            accountModuleFacade.withdraw(command.accountId(), transaction.amount(), command.userId());
+        }
 
+        auditModuleFacade.logTransactionCreated(transaction.id(), transaction.description(), command.userId(), user.groupId());
         return transaction;
     }
 
@@ -66,11 +75,16 @@ public class TransactionService {
     }
 
     public Transaction getTransactionById(TransactionId transactionId, GroupId groupId) {
-        return transactionRepository.findById(transactionId, groupId).orElseThrow(() -> new TransactionNotFoundException(transactionId));
+        return transactionRepository.findById(transactionId, groupId)
+                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
     }
 
     public List<Transaction> getAllTransactions(GroupId groupId) {
-        return transactionRepository.findAll(groupId);
+        return transactionRepository.findAll(groupId, Pageable.unpaged()).getContent();
+    }
+
+    public Page<Transaction> getAllTransactionsPaginated(GroupId groupId, Pageable pageable) {
+        return transactionRepository.findAll(groupId, pageable);
     }
 
     public List<Transaction> getTransactionsByAccountId(AccountId accountId, GroupId groupId) {
@@ -80,14 +94,28 @@ public class TransactionService {
     @Transactional
     public Transaction updateTransaction(UpdateTransactionCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var transaction = transactionRepository.findById(command.transactionId(), user.groupId()).orElseThrow(() -> new TransactionNotFoundException(command.transactionId()));
+        var transaction = transactionRepository.findById(command.transactionId(), user.groupId())
+                .orElseThrow(() -> new TransactionNotFoundException(command.transactionId()));
 
         validateCategoriesExist(transaction.type(), user.groupId());
 
         var updatedTransaction = transaction;
 
         if (command.amount() != null) {
-            accountModuleFacade.changeTransaction(transaction.accountId(), updatedTransaction.amount(), command.amount(), transaction.type(), userId);
+            // Revert old transaction manually
+            if (transaction.type() == TransactionType.INCOME) {
+                accountModuleFacade.withdraw(transaction.accountId(), transaction.amount(), userId);
+            } else {
+                accountModuleFacade.deposit(transaction.accountId(), transaction.amount(), userId);
+            }
+
+            // Apply new transaction
+            if (transaction.type() == TransactionType.INCOME) {
+                accountModuleFacade.deposit(transaction.accountId(), command.amount(), userId);
+            } else {
+                accountModuleFacade.withdraw(transaction.accountId(), command.amount(), userId);
+            }
+
             updatedTransaction = updatedTransaction.updateAmount(command.amount(), userId);
         }
 
@@ -100,22 +128,28 @@ public class TransactionService {
         }
 
         transactionRepository.store(updatedTransaction);
+        auditModuleFacade.logTransactionUpdated(command.transactionId(), updatedTransaction.description(), userId, user.groupId());
         return updatedTransaction;
     }
 
     @Transactional
     public void deleteTransaction(TransactionId transactionId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var transaction = transactionRepository.findByIdIncludingDeleted(transactionId, user.groupId()).orElseThrow(() -> new TransactionNotFoundException(transactionId));
+        var transaction = transactionRepository.findByIdIncludingDeleted(transactionId, user.groupId())
+                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
 
         if (transaction.isDeleted()) {
             throw new TransactionAlreadyDeletedException(transactionId);
         }
 
         var deletedTransaction = transaction.delete();
-        accountModuleFacade.removeTransaction(transaction.accountId(), transaction.amount(), transaction.type(), userId);
+        if (transaction.type() == TransactionType.INCOME) {
+            accountModuleFacade.withdraw(transaction.accountId(), transaction.amount(), userId);
+        } else {
+            accountModuleFacade.deposit(transaction.accountId(), transaction.amount(), userId);
+        }
         transactionRepository.store(deletedTransaction);
-
+        auditModuleFacade.logTransactionDeleted(transactionId, transaction.description(), userId, user.groupId());
     }
 
     @Transactional
@@ -149,7 +183,11 @@ public class TransactionService {
                 duplicateCount++;
             } else {
                 transactionRepository.store(transaction);
-                accountModuleFacade.addTransaction(transaction.accountId(), transaction.amount(), transaction.type(), userId);
+                if (transaction.type() == TransactionType.INCOME) {
+                    accountModuleFacade.deposit(transaction.accountId(), transaction.amount(), userId);
+                } else {
+                    accountModuleFacade.withdraw(transaction.accountId(), transaction.amount(), userId);
+                }
                 savedIds.add(transaction.id());
             }
         }

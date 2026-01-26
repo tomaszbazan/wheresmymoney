@@ -3,8 +3,10 @@ package pl.btsoftware.backend.transaction.infrastructure.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pl.btsoftware.backend.account.AccountModuleFacade;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.CategoryQueryFacade;
+import pl.btsoftware.backend.shared.pagination.PaginationValidator;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.transaction.application.TransactionService;
@@ -29,8 +31,9 @@ public class TransactionModuleConfiguration {
 
     @Bean
     public TransactionService transactionService(TransactionRepository transactionRepository, AccountModuleFacade accountModuleFacade,
-                                                 CategoryQueryFacade categoryQueryFacade, UsersModuleFacade usersModuleFacade) {
-        return new TransactionService(transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade);
+                                                 CategoryQueryFacade categoryQueryFacade, UsersModuleFacade usersModuleFacade,
+                                                 AuditModuleFacade auditModuleFacade) {
+        return new TransactionService(transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade, auditModuleFacade);
     }
 
     @Bean
@@ -39,8 +42,9 @@ public class TransactionModuleConfiguration {
     }
 
     @Bean
-    public TransactionController transactionController(TransactionModuleFacade transactionModuleFacade, CategoryModuleFacade categoryModuleFacade) {
-        return new TransactionController(transactionModuleFacade, categoryModuleFacade);
+    public TransactionController transactionController(TransactionModuleFacade transactionModuleFacade, CategoryModuleFacade categoryModuleFacade,
+                                                       PaginationValidator paginationValidator) {
+        return new TransactionController(transactionModuleFacade, categoryModuleFacade, paginationValidator);
     }
 
 }

@@ -3,6 +3,7 @@ package pl.btsoftware.backend.transaction.infrastructure.persistance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.AccountId;
@@ -36,7 +37,7 @@ public class JpaTransactionRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        transactionRepository.findAll(testGroupId).forEach(
+        transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).forEach(
                 transaction -> transactionRepository.store(transaction.delete())
         );
     }
@@ -161,7 +162,7 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(transaction3.delete());
 
         // when
-        var allTransactions = transactionRepository.findAll(testGroupId);
+        var allTransactions = transactionRepository.findAll(testGroupId, Pageable.ofSize(20));
 
         // then
         assertThat(allTransactions).hasSize(2);

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.btsoftware.backend.account.domain.AuditInfo;
@@ -15,6 +17,7 @@ import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.config.WebConfig;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.shared.pagination.PaginationValidator;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
@@ -55,6 +58,9 @@ public class TransactionControllerTest {
     @MockBean
     private CategoryModuleFacade categoryModuleFacade;
 
+    @MockBean
+    private PaginationValidator paginationValidator;
+
     @BeforeEach
     void setUp() {
         when(categoryModuleFacade.getCategoryById(any(CategoryId.class), any(UserId.class)))
@@ -65,6 +71,8 @@ public class TransactionControllerTest {
                             .set(field(Category::name), "Sample Category")
                             .create();
                 });
+        when(paginationValidator.validatePageSize(any(Integer.class)))
+                .thenAnswer(invocation -> Math.min(invocation.getArgument(0, Integer.class), 100));
     }
 
     @Test
@@ -119,7 +127,8 @@ public class TransactionControllerTest {
         var transaction1 = createTransaction(randomUUID(), randomUUID(), new BigDecimal("100.00"), "Transaction 1", TransactionType.INCOME);
         var transaction2 = createTransaction(randomUUID(), randomUUID(), new BigDecimal("50.00"), "Transaction 2", TransactionType.EXPENSE);
 
-        when(transactionModuleFacade.getAllTransactions(userId)).thenReturn(List.of(transaction1, transaction2));
+        var page = new PageImpl<>(List.of(transaction1, transaction2), PageRequest.of(0, 20), 2);
+        when(transactionModuleFacade.getAllTransactionsPaginated(any(UserId.class), any())).thenReturn(page);
 
         // when & then
         mockMvc.perform(get("/api/transactions")
@@ -129,14 +138,19 @@ public class TransactionControllerTest {
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.transactions", hasSize(2)))
                 .andExpect(jsonPath("$.transactions[0].description").value("Transaction 1"))
-                .andExpect(jsonPath("$.transactions[1].description").value("Transaction 2"));
+                .andExpect(jsonPath("$.transactions[1].description").value("Transaction 2"))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1));
     }
 
     @Test
     void shouldReturnEmptyListWhenNoTransactionsExist() throws Exception {
         // given
         var userId = new UserId("user123");
-        when(transactionModuleFacade.getAllTransactions(userId)).thenReturn(emptyList());
+        var emptyPage = new PageImpl<Transaction>(emptyList(), PageRequest.of(0, 20), 0);
+        when(transactionModuleFacade.getAllTransactionsPaginated(any(UserId.class), any())).thenReturn(emptyPage);
 
         // when & then
         mockMvc.perform(get("/api/transactions")
@@ -144,7 +158,11 @@ public class TransactionControllerTest {
                         .with(createTokenFor("user123")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(jsonPath("$.transactions", hasSize(0)));
+                .andExpect(jsonPath("$.transactions", hasSize(0)))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0));
     }
 
     @Test

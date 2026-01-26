@@ -4,6 +4,7 @@ import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionInvalidCharactersException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -99,10 +100,36 @@ class TransactionTest {
     }
 
     @Test
+    void shouldRejectDescriptionWithInvalidCharacters() {
+        // given
+        var accountId = AccountId.generate();
+        var amount = Money.of(BigDecimal.valueOf(100), PLN);
+        var categoryId = CategoryId.generate();
+        var transactionDate = LocalDate.now();
+        var transactionHash = new TransactionHash("a".repeat(64));
+        var auditInfo = Instancio.create(AuditInfo.class);
+
+        // when & then
+        assertThatThrownBy(() -> new Transaction(
+                TransactionId.generate(),
+                accountId,
+                amount,
+                EXPENSE,
+                "test$description",
+                categoryId,
+                transactionDate,
+                transactionHash,
+                auditInfo,
+                auditInfo,
+                Tombstone.active()
+        )).isInstanceOf(TransactionDescriptionInvalidCharactersException.class);
+    }
+
+    @Test
     void shouldAcceptDescriptionWithMaximumLength() {
         var accountId = AccountId.generate();
         var amount = Money.of(BigDecimal.valueOf(100), PLN);
-        var maxLengthDescription = "a".repeat(200);
+        var maxLengthDescription = "a".repeat(100);
         var categoryId = CategoryId.generate();
         var transactionDate = LocalDate.now();
         var transactionHash = new TransactionHash("a".repeat(64));
@@ -122,7 +149,7 @@ class TransactionTest {
                 Tombstone.active()
         );
 
-        assertThat(transaction.description()).hasSize(200);
+        assertThat(transaction.description()).hasSize(100);
     }
 
     @Test

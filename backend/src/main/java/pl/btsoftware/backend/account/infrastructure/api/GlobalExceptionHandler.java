@@ -13,6 +13,10 @@ import pl.btsoftware.backend.account.domain.error.BusinessException;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.csvimport.domain.CsvImportException;
 import pl.btsoftware.backend.csvimport.infrastructure.api.ErrorResponse;
+import pl.btsoftware.backend.shared.error.InvalidExchangeRateException;
+import pl.btsoftware.backend.transfer.domain.error.TransferDescriptionTooLongException;
+import pl.btsoftware.backend.transfer.domain.error.TransferNotFoundException;
+import pl.btsoftware.backend.transfer.domain.error.TransferToSameAccountException;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -78,5 +82,21 @@ public class GlobalExceptionHandler {
         log.error("{}", ex.getMessage(), ex);
         var errorResponse = new ErrorResponse(ex.getErrorType(), ex.getMessage());
         return ResponseEntity.status(BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler({
+            TransferToSameAccountException.class,
+            InvalidExchangeRateException.class,
+            TransferDescriptionTooLongException.class
+    })
+    public ResponseEntity<String> handleTransferBadRequest(RuntimeException ex) {
+        log.error("{}", ex.getMessage(), ex);
+        return ResponseEntity.status(BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(TransferNotFoundException.class)
+    public ResponseEntity<String> handleTransferNotFoundException(TransferNotFoundException ex) {
+        log.error("{}", ex.getMessage(), ex);
+        return ResponseEntity.status(NOT_FOUND).body(ex.getMessage());
     }
 }

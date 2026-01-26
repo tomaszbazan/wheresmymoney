@@ -6,8 +6,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class NameValidationRulesTest {
@@ -64,6 +63,71 @@ class NameValidationRulesTest {
         );
 
         assertThat(validName).isNotNull();
+    }
+
+    private static Stream<String> emptyNameTestCases() {
+        return Stream.of(null, "", "   ");
+    }
+
+    private static Stream<String> tooLongNameTestCases() {
+        return Stream.of("a".repeat(101));
+    }
+
+    private static Stream<String> invalidCharactersNameTestCases() {
+        return Stream.of("Invalid\nName", "Name\tTab", "Name<>Special");
+    }
+
+    @ParameterizedTest
+    @MethodSource("emptyNameTestCases")
+    void shouldSkipEmptyValidationWhenSupplierIsNull(String emptyName) {
+        var tooLongException = new TestTooLongException();
+        var invalidCharsException = new TestInvalidCharactersException();
+
+        assertThatCode(() -> NameValidationRules.validate(
+                emptyName,
+                null,
+                () -> tooLongException,
+                () -> invalidCharsException
+        )).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @MethodSource("tooLongNameTestCases")
+    void shouldSkipLengthValidationWhenSupplierIsNull(String tooLongName) {
+        var emptyException = new TestEmptyException();
+        var invalidCharsException = new TestInvalidCharactersException();
+
+        assertThatCode(() -> NameValidationRules.validate(
+                tooLongName,
+                () -> emptyException,
+                null,
+                () -> invalidCharsException
+        )).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidCharactersNameTestCases")
+    void shouldSkipCharactersValidationWhenSupplierIsNull(String nameWithInvalidChars) {
+        var emptyException = new TestEmptyException();
+        var tooLongException = new TestTooLongException();
+
+        assertThatCode(() -> NameValidationRules.validate(
+                nameWithInvalidChars,
+                () -> emptyException,
+                () -> tooLongException,
+                null
+        )).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidNameTestCases")
+    void shouldSkipAllValidationsWhenAllSuppliersAreNull(String invalidName, ValidationError expectedError) {
+        assertThatCode(() -> NameValidationRules.validate(
+                invalidName,
+                null,
+                null,
+                null
+        )).doesNotThrowAnyException();
     }
 
     private enum ValidationError {

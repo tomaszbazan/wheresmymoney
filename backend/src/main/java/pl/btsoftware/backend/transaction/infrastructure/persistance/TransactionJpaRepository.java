@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.transaction.infrastructure.persistance;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +17,7 @@ public interface TransactionJpaRepository extends JpaRepository<TransactionEntit
 
     Optional<TransactionEntity> findByIdAndCreatedByGroup(UUID id, UUID createdByGroup);
 
-    List<TransactionEntity> findByCreatedByGroupAndIsDeletedFalse(UUID createdByGroup);
+    Page<TransactionEntity> findByCreatedByGroupAndIsDeletedFalse(UUID createdByGroup, Pageable pageable);
 
     List<TransactionEntity> findByAccountIdAndCreatedByGroupAndIsDeletedFalse(UUID accountId, UUID createdByGroup);
 

@@ -14,16 +14,21 @@ import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountR
 import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.transaction.TransactionQueryFacade;
+import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
 
+import java.math.BigDecimal;
+
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static pl.btsoftware.backend.shared.Currency.*;
 
@@ -31,6 +36,7 @@ public class AccountServiceTest {
     private AccountRepository accountRepository;
     private TransactionQueryFacade transactionQueryFacade;
     private UsersModuleFacade usersModuleFacade;
+    private AuditModuleFacade auditModuleFacade;
     private AccountService accountService;
 
     @BeforeEach
@@ -38,7 +44,7 @@ public class AccountServiceTest {
         this.accountRepository = new InMemoryAccountRepository();
         this.transactionQueryFacade = Mockito.mock(TransactionQueryFacade.class);
         this.usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
-        var auditModuleFacade = Mockito.mock(AuditModuleFacade.class);
+        this.auditModuleFacade = Mockito.mock(AuditModuleFacade.class);
         this.accountService = new AccountService(accountRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
     }
 
@@ -60,7 +66,7 @@ public class AccountServiceTest {
         void shouldCreateAccountWithDifferentSupportedCurrencies(Currency currency) {
             // given
             var command = Instancio.of(CreateAccountCommand.class).set(field(CreateAccountCommand::currency), currency).create();
-            userExists(command);
+            var user = userExists(command);
 
             // when
             var account = accountService.createAccount(command);
@@ -70,6 +76,7 @@ public class AccountServiceTest {
             assertThat(account.balance().currency()).isEqualTo(currency);
             assertThat(account.balance().value()).isZero();
             assertThat(account.id()).isNotNull();
+            verify(auditModuleFacade).logAccountCreated(account.id(), account.name(), command.userId(), user.groupId());
         }
 
         @Test
@@ -406,6 +413,7 @@ public class AccountServiceTest {
             assertThat(updatedAccount.name()).isEqualTo(newName);
             var retrievedAccount = accountService.getById(account.id(), userId);
             assertThat(retrievedAccount.name()).isEqualTo(newName);
+            verify(auditModuleFacade).logAccountUpdated(account.id(), "Original Name", newName, updatedAccount.lastUpdatedBy(), groupId);
         }
 
         @Test
@@ -462,7 +470,8 @@ public class AccountServiceTest {
         void shouldDeleteAccountWithZeroBalance() {
             // given
             var userId = UserId.generate();
-            userExistsInGroup(userId, GroupId.generate());
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
             var account = accountService.createAccount(new CreateAccountCommand(randomUUID().toString(), PLN, userId));
 
             // when
@@ -470,6 +479,7 @@ public class AccountServiceTest {
 
             // then
             assertThat(accountService.getAccounts(userId)).isEmpty();
+            verify(auditModuleFacade).logAccountDeleted(account.id(), account.name(), userId, groupId);
         }
 
         @Test
@@ -648,6 +658,261 @@ public class AccountServiceTest {
 
             // verify account still exists
             assertThat(accountService.getAccounts(accountOwnerUserId)).hasSize(1);
+        }
+    }
+
+    @Nested
+    class Deposit {
+
+        @Test
+        void shouldDepositMoneyToAccount() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("Savings Account", PLN, userId));
+            var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
+
+            // when
+            accountService.deposit(account.id(), depositAmount, userId);
+
+            // then
+            var updatedAccount = accountService.getById(account.id(), userId);
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("100.00"));
+            assertThat(updatedAccount.balance().currency()).isEqualTo(PLN);
+            verify(auditModuleFacade).logAccountDeposit(account.id(), account.name(), userId, groupId, depositAmount);
+        }
+
+        @Test
+        void shouldAccumulateMultipleDeposits() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("Checking Account", EUR, userId));
+            var firstDeposit = Money.of(new BigDecimal("50.00"), EUR);
+            var secondDeposit = Money.of(new BigDecimal("75.50"), EUR);
+
+            // when
+            accountService.deposit(account.id(), firstDeposit, userId);
+            accountService.deposit(account.id(), secondDeposit, userId);
+
+            // then
+            var updatedAccount = accountService.getById(account.id(), userId);
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("125.50"));
+            assertThat(updatedAccount.balance().currency()).isEqualTo(EUR);
+            verify(auditModuleFacade).logAccountDeposit(account.id(), account.name(), userId, groupId, firstDeposit);
+            verify(auditModuleFacade).logAccountDeposit(account.id(), account.name(), userId, groupId, secondDeposit);
+        }
+
+        @Test
+        void shouldRejectDepositWithCurrencyMismatch() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("PLN Account", PLN, userId));
+            var depositAmount = Money.of(new BigDecimal("100.00"), EUR);
+
+            // when & then
+            assertThatThrownBy(() -> accountService.deposit(account.id(), depositAmount, userId)).isInstanceOf(TransactionCurrencyMismatchException.class);
+
+            // and
+            var unchangedAccount = accountService.getById(account.id(), userId);
+            assertThat(unchangedAccount.balance().value()).isZero();
+        }
+
+        @Test
+        void shouldRejectDepositWhenAccountNotFound() {
+            // given
+            var nonExistentAccountId = AccountId.generate();
+            var userId = UserId.generate();
+            userExistsInGroup(userId, GroupId.generate());
+            var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
+
+            // when & then
+            assertThatThrownBy(() -> accountService.deposit(nonExistentAccountId, depositAmount, userId)).isInstanceOf(AccountNotFoundException.class);
+        }
+
+        @Test
+        void shouldRejectDepositWhenUserBelongsToDifferentGroup() {
+            // given
+            var accountOwnerUserId = UserId.generate();
+            var accountOwnerGroupId = GroupId.generate();
+            userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
+
+            var attemptingUserId = UserId.generate();
+            var attemptingUserGroupId = GroupId.generate();
+            userExistsInGroup(attemptingUserId, attemptingUserGroupId);
+
+            var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+            var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
+
+            // when & then
+            assertThatThrownBy(() -> accountService.deposit(account.id(), depositAmount, attemptingUserId)).isInstanceOf(AccountNotFoundException.class);
+
+            // and
+            var unchangedAccount = accountService.getById(account.id(), accountOwnerUserId);
+            assertThat(unchangedAccount.balance().value()).isZero();
+        }
+
+        @Test
+        void shouldUpdateTimestampAfterDeposit() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("Time Test Account", PLN, userId));
+            var depositAmount = Money.of(new BigDecimal("50.00"), PLN);
+
+            // when
+            accountService.deposit(account.id(), depositAmount, userId);
+
+            // then
+            var updatedAccount = accountService.getById(account.id(), userId);
+            assertThat(updatedAccount.lastUpdatedAt()).isAfter(account.lastUpdatedAt());
+            verify(auditModuleFacade).logAccountDeposit(account.id(), account.name(), userId, groupId, depositAmount);
+        }
+    }
+
+    @Nested
+    class Withdraw {
+
+        @Test
+        void shouldWithdrawMoneyFromAccount() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("Savings Account", PLN, userId));
+            var depositAmount = Money.of(new BigDecimal("200.00"), PLN);
+            accountService.deposit(account.id(), depositAmount, userId);
+            var withdrawAmount = Money.of(new BigDecimal("75.00"), PLN);
+
+            // when
+            accountService.withdraw(account.id(), withdrawAmount, userId);
+
+            // then
+            var updatedAccount = accountService.getById(account.id(), userId);
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("125.00"));
+            assertThat(updatedAccount.balance().currency()).isEqualTo(PLN);
+            verify(auditModuleFacade).logAccountWithdraw(account.id(), account.name(), userId, groupId, withdrawAmount);
+        }
+
+        @Test
+        void shouldAllowWithdrawalResultingInNegativeBalance() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("Checking Account", EUR, userId));
+            var withdrawAmount = Money.of(new BigDecimal("50.00"), EUR);
+
+            // when
+            accountService.withdraw(account.id(), withdrawAmount, userId);
+
+            // then
+            var updatedAccount = accountService.getById(account.id(), userId);
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("-50.00"));
+            assertThat(updatedAccount.balance().currency()).isEqualTo(EUR);
+            verify(auditModuleFacade).logAccountWithdraw(account.id(), account.name(), userId, groupId, withdrawAmount);
+        }
+
+        @Test
+        void shouldAccumulateMultipleWithdrawals() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("Expense Account", USD, userId));
+            var depositAmount = Money.of(new BigDecimal("300.00"), USD);
+            accountService.deposit(account.id(), depositAmount, userId);
+            var firstWithdrawal = Money.of(new BigDecimal("100.00"), USD);
+            var secondWithdrawal = Money.of(new BigDecimal("50.50"), USD);
+
+            // when
+            accountService.withdraw(account.id(), firstWithdrawal, userId);
+            accountService.withdraw(account.id(), secondWithdrawal, userId);
+
+            // then
+            var updatedAccount = accountService.getById(account.id(), userId);
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("149.50"));
+            assertThat(updatedAccount.balance().currency()).isEqualTo(USD);
+            verify(auditModuleFacade).logAccountWithdraw(account.id(), account.name(), userId, groupId, firstWithdrawal);
+            verify(auditModuleFacade).logAccountWithdraw(account.id(), account.name(), userId, groupId, secondWithdrawal);
+        }
+
+        @Test
+        void shouldRejectWithdrawalWithCurrencyMismatch() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("PLN Account", PLN, userId));
+            var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
+            accountService.deposit(account.id(), depositAmount, userId);
+            var withdrawAmount = Money.of(new BigDecimal("50.00"), EUR);
+
+            // when & then
+            assertThatThrownBy(() -> accountService.withdraw(account.id(), withdrawAmount, userId)).isInstanceOf(TransactionCurrencyMismatchException.class);
+
+            // and
+            var unchangedAccount = accountService.getById(account.id(), userId);
+            assertThat(unchangedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("100.00"));
+        }
+
+        @Test
+        void shouldRejectWithdrawalWhenAccountNotFound() {
+            // given
+            var nonExistentAccountId = AccountId.generate();
+            var userId = UserId.generate();
+            userExistsInGroup(userId, GroupId.generate());
+            var withdrawAmount = Money.of(new BigDecimal("50.00"), PLN);
+
+            // when & then
+            assertThatThrownBy(() -> accountService.withdraw(nonExistentAccountId, withdrawAmount, userId)).isInstanceOf(AccountNotFoundException.class);
+        }
+
+        @Test
+        void shouldRejectWithdrawalWhenUserBelongsToDifferentGroup() {
+            // given
+            var accountOwnerUserId = UserId.generate();
+            var accountOwnerGroupId = GroupId.generate();
+            userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
+
+            var attemptingUserId = UserId.generate();
+            var attemptingUserGroupId = GroupId.generate();
+            userExistsInGroup(attemptingUserId, attemptingUserGroupId);
+
+            var account = accountService.createAccount(new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+            var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
+            accountService.deposit(account.id(), depositAmount, accountOwnerUserId);
+            var withdrawAmount = Money.of(new BigDecimal("50.00"), PLN);
+
+            // when & then
+            assertThatThrownBy(() -> accountService.withdraw(account.id(), withdrawAmount, attemptingUserId)).isInstanceOf(AccountNotFoundException.class);
+
+            // and
+            var unchangedAccount = accountService.getById(account.id(), accountOwnerUserId);
+            assertThat(unchangedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("100.00"));
+        }
+
+        @Test
+        void shouldUpdateTimestampAfterWithdrawal() {
+            // given
+            var userId = UserId.generate();
+            var groupId = GroupId.generate();
+            userExistsInGroup(userId, groupId);
+            var account = accountService.createAccount(new CreateAccountCommand("Time Test Account", PLN, userId));
+            var withdrawAmount = Money.of(new BigDecimal("25.00"), PLN);
+
+            // when
+            accountService.withdraw(account.id(), withdrawAmount, userId);
+
+            // then
+            var updatedAccount = accountService.getById(account.id(), userId);
+            assertThat(updatedAccount.lastUpdatedAt()).isAfter(account.lastUpdatedAt());
+            verify(auditModuleFacade).logAccountWithdraw(account.id(), account.name(), userId, groupId, withdrawAmount);
         }
     }
 }

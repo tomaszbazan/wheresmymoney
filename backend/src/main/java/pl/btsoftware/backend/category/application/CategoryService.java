@@ -3,6 +3,7 @@ package pl.btsoftware.backend.category.application;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.account.domain.AuditInfo;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.category.domain.CategoryRepository;
 import pl.btsoftware.backend.category.domain.error.CategoryAccessDeniedException;
@@ -23,6 +24,7 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final UsersModuleFacade usersModuleFacade;
     private final TransactionQueryFacade transactionQueryFacade;
+    private final AuditModuleFacade auditModuleFacade;
 
     @Transactional
     public Category createCategory(CreateCategoryCommand command) {
@@ -34,6 +36,7 @@ public class CategoryService {
         var category = command.toDomain(auditInfo);
         categoryRepository.store(category);
 
+        auditModuleFacade.logCategoryCreated(category.id(), category.name(), category.type().name(), command.userId(), user.groupId());
         return category;
     }
 
@@ -63,6 +66,7 @@ public class CategoryService {
         var updatedCategory = category.updateWith(command, userId);
 
         categoryRepository.store(updatedCategory);
+        auditModuleFacade.logCategoryUpdated(command.categoryId(), category.name(), updatedCategory.name(), userId, user.groupId());
         return updatedCategory;
     }
 
@@ -82,6 +86,7 @@ public class CategoryService {
 
         var deletedCategory = category.delete();
         categoryRepository.store(deletedCategory);
+        auditModuleFacade.logCategoryDeleted(categoryId, category.name(), userId, user.groupId());
     }
 
     private void validateHierarchyDepth(CategoryId parentId, GroupId groupId) {
@@ -101,10 +106,7 @@ public class CategoryService {
         }
 
         var category = categoryRepository.findById(categoryId, groupId);
-        if (category.isEmpty()) {
-            return 0;
-        }
+        return category.map(value -> 1 + calculateHierarchyDepth(value.parentId(), groupId)).orElse(0);
 
-        return 1 + calculateHierarchyDepth(category.get().parentId(), groupId);
     }
 }

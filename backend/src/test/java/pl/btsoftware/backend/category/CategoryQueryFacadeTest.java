@@ -3,6 +3,7 @@ package pl.btsoftware.backend.category;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.application.CategoryService;
 import pl.btsoftware.backend.category.application.CreateCategoryCommand;
 import pl.btsoftware.backend.category.infrastructure.persistance.InMemoryCategoryRepository;
@@ -29,7 +30,8 @@ class CategoryQueryFacadeTest {
         categoryRepository = new InMemoryCategoryRepository();
         var transactionQueryFacade = mock(TransactionQueryFacade.class);
         usersModuleFacade = mock(UsersModuleFacade.class);
-        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade);
+        var auditModuleFacade = mock(AuditModuleFacade.class);
+        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
         categoryQueryFacade = new CategoryQueryFacade(categoryRepository);
     }
 

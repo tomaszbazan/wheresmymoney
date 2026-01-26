@@ -3,6 +3,7 @@ package pl.btsoftware.backend.category.infrastructure.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.application.CategoryService;
@@ -30,8 +31,9 @@ public class CategoryModuleConfiguration {
     @Bean
     public CategoryService categoryService(CategoryRepository categoryRepository,
                                            UsersModuleFacade usersModuleFacade,
-                                           TransactionQueryFacade transactionQueryFacade) {
-        return new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade);
+                                           TransactionQueryFacade transactionQueryFacade,
+                                           AuditModuleFacade auditModuleFacade) {
+        return new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
     }
 
     @Bean

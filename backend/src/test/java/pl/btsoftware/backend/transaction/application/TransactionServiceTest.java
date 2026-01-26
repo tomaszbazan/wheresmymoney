@@ -3,11 +3,15 @@ package pl.btsoftware.backend.transaction.application;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
 import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountRepository;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.shared.*;
@@ -54,9 +58,11 @@ class TransactionServiceTest {
         when(usersModuleFacade.findUserOrThrow(any(UserId.class))).thenReturn(mockUser);
         when(categoryQueryFacade.hasCategories(any(CategoryType.class), any(GroupId.class))).thenReturn(true);
 
-        var accountService = new AccountService(accountRepository, usersModuleFacade, Mockito.mock(TransactionQueryFacade.class));
+        var auditModuleFacade = Mockito.mock(AuditModuleFacade.class);
+        var accountService = new AccountService(accountRepository, usersModuleFacade, Mockito.mock(TransactionQueryFacade.class), auditModuleFacade);
         this.accountModuleFacade = new AccountModuleFacade(accountService, usersModuleFacade);
-        this.transactionService = new TransactionService(transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade);
+        var transactionAuditModuleFacade = Mockito.mock(AuditModuleFacade.class);
+        this.transactionService = new TransactionService(transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade, transactionAuditModuleFacade);
     }
 
     @Test
@@ -85,7 +91,7 @@ class TransactionServiceTest {
 
         // Verify transaction is stored in repository
         assertThat(transactionRepository.findById(transaction.id(), testGroupId)).isPresent();
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
 
         // Verify account balance updated by +1000.12
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -118,7 +124,7 @@ class TransactionServiceTest {
 
         // Verify transaction is stored in repository
         assertThat(transactionRepository.findById(transaction.id(), testGroupId)).isPresent();
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
 
         // Verify account balance updated by -250.50
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -140,7 +146,7 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(AccountNotFoundException.class).hasMessageContaining("Account not found");
 
         // Verify no transaction was created
-        assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
     }
 
     @Test
@@ -161,7 +167,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(transaction.description()).isEqualTo("");
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
     }
 
     @Test
@@ -182,7 +188,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(transaction.description()).isNull();
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
     }
 
     @Test
@@ -192,17 +198,17 @@ class TransactionServiceTest {
         var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var amount = new BigDecimal("100.00");
-        var description = "A".repeat(201); // 201 characters
+        var description = "A".repeat(101); // 201 characters
         var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
         // When & Then
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
-        assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(TransactionDescriptionTooLongException.class).hasMessageContaining("Description cannot exceed 200 characters");
+        assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(TransactionDescriptionTooLongException.class).hasMessageContaining("Description cannot exceed 100 characters");
 
         // Verify no transaction was created
-        assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
     }
 
     @Test
@@ -222,7 +228,7 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(TransactionCurrencyMismatchException.class).hasMessageContaining("Transaction currency (USD) must match account currency (PLN)");
 
         // Verify no transaction was created
-        assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
     }
 
     @Test
@@ -463,7 +469,7 @@ class TransactionServiceTest {
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(NoCategoriesAvailableException.class).hasMessageContaining("No categories of type INCOME are available");
 
-        assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
     }
 
     @Test
@@ -484,7 +490,7 @@ class TransactionServiceTest {
         var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(NoCategoriesAvailableException.class).hasMessageContaining("No categories of type EXPENSE are available");
 
-        assertThat(transactionRepository.findAll(testGroupId)).isEmpty();
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).isEmpty();
     }
 
     @Test
@@ -507,7 +513,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(transaction.id()).isNotNull();
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
     }
 
     @Test
@@ -529,7 +535,7 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.createTransaction(command)).isInstanceOf(pl.btsoftware.backend.transaction.domain.error.DuplicateTransactionException.class).hasMessageContaining("duplicate");
 
         // Verify only one transaction was created
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(1);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(1);
     }
 
     @Test
@@ -553,7 +559,7 @@ class TransactionServiceTest {
 
         // Then
         assertThat(transaction2).isNotNull();
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(2);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(2);
     }
 
     @Test
@@ -573,7 +579,7 @@ class TransactionServiceTest {
         assertThat(result.savedCount()).isEqualTo(3);
         assertThat(result.duplicateCount()).isEqualTo(0);
         assertThat(result.savedTransactionIds()).hasSize(3);
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(3);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(3);
 
         // Verify account balance updated correctly: +100 +200 -300 = 0
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -604,7 +610,7 @@ class TransactionServiceTest {
         assertThat(result.savedCount()).isEqualTo(2);
         assertThat(result.duplicateCount()).isEqualTo(2);
         assertThat(result.savedTransactionIds()).hasSize(2);
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(3); // 1 existing + 2 new
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(3); // 1 existing + 2 new
 
         // Verify account balance updated correctly: +100 (existing) +200 -300 = 0
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -636,7 +642,7 @@ class TransactionServiceTest {
         assertThat(result.savedCount()).isEqualTo(0);
         assertThat(result.duplicateCount()).isEqualTo(2);
         assertThat(result.savedTransactionIds()).isEmpty();
-        assertThat(transactionRepository.findAll(testGroupId)).hasSize(2);
+        assertThat(transactionRepository.findAll(testGroupId, Pageable.unpaged()).getContent()).hasSize(2);
 
         // Verify account balance unchanged: +100 +200 = 300
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
@@ -664,5 +670,180 @@ class TransactionServiceTest {
         // When & Then
         var updateCommand = new UpdateTransactionCommand(transaction.id(), Money.of(new BigDecimal("2000.00"), PLN), "Updated description", categoryId);
         assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId)).isInstanceOf(NoCategoriesAvailableException.class).hasMessageContaining("No categories of type INCOME are available");
+    }
+
+    @Test
+    void shouldGetTransactionsPaginatedFirstPage() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        for (int i = 0; i < 25; i++) {
+            var amount = new BigDecimal("100.00");
+            var description = "Transaction " + i;
+            var date = LocalDate.of(2024, 1, i + 1);
+            var type = TransactionType.EXPENSE;
+            var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+            transactionService.createTransaction(command);
+        }
+
+        // When
+        var pageable = PageRequest.of(0, 10, Sort.by("transactionDate", "createdAt").descending());
+        var page = transactionRepository.findAll(testGroupId, pageable);
+
+        // Then
+        assertThat(page.getContent()).hasSize(10);
+        assertThat(page.getTotalElements()).isEqualTo(25);
+        assertThat(page.getTotalPages()).isEqualTo(3);
+        assertThat(page.getNumber()).isEqualTo(0);
+        assertThat(page.getSize()).isEqualTo(10);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
+    @Test
+    void shouldGetTransactionsPaginatedSecondPage() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        for (int i = 0; i < 25; i++) {
+            var amount = new BigDecimal("100.00");
+            var description = "Transaction " + i;
+            var date = LocalDate.of(2024, 1, 1);
+            var type = TransactionType.EXPENSE;
+            var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+            transactionService.createTransaction(command);
+        }
+
+        // When
+        var pageable = PageRequest.of(1, 10, Sort.by("transactionDate", "createdAt").descending());
+        var page = transactionRepository.findAll(testGroupId, pageable);
+
+        // Then
+        assertThat(page.getContent()).hasSize(10);
+        assertThat(page.getTotalElements()).isEqualTo(25);
+        assertThat(page.getTotalPages()).isEqualTo(3);
+        assertThat(page.getNumber()).isEqualTo(1);
+        assertThat(page.hasNext()).isTrue();
+        assertThat(page.hasPrevious()).isTrue();
+    }
+
+    @Test
+    void shouldGetTransactionsPaginatedEmptyPage() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        for (int i = 0; i < 5; i++) {
+            var amount = new BigDecimal("100.00");
+            var description = "Transaction " + i;
+            var date = LocalDate.of(2024, 1, 1);
+            var type = TransactionType.EXPENSE;
+            var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+            transactionService.createTransaction(command);
+        }
+
+        // When
+        var pageable = PageRequest.of(5, 10, Sort.by("transactionDate", "createdAt").descending());
+        var page = transactionRepository.findAll(testGroupId, pageable);
+
+        // Then
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isEqualTo(5);
+        assertThat(page.getTotalPages()).isEqualTo(1);
+        assertThat(page.getNumber()).isEqualTo(5);
+        assertThat(page.hasNext()).isFalse();
+    }
+
+    @Test
+    void shouldGetTransactionsPaginatedWithCustomPageSize() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        for (int i = 0; i < 30; i++) {
+            var amount = new BigDecimal("100.00");
+            var description = "Transaction " + i;
+            var date = LocalDate.of(2024, 1, 1);
+            var type = TransactionType.EXPENSE;
+            var command = new CreateTransactionCommand(account.id(), Money.of(amount, PLN), description, date, type, categoryId, userId);
+            transactionService.createTransaction(command);
+        }
+
+        // When
+        var pageable = PageRequest.of(0, 5, Sort.by("transactionDate", "createdAt").descending());
+        var page = transactionRepository.findAll(testGroupId, pageable);
+
+        // Then
+        assertThat(page.getContent()).hasSize(5);
+        assertThat(page.getTotalElements()).isEqualTo(30);
+        assertThat(page.getTotalPages()).isEqualTo(6);
+        assertThat(page.getSize()).isEqualTo(5);
+    }
+
+    @Test
+    void shouldGetTransactionsPaginatedInDescendingOrderByDate() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        var date1 = LocalDate.of(2024, 1, 10);
+        var date2 = LocalDate.of(2024, 1, 15);
+        var date3 = LocalDate.of(2024, 1, 5);
+
+        var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN), "Old", date1, TransactionType.EXPENSE, categoryId, userId);
+        var transaction1 = transactionService.createTransaction(command1);
+
+        var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Newest", date2, TransactionType.EXPENSE, categoryId, userId);
+        var transaction2 = transactionService.createTransaction(command2);
+
+        var command3 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("300.00"), PLN), "Oldest", date3, TransactionType.EXPENSE, categoryId, userId);
+        var transaction3 = transactionService.createTransaction(command3);
+
+        // When
+        var pageable = PageRequest.of(0, 10, Sort.by("transactionDate", "createdAt").descending());
+        var page = transactionRepository.findAll(testGroupId, pageable);
+
+        // Then
+        assertThat(page.getContent()).hasSize(3);
+        assertThat(page.getContent().get(0).id()).isEqualTo(transaction2.id());
+        assertThat(page.getContent().get(1).id()).isEqualTo(transaction1.id());
+        assertThat(page.getContent().get(2).id()).isEqualTo(transaction3.id());
+    }
+
+    @Test
+    void shouldGetTransactionsPaginatedExcludeSoftDeleted() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        var command1 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("100.00"), PLN), "Transaction 1", LocalDate.now(), TransactionType.EXPENSE, categoryId, userId);
+        var transaction1 = transactionService.createTransaction(command1);
+
+        var command2 = new CreateTransactionCommand(account.id(), Money.of(new BigDecimal("200.00"), PLN), "Transaction 2", LocalDate.now(), TransactionType.EXPENSE, categoryId, userId);
+        transactionService.createTransaction(command2);
+
+        transactionService.deleteTransaction(transaction1.id(), userId);
+
+        // When
+        var pageable = PageRequest.of(0, 10, Sort.by("transactionDate", "createdAt").descending());
+        var page = transactionRepository.findAll(testGroupId, pageable);
+
+        // Then
+        assertThat(page.getContent()).hasSize(1);
+        assertThat(page.getTotalElements()).isEqualTo(1);
     }
 }

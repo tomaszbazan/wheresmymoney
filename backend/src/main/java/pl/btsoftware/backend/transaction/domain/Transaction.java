@@ -2,6 +2,8 @@ package pl.btsoftware.backend.transaction.domain;
 
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.shared.validation.NameValidationRules;
+import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionInvalidCharactersException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -22,11 +24,15 @@ public record Transaction(
         AuditInfo updatedInfo,
         Tombstone tombstone
 ) {
-    private static final int MAX_DESCRIPTION_LENGTH = 200;
     public Transaction(TransactionId id, AccountId accountId, Money amount, TransactionType type, String description,
                        CategoryId categoryId, LocalDate transactionDate, TransactionHash transactionHash,
                        AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
-        validateDescriptionLength(description);
+        NameValidationRules.validate(
+                description,
+                null,
+                TransactionDescriptionTooLongException::new,
+                TransactionDescriptionInvalidCharactersException::new
+        );
         this.id = id;
         this.accountId = accountId;
         this.amount = amount;
@@ -106,11 +112,5 @@ public record Transaction(
 
     public boolean isDeleted() {
         return tombstone.isDeleted();
-    }
-
-    private void validateDescriptionLength(String description) {
-        if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
-            throw new TransactionDescriptionTooLongException();
-        }
     }
 }

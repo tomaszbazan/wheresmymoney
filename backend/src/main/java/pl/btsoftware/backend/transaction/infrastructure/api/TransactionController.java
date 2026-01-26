@@ -2,11 +2,14 @@ package pl.btsoftware.backend.transaction.infrastructure.api;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.shared.TransactionId;
+import pl.btsoftware.backend.shared.pagination.PaginationValidator;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
 import pl.btsoftware.backend.users.domain.UserId;
 
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class TransactionController {
     private final TransactionModuleFacade transactionModuleFacade;
     private final CategoryModuleFacade categoryModuleFacade;
+    private final PaginationValidator paginationValidator;
 
     @PostMapping("/transactions")
     public TransactionView createTransaction(@RequestBody CreateTransactionRequest request, @AuthenticationPrincipal Jwt jwt) {
@@ -37,11 +41,22 @@ public class TransactionController {
     }
 
     @GetMapping("/transactions")
-    public TransactionsView getAllTransactions(@AuthenticationPrincipal Jwt jwt) {
+    public TransactionsPaginatedView getAllTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
         var userId = new UserId(jwt.getSubject());
-        log.info("Received request to get all transactions by user: {}", userId);
-        var transactions = transactionModuleFacade.getAllTransactions(userId);
-        return TransactionsView.from(transactions, categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
+        log.info("Received request to get paginated transactions (page={}, size={}) by user: {}", page, size, userId);
+
+        var validatedSize = paginationValidator.validatePageSize(size);
+        var pageable = PageRequest.of(page, validatedSize, Sort.by("transactionDate", "createdAt").descending());
+        var transactionsPage = transactionModuleFacade.getAllTransactionsPaginated(userId, pageable);
+
+        return TransactionsPaginatedView.from(
+                transactionsPage,
+                categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId)
+        );
     }
 
     @GetMapping("/accounts/{accountId}/transactions") // TODO: Consider renaming

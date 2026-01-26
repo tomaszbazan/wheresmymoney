@@ -22,6 +22,7 @@ dependencies {
 
     systemTestImplementation 'org.testcontainers:postgresql'
     systemTestImplementation project
+    systemTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.register('systemTest', Test) {

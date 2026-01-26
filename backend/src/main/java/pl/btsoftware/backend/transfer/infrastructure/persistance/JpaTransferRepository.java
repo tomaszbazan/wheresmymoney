@@ -20,7 +20,32 @@ public class JpaTransferRepository implements TransferRepository {
 
     @Override
     public void store(Transfer transfer) {
-        repository.save(TransferEntity.fromDomain(transfer));
+        repository.findById(transfer.id().value())
+                .ifPresentOrElse(
+                        existing -> {
+                            var updated = new TransferEntity(
+                                    existing.getId(),
+                                    transfer.sourceAccountId().value(),
+                                    transfer.targetAccountId().value(),
+                                    transfer.sourceAmount().value(),
+                                    transfer.sourceAmount().currency(),
+                                    transfer.targetAmount().value(),
+                                    transfer.targetAmount().currency(),
+                                    transfer.exchangeRate().rate(),
+                                    transfer.description(),
+                                    existing.getCreatedAt(),
+                                    existing.getCreatedBy(),
+                                    existing.getCreatedByGroup(),
+                                    transfer.updatedInfo().when(),
+                                    transfer.updatedInfo().who().value(),
+                                    transfer.tombstone().isDeleted(),
+                                    transfer.tombstone().deletedAt(),
+                                    existing.getVersion()
+                            );
+                            repository.save(updated);
+                        },
+                        () -> repository.save(TransferEntity.fromDomain(transfer))
+                );
     }
 
     @Override

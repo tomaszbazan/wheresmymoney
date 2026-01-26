@@ -254,6 +254,7 @@ public class JpaTransferRepositoryTest {
 
         var initialEntity = transferJpaRepository.findById(transfer.id().value()).orElseThrow();
         var initialVersion = initialEntity.getVersion();
+        entityManager.clear();
 
         var updatedTransfer = new Transfer(
                 transfer.id(),

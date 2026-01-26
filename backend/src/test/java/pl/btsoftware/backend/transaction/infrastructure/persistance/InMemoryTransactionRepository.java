@@ -1,5 +1,8 @@
 package pl.btsoftware.backend.transaction.infrastructure.persistance;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
@@ -8,10 +11,7 @@ import pl.btsoftware.backend.transaction.domain.TransactionHash;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.users.domain.GroupId;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class InMemoryTransactionRepository implements TransactionRepository {
     private final HashMap<UUID, Transaction> database = new HashMap<>();
@@ -35,11 +35,22 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     }
 
     @Override
-    public List<Transaction> findAll(GroupId groupId) {
-        return database.values().stream()
+    public Page<Transaction> findAll(GroupId groupId, Pageable pageable) {
+        var filteredTransactions = database.values().stream()
                 .filter(transaction -> transaction.ownedBy().equals(groupId))
                 .filter(transaction -> !transaction.tombstone().isDeleted())
+                .sorted(Comparator.comparing(Transaction::transactionDate)
+                        .thenComparing(t -> t.createdInfo().when())
+                        .reversed())
                 .toList();
+
+        var totalElements = filteredTransactions.size();
+        var start = (int) pageable.getOffset();
+        var end = Math.min(start + pageable.getPageSize(), totalElements);
+
+        List<Transaction> pageContent = (start >= totalElements) ? List.of() : filteredTransactions.subList(start, end);
+
+        return new PageImpl<>(pageContent, pageable, totalElements);
     }
 
     @Override

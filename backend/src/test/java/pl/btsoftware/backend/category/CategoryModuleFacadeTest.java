@@ -4,6 +4,7 @@ import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.application.CategoryService;
 import pl.btsoftware.backend.category.application.CreateCategoryCommand;
 import pl.btsoftware.backend.category.application.UpdateCategoryCommand;
@@ -31,7 +32,8 @@ class CategoryModuleFacadeTest {
         var categoryRepository = new InMemoryCategoryRepository();
         var transactionQueryFacade = Mockito.mock(TransactionQueryFacade.class);
         usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
-        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade);
+        var auditModuleFacade = Mockito.mock(AuditModuleFacade.class);
+        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
         categoryModuleFacade = new CategoryModuleFacade(categoryService, usersModuleFacade);
     }
 

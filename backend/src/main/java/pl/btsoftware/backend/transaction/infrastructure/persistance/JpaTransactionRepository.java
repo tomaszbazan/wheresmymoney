@@ -2,6 +2,8 @@ package pl.btsoftware.backend.transaction.infrastructure.persistance;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.CategoryId;
@@ -38,8 +40,8 @@ public class JpaTransactionRepository implements TransactionRepository {
     }
 
     @Override
-    public List<Transaction> findAll(GroupId groupId) {
-        return repository.findByCreatedByGroupAndIsDeletedFalse(groupId.value()).stream().map(TransactionEntity::toDomain).toList();
+    public Page<Transaction> findAll(GroupId groupId, Pageable pageable) {
+        return repository.findByCreatedByGroupAndIsDeletedFalse(groupId.value(), pageable).map(TransactionEntity::toDomain);
     }
 
     @Override

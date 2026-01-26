@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.transaction.domain;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
@@ -15,7 +17,7 @@ public interface TransactionRepository {
 
     Optional<Transaction> findByIdIncludingDeleted(TransactionId id, GroupId groupId);
 
-    List<Transaction> findAll(GroupId groupId);
+    Page<Transaction> findAll(GroupId groupId, Pageable pageable);
 
     List<Transaction> findByAccountId(AccountId accountId, GroupId groupId);
 
