@@ -39,3 +39,6 @@ pom.xml
 local.properties
 
 .env
+
+### VS Code ###
+settings.json
