@@ -97,7 +97,7 @@ public class MbankCsvParser implements TransactionCsvParser {
         var amountString = record.get(AMOUNT_COLUMN).trim();
 
         var cleanedDescription = cleanDescription(rawDescription);
-        var descriptionWithCategory = category + " / " + cleanedDescription;
+        var descriptionWithCategory = category + ": " + cleanedDescription;
         var description = truncateDescription(descriptionWithCategory);
 
         var currency = extractCurrency(amountString);

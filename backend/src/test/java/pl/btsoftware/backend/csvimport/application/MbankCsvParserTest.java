@@ -50,7 +50,7 @@ class MbankCsvParserTest {
         assertThat(incomeProposal.amount()).isEqualTo(new BigDecimal("1100.00"));
         assertThat(incomeProposal.currency()).isEqualTo(Currency.PLN);
         assertThat(incomeProposal.categoryId()).isNull();
-        assertThat(incomeProposal.description()).contains(" / ");
+        assertThat(incomeProposal.description()).contains(": ");
     }
 
     @Test
@@ -68,7 +68,7 @@ class MbankCsvParserTest {
         assertThat(expenseProposal.amount()).isLessThan(BigDecimal.ZERO);
         assertThat(expenseProposal.currency()).isEqualTo(Currency.PLN);
         assertThat(expenseProposal.categoryId()).isNull();
-        assertThat(expenseProposal.description()).contains(" / ");
+        assertThat(expenseProposal.description()).contains(": ");
     }
 
     @Test
@@ -240,7 +240,7 @@ class MbankCsvParserTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / Test description with multiple spaces");
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: Test description with multiple spaces");
     }
 
     @Test
@@ -256,7 +256,7 @@ class MbankCsvParserTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / APTEKA ZAKUP");
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: APTEKA ZAKUP");
     }
 
     @Test
@@ -272,7 +272,7 @@ class MbankCsvParserTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / FRANCISZEK BELA");
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: FRANCISZEK BELA");
     }
 
     @Test
@@ -288,7 +288,7 @@ class MbankCsvParserTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / Test description with tabs and newlines");
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: Test description with tabs and newlines");
     }
 
     @Test
@@ -304,7 +304,7 @@ class MbankCsvParserTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category / APTEKA ZAKUP");
+        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: APTEKA ZAKUP");
     }
 
     private String createValidHeaderLines(int count) {
