@@ -1,0 +1,65 @@
+-- -- Create table to track synchronization state
+-- -- This table stores the last sync timestamp for each entity type
+-- CREATE TABLE migration_sync_state
+-- (
+--     entity_type       VARCHAR(50) PRIMARY KEY,
+--     last_sync_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+--     last_synced_count INTEGER                  NOT NULL DEFAULT 0,
+--     total_synced      INTEGER                  NOT NULL DEFAULT 0,
+--     status            VARCHAR(20)              NOT NULL DEFAULT 'ACTIVE',
+--     error_message     TEXT,
+--     updated_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     CONSTRAINT check_sync_status CHECK (status IN ('ACTIVE', 'PAUSED', 'ERROR', 'COMPLETED'))
+-- );
+--
+-- -- Initialize sync state for each entity type
+-- INSERT INTO migration_sync_state (entity_type, last_sync_at, status)
+-- VALUES
+--     ('EXPENSE', TIMESTAMP '2000-01-01 00:00:00+00', 'ACTIVE'),
+--     ('INCOME', TIMESTAMP '2000-01-01 00:00:00+00', 'ACTIVE'),
+--     ('ACCOUNT', TIMESTAMP '2000-01-01 00:00:00+00', 'ACTIVE'),
+--     ('CATEGORY_EXPENSE', TIMESTAMP '2000-01-01 00:00:00+00', 'ACTIVE'),
+--     ('CATEGORY_INCOME', TIMESTAMP '2000-01-01 00:00:00+00', 'ACTIVE');
+--
+-- -- Create table to store entity mappings between old and new IDs
+-- CREATE TABLE migration_entity_mapping
+-- (
+--     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--     entity_type      VARCHAR(50)              NOT NULL,
+--     old_id           INTEGER,
+--     old_name         VARCHAR(200),
+--     new_id           UUID                     NOT NULL,
+--     metadata         JSONB,
+--     created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     UNIQUE (entity_type, old_id),
+--     UNIQUE (entity_type, old_name, new_id)
+-- );
+--
+-- CREATE INDEX idx_migration_entity_mapping_type ON migration_entity_mapping (entity_type);
+-- CREATE INDEX idx_migration_entity_mapping_old_id ON migration_entity_mapping (entity_type, old_id);
+-- CREATE INDEX idx_migration_entity_mapping_old_name ON migration_entity_mapping (entity_type, old_name);
+-- CREATE INDEX idx_migration_entity_mapping_new_id ON migration_entity_mapping (new_id);
+--
+-- -- Create audit log for sync operations
+-- CREATE TABLE migration_sync_log
+-- (
+--     id              UUID PRIMARY KEY         DEFAULT gen_random_uuid(),
+--     entity_type     VARCHAR(50)              NOT NULL,
+--     operation       VARCHAR(20)              NOT NULL,
+--     old_id          INTEGER,
+--     new_id          UUID,
+--     status          VARCHAR(20)              NOT NULL,
+--     error_message   TEXT,
+--     processing_time INTEGER, -- milliseconds
+--     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     CONSTRAINT check_sync_operation CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'SKIP')),
+--     CONSTRAINT check_sync_log_status CHECK (status IN ('SUCCESS', 'ERROR', 'SKIPPED'))
+-- );
+--
+-- CREATE INDEX idx_migration_sync_log_entity_type ON migration_sync_log (entity_type);
+-- CREATE INDEX idx_migration_sync_log_status ON migration_sync_log (status);
+-- CREATE INDEX idx_migration_sync_log_created_at ON migration_sync_log (created_at);
+--
+-- COMMENT ON TABLE migration_sync_state IS 'Tracks synchronization state for each entity type during migration period';
+-- COMMENT ON TABLE migration_entity_mapping IS 'Maps old application IDs to new application UUIDs';
+-- COMMENT ON TABLE migration_sync_log IS 'Audit log for all synchronization operations';

@@ -1,0 +1,479 @@
+-- -- Migration script from WheresMyMoney_old to WheresMyMoney
+-- -- This script assumes dblink extension is available and old database is accessible
+-- -- Run this after ensuring all V1-V11 migrations are complete
+--
+-- -- Enable dblink extension if not already enabled
+-- CREATE EXTENSION IF NOT EXISTS dblink;
+--
+-- -- Create temporary mapping tables to store old_id -> new_uuid mappings
+-- CREATE TEMP TABLE temp_user_mapping (
+--     old_login VARCHAR(100),
+--     new_id VARCHAR(100),
+--     new_group_id UUID
+-- );
+--
+-- CREATE TEMP TABLE temp_group_mapping (
+--     old_group_name VARCHAR(100),
+--     new_id UUID
+-- );
+--
+-- CREATE TEMP TABLE temp_account_mapping (
+--     old_account_name VARCHAR(100),
+--     old_group_name VARCHAR(100),
+--     new_id UUID
+-- );
+--
+-- CREATE TEMP TABLE temp_category_mapping (
+--     old_category_name VARCHAR(100),
+--     old_type VARCHAR(20), -- 'INCOME' or 'EXPENSE'
+--     new_id UUID
+-- );
+--
+-- -- =============================================================================
+-- -- Step 1: Migrate Groups
+-- -- =============================================================================
+-- INSERT INTO groups (id, name, description, created_by, created_at)
+-- SELECT
+--     gen_random_uuid(),
+--     t1.group_name,
+--     'Migrated from old application',
+--     'migration-script',
+--     CURRENT_TIMESTAMP
+-- FROM dblink(
+--     'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--     'SELECT DISTINCT group_name FROM "group" ORDER BY group_name'
+-- ) AS t1(group_name VARCHAR(100))
+-- ON CONFLICT DO NOTHING
+-- RETURNING id, name;
+--
+-- -- Store group mapping
+-- INSERT INTO temp_group_mapping (old_group_name, new_id)
+-- SELECT name, id FROM groups WHERE created_by = 'migration-script';
+--
+-- -- =============================================================================
+-- -- Step 2: Migrate Users
+-- -- =============================================================================
+-- -- For old app, each user had their own group. In new app, users belong to groups.
+-- -- We'll create a group for each user and map them accordingly.
+-- INSERT INTO users (id, email, display_name, group_id, created_at, last_login_at, joined_group_at)
+-- SELECT
+--     t1.login,
+--     COALESCE(t1.email, t1.login || '@migrated.local'),
+--     COALESCE(t1.name || ' ' || t1.surname, t1.login),
+--     (SELECT new_id FROM temp_group_mapping LIMIT 1), -- Temporary group, will update later
+--     CURRENT_TIMESTAMP,
+--     CURRENT_TIMESTAMP,
+--     CURRENT_TIMESTAMP
+-- FROM dblink(
+--     'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--     'SELECT login, email, name, surname FROM "user" WHERE used = true'
+-- ) AS t1(
+--     login VARCHAR(100),
+--     email VARCHAR(100),
+--     name VARCHAR(100),
+--     surname VARCHAR(100)
+-- )
+-- ON CONFLICT DO NOTHING;
+--
+-- -- Update user group assignments based on user_group table
+-- WITH user_group_data AS (
+--     SELECT
+--         t1.login,
+--         t1.group_name,
+--         t1.is_owner
+--     FROM dblink(
+--         'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--         'SELECT
+--             (SELECT login FROM "user" WHERE id = ug.id_user) AS login,
+--             (SELECT group_name FROM "group" WHERE id = ug.id_group) AS group_name,
+--             is_owner
+--          FROM user_group AS ug'
+--     ) AS t1(
+--         login VARCHAR(100),
+--         group_name VARCHAR(100),
+--         is_owner BOOLEAN
+--     )
+-- )
+-- UPDATE users u
+-- SET group_id = (SELECT new_id FROM temp_group_mapping WHERE old_group_name = ugd.group_name)
+-- FROM user_group_data ugd
+-- WHERE u.id = ugd.login AND ugd.is_owner = true;
+--
+-- -- Store user mapping
+-- INSERT INTO temp_user_mapping (old_login, new_id, new_group_id)
+-- SELECT id, id, group_id FROM users;
+--
+-- -- Populate group_members table
+-- INSERT INTO group_members (group_id, user_id)
+-- SELECT DISTINCT group_id, id FROM users
+-- ON CONFLICT DO NOTHING;
+--
+-- -- =============================================================================
+-- -- Step 3: Migrate Accounts
+-- -- =============================================================================
+-- INSERT INTO account (
+--     id,
+--     name,
+--     balance,
+--     currency,
+--     created_at,
+--     created_by,
+--     created_by_group,
+--     updated_at,
+--     updated_by
+-- )
+-- SELECT
+--     gen_random_uuid(),
+--     t1.account_name,
+--     COALESCE(t1.amount, 0),
+--     CASE
+--         WHEN t1.id_currency = 1 THEN 'PLN'
+--         WHEN t1.id_currency = 2 THEN 'EUR'
+--         WHEN t1.id_currency = 3 THEN 'USD'
+--         ELSE 'PLN'
+--     END,
+--     COALESCE(t1.date, CURRENT_TIMESTAMP),
+--     COALESCE(t1.login, 'migration-script'),
+--     COALESCE(
+--         (SELECT new_id FROM temp_group_mapping WHERE old_group_name = t1.group_name),
+--         (SELECT new_id FROM temp_group_mapping LIMIT 1)
+--     ),
+--     COALESCE(t1.date, CURRENT_TIMESTAMP),
+--     COALESCE(t1.login, 'migration-script')
+-- FROM dblink(
+--     'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--     'SELECT
+--         account_name,
+--         date,
+--         id_currency,
+--         (SELECT group_name FROM "group" WHERE id = a.id_group) AS group_name,
+--         (SELECT login FROM "user" WHERE id = a.id_user) AS login,
+--         amount,
+--         used
+--      FROM account AS a
+--      WHERE used = true'
+-- ) AS t1(
+--     account_name VARCHAR(100),
+--     date TIMESTAMP,
+--     id_currency INTEGER,
+--     group_name VARCHAR(100),
+--     login VARCHAR(100),
+--     amount NUMERIC(17,2),
+--     used BOOLEAN
+-- );
+--
+-- -- Store account mapping
+-- INSERT INTO temp_account_mapping (old_account_name, old_group_name, new_id)
+-- SELECT
+--     a.name,
+--     g.name,
+--     a.id
+-- FROM account a
+-- JOIN groups g ON a.created_by_group = g.id;
+--
+-- -- =============================================================================
+-- -- Step 4: Migrate Categories (both income and expense)
+-- -- =============================================================================
+--
+-- -- Migrate expense categories
+-- INSERT INTO category (
+--     id,
+--     name,
+--     description,
+--     type,
+--     color,
+--     created_at,
+--     created_by,
+--     created_by_group,
+--     updated_at,
+--     updated_by,
+--     is_deleted,
+--     parent_id
+-- )
+-- SELECT
+--     gen_random_uuid(),
+--     t1.expense_category_name,
+--     COALESCE(t1.comment, ''),
+--     'EXPENSE',
+--     COALESCE(t1.icon, '#FF0000'), -- Default red color for expenses
+--     COALESCE(t1.date, CURRENT_TIMESTAMP),
+--     COALESCE(t1.login, 'migration-script'),
+--     COALESCE(
+--         (SELECT new_id FROM temp_group_mapping WHERE old_group_name = t1.group_name),
+--         (SELECT new_id FROM temp_group_mapping LIMIT 1)
+--     ),
+--     COALESCE(t1.date, CURRENT_TIMESTAMP),
+--     COALESCE(t1.login, 'migration-script'),
+--     NOT t1.used,
+--     NULL -- Will update parent_id in next step
+-- FROM dblink(
+--     'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--     'SELECT
+--         expense_category_name,
+--         date,
+--         (SELECT group_name FROM "group" WHERE id = ec.id_group) AS group_name,
+--         (SELECT login FROM "user" WHERE id = ec.id_user) AS login,
+--         comment,
+--         icon,
+--         (SELECT expense_category_name FROM expense_category WHERE id = ec.id_parent_category) AS parent_category_name,
+--         used
+--      FROM expense_category AS ec
+--      ORDER BY expense_category_name'
+-- ) AS t1(
+--     expense_category_name VARCHAR(100),
+--     date TIMESTAMP,
+--     group_name VARCHAR(100),
+--     login VARCHAR(100),
+--     comment VARCHAR(200),
+--     icon VARCHAR(400),
+--     parent_category_name VARCHAR(100),
+--     used BOOLEAN
+-- );
+--
+-- -- Store expense category mapping
+-- INSERT INTO temp_category_mapping (old_category_name, old_type, new_id)
+-- SELECT name, 'EXPENSE', id FROM category WHERE type = 'EXPENSE';
+--
+-- -- Migrate income categories
+-- INSERT INTO category (
+--     id,
+--     name,
+--     description,
+--     type,
+--     color,
+--     created_at,
+--     created_by,
+--     created_by_group,
+--     updated_at,
+--     updated_by,
+--     is_deleted
+-- )
+-- SELECT
+--     gen_random_uuid(),
+--     t1.income_category_name,
+--     COALESCE(t1.comment, ''),
+--     'INCOME',
+--     COALESCE(t1.icon, '#00FF00'), -- Default green color for income
+--     COALESCE(t1.date, CURRENT_TIMESTAMP),
+--     COALESCE(t1.login, 'migration-script'),
+--     COALESCE(
+--         (SELECT new_id FROM temp_group_mapping WHERE old_group_name = t1.group_name),
+--         (SELECT new_id FROM temp_group_mapping LIMIT 1)
+--     ),
+--     COALESCE(t1.date, CURRENT_TIMESTAMP),
+--     COALESCE(t1.login, 'migration-script'),
+--     NOT t1.used
+-- FROM dblink(
+--     'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--     'SELECT
+--         income_category_name,
+--         date,
+--         (SELECT group_name FROM "group" WHERE id = ic.id_group) AS group_name,
+--         (SELECT login FROM "user" WHERE id = ic.id_user) AS login,
+--         comment,
+--         icon,
+--         used
+--      FROM income_category AS ic'
+-- ) AS t1(
+--     income_category_name VARCHAR(100),
+--     date TIMESTAMP,
+--     group_name VARCHAR(100),
+--     login VARCHAR(100),
+--     comment VARCHAR(200),
+--     icon VARCHAR(400),
+--     used BOOLEAN
+-- );
+--
+-- -- Store income category mapping
+-- INSERT INTO temp_category_mapping (old_category_name, old_type, new_id)
+-- SELECT name, 'INCOME', id FROM category WHERE type = 'INCOME';
+--
+-- -- Update parent_id for expense categories
+-- WITH parent_mapping AS (
+--     SELECT
+--         t1.expense_category_name,
+--         t1.parent_category_name
+--     FROM dblink(
+--         'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--         'SELECT
+--             expense_category_name,
+--             (SELECT expense_category_name FROM expense_category WHERE id = ec.id_parent_category) AS parent_category_name
+--          FROM expense_category AS ec
+--          WHERE id_parent_category IS NOT NULL'
+--     ) AS t1(
+--         expense_category_name VARCHAR(100),
+--         parent_category_name VARCHAR(100)
+--     )
+-- )
+-- UPDATE category c
+-- SET parent_id = (
+--     SELECT new_id
+--     FROM temp_category_mapping
+--     WHERE old_category_name = pm.parent_category_name
+--     AND old_type = 'EXPENSE'
+-- )
+-- FROM parent_mapping pm
+-- WHERE c.name = pm.expense_category_name
+-- AND c.type = 'EXPENSE';
+--
+-- -- =============================================================================
+-- -- Step 5: Migrate Transactions (expenses and income)
+-- -- =============================================================================
+--
+-- -- Migrate expenses
+-- INSERT INTO transaction (
+--     id,
+--     account_id,
+--     amount,
+--     currency,
+--     type,
+--     description,
+--     category_id,
+--     created_at,
+--     created_by,
+--     created_by_group,
+--     updated_at,
+--     updated_by,
+--     is_deleted
+-- )
+-- SELECT
+--     gen_random_uuid(),
+--     (
+--         SELECT new_id
+--         FROM temp_account_mapping
+--         WHERE old_account_name = t1.account_name
+--         LIMIT 1
+--     ),
+--     ABS(t1.amount), -- Store as positive, type indicates it's expense
+--     CASE
+--         WHEN t1.id_currency = 1 THEN 'PLN'
+--         WHEN t1.id_currency = 2 THEN 'EUR'
+--         WHEN t1.id_currency = 3 THEN 'USD'
+--         ELSE 'PLN'
+--     END,
+--     'EXPENSE',
+--     COALESCE(t1.comment, ''),
+--     (
+--         SELECT new_id
+--         FROM temp_category_mapping
+--         WHERE old_category_name = t1.expense_category_name
+--         AND old_type = 'EXPENSE'
+--     ),
+--     t1.date,
+--     COALESCE(t1.login, 'migration-script'),
+--     COALESCE(
+--         (SELECT new_id FROM temp_group_mapping WHERE old_group_name = t1.group_name),
+--         (SELECT new_id FROM temp_group_mapping LIMIT 1)
+--     ),
+--     t1.date,
+--     COALESCE(t1.login, 'migration-script'),
+--     false
+-- FROM dblink(
+--     'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--     'SELECT
+--         e.amount,
+--         e.date,
+--         (SELECT group_name FROM "group" WHERE id = e.id_group) AS group_name,
+--         (SELECT login FROM "user" WHERE id = e.id_user) AS login,
+--         e.comment,
+--         (SELECT account_name FROM account WHERE id = e.id_account) AS account_name,
+--         (SELECT expense_category_name FROM expense_category WHERE id = e.id_expense_category) AS expense_category_name,
+--         (SELECT id_currency FROM account WHERE id = e.id_account) AS id_currency
+--      FROM expense AS e'
+-- ) AS t1(
+--     amount NUMERIC(17,2),
+--     date TIMESTAMP,
+--     group_name VARCHAR(100),
+--     login VARCHAR(100),
+--     comment VARCHAR(200),
+--     account_name VARCHAR(100),
+--     expense_category_name VARCHAR(100),
+--     id_currency INTEGER
+-- );
+--
+-- -- Migrate income
+-- INSERT INTO transaction (
+--     id,
+--     account_id,
+--     amount,
+--     currency,
+--     type,
+--     description,
+--     category_id,
+--     created_at,
+--     created_by,
+--     created_by_group,
+--     updated_at,
+--     updated_by,
+--     is_deleted
+-- )
+-- SELECT
+--     gen_random_uuid(),
+--     (
+--         SELECT new_id
+--         FROM temp_account_mapping
+--         WHERE old_account_name = t1.account_name
+--         LIMIT 1
+--     ),
+--     ABS(t1.amount), -- Store as positive, type indicates it's income
+--     CASE
+--         WHEN t1.id_currency = 1 THEN 'PLN'
+--         WHEN t1.id_currency = 2 THEN 'EUR'
+--         WHEN t1.id_currency = 3 THEN 'USD'
+--         ELSE 'PLN'
+--     END,
+--     'INCOME',
+--     COALESCE(t1.comment, ''),
+--     (
+--         SELECT new_id
+--         FROM temp_category_mapping
+--         WHERE old_category_name = t1.income_category_name
+--         AND old_type = 'INCOME'
+--     ),
+--     t1.date,
+--     COALESCE(t1.login, 'migration-script'),
+--     COALESCE(
+--         (SELECT new_id FROM temp_group_mapping WHERE old_group_name = t1.group_name),
+--         (SELECT new_id FROM temp_group_mapping LIMIT 1)
+--     ),
+--     t1.date,
+--     COALESCE(t1.login, 'migration-script'),
+--     false
+-- FROM dblink(
+--     'dbname=wheresmymoney_old host=127.0.0.1 user=wheresmymoney password=yourpassword',
+--     'SELECT
+--         i.amount,
+--         i.date,
+--         (SELECT group_name FROM "group" WHERE id = i.id_group) AS group_name,
+--         (SELECT login FROM "user" WHERE id = i.id_user) AS login,
+--         i.comment,
+--         (SELECT account_name FROM account WHERE id = i.id_account) AS account_name,
+--         (SELECT income_category_name FROM income_category WHERE id = i.id_income_category) AS income_category_name,
+--         (SELECT id_currency FROM account WHERE id = i.id_account) AS id_currency
+--      FROM income AS i'
+-- ) AS t1(
+--     amount NUMERIC(17,2),
+--     date TIMESTAMP,
+--     group_name VARCHAR(100),
+--     login VARCHAR(100),
+--     comment VARCHAR(200),
+--     account_name VARCHAR(100),
+--     income_category_name VARCHAR(100),
+--     id_currency INTEGER
+-- );
+--
+-- -- =============================================================================
+-- -- Cleanup
+-- -- =============================================================================
+-- -- Temporary tables will be dropped automatically at end of session
+-- -- DROP TABLE IF EXISTS temp_user_mapping;
+-- -- DROP TABLE IF EXISTS temp_group_mapping;
+-- -- DROP TABLE IF EXISTS temp_account_mapping;
+-- -- DROP TABLE IF EXISTS temp_category_mapping;
+--
+-- -- Add comment to track migration
+-- COMMENT ON TABLE groups IS 'Migrated from WheresMyMoney_old application';
+-- COMMENT ON TABLE users IS 'Migrated from WheresMyMoney_old application';
+-- COMMENT ON TABLE account IS 'Migrated from WheresMyMoney_old application';
+-- COMMENT ON TABLE category IS 'Migrated from WheresMyMoney_old application';
+-- COMMENT ON TABLE transaction IS 'Migrated from WheresMyMoney_old application';

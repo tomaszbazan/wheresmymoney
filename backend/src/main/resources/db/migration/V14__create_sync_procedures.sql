@@ -1,0 +1,316 @@
+-- -- Stored procedure to sync expense transactions from old database
+-- CREATE OR REPLACE FUNCTION sync_expenses_from_old_db(
+--     p_old_db_connection_string TEXT,
+--     p_batch_size INTEGER DEFAULT 100
+-- )
+-- RETURNS TABLE (
+--     synced_count INTEGER,
+--     error_count INTEGER,
+--     skipped_count INTEGER
+-- ) AS $$
+-- DECLARE
+--     v_last_sync_at TIMESTAMP;
+--     v_synced_count INTEGER := 0;
+--     v_error_count INTEGER := 0;
+--     v_skipped_count INTEGER := 0;
+--     v_start_time TIMESTAMP := CLOCK_TIMESTAMP();
+-- BEGIN
+--     -- Get last sync timestamp
+--     SELECT last_sync_at INTO v_last_sync_at
+--     FROM migration_sync_state
+--     WHERE entity_type = 'EXPENSE';
+--
+--     -- Sync new/updated expenses
+--     INSERT INTO transaction (
+--         id,
+--         account_id,
+--         amount,
+--         currency,
+--         type,
+--         description,
+--         category_id,
+--         created_at,
+--         created_by,
+--         created_by_group,
+--         updated_at,
+--         updated_by,
+--         is_deleted
+--     )
+--     SELECT
+--         gen_random_uuid(),
+--         acc_map.new_id, -- account_id from mapping
+--         ABS(t1.amount),
+--         CASE
+--             WHEN t1.id_currency = 1 THEN 'PLN'
+--             WHEN t1.id_currency = 2 THEN 'EUR'
+--             WHEN t1.id_currency = 3 THEN 'USD'
+--             ELSE 'PLN'
+--         END,
+--         'EXPENSE',
+--         COALESCE(t1.comment, ''),
+--         cat_map.new_id, -- category_id from mapping
+--         t1.date,
+--         COALESCE(user_map.new_id, 'migration-script'),
+--         COALESCE(grp_map.new_id, (SELECT id FROM groups LIMIT 1)),
+--         t1.date,
+--         COALESCE(user_map.new_id, 'migration-script'),
+--         false
+--     FROM dblink(
+--         p_old_db_connection_string,
+--         format('SELECT
+--             e.id,
+--             e.amount,
+--             e.date,
+--             e.comment,
+--             e.id_account,
+--             e.id_expense_category,
+--             e.id_user,
+--             e.id_group,
+--             (SELECT id_currency FROM account WHERE id = e.id_account) AS id_currency
+--          FROM expense AS e
+--          WHERE e.date > %L
+--          ORDER BY e.date
+--          LIMIT %s',
+--          v_last_sync_at,
+--          p_batch_size)
+--     ) AS t1(
+--         old_id INTEGER,
+--         amount NUMERIC(17,2),
+--         date TIMESTAMP,
+--         comment VARCHAR(200),
+--         old_account_id INTEGER,
+--         old_category_id INTEGER,
+--         old_user_id INTEGER,
+--         old_group_id INTEGER,
+--         id_currency INTEGER
+--     )
+--     LEFT JOIN migration_entity_mapping acc_map
+--         ON acc_map.entity_type = 'ACCOUNT' AND acc_map.old_id = t1.old_account_id
+--     LEFT JOIN migration_entity_mapping cat_map
+--         ON cat_map.entity_type = 'CATEGORY_EXPENSE' AND cat_map.old_id = t1.old_category_id
+--     LEFT JOIN migration_entity_mapping user_map
+--         ON user_map.entity_type = 'USER' AND user_map.old_id = t1.old_user_id
+--     LEFT JOIN migration_entity_mapping grp_map
+--         ON grp_map.entity_type = 'GROUP' AND grp_map.old_id = t1.old_group_id
+--     WHERE acc_map.new_id IS NOT NULL
+--       AND cat_map.new_id IS NOT NULL
+--     ON CONFLICT DO NOTHING;
+--
+--     GET DIAGNOSTICS v_synced_count = ROW_COUNT;
+--
+--     -- Update sync state
+--     UPDATE migration_sync_state
+--     SET
+--         last_sync_at = COALESCE(
+--             (SELECT MAX(created_at) FROM transaction WHERE type = 'EXPENSE'),
+--             last_sync_at
+--         ),
+--         last_synced_count = v_synced_count,
+--         total_synced = total_synced + v_synced_count,
+--         updated_at = CLOCK_TIMESTAMP(),
+--         status = 'ACTIVE'
+--     WHERE entity_type = 'EXPENSE';
+--
+--     RETURN QUERY SELECT v_synced_count, v_error_count, v_skipped_count;
+--
+-- EXCEPTION WHEN OTHERS THEN
+--     -- Log error
+--     UPDATE migration_sync_state
+--     SET
+--         status = 'ERROR',
+--         error_message = SQLERRM,
+--         updated_at = CLOCK_TIMESTAMP()
+--     WHERE entity_type = 'EXPENSE';
+--
+--     RAISE;
+-- END;
+-- $$ LANGUAGE plpgsql;
+--
+-- -- Stored procedure to sync income transactions from old database
+-- CREATE OR REPLACE FUNCTION sync_income_from_old_db(
+--     p_old_db_connection_string TEXT,
+--     p_batch_size INTEGER DEFAULT 100
+-- )
+-- RETURNS TABLE (
+--     synced_count INTEGER,
+--     error_count INTEGER,
+--     skipped_count INTEGER
+-- ) AS $$
+-- DECLARE
+--     v_last_sync_at TIMESTAMP;
+--     v_synced_count INTEGER := 0;
+--     v_error_count INTEGER := 0;
+--     v_skipped_count INTEGER := 0;
+-- BEGIN
+--     -- Get last sync timestamp
+--     SELECT last_sync_at INTO v_last_sync_at
+--     FROM migration_sync_state
+--     WHERE entity_type = 'INCOME';
+--
+--     -- Sync new/updated income
+--     INSERT INTO transaction (
+--         id,
+--         account_id,
+--         amount,
+--         currency,
+--         type,
+--         description,
+--         category_id,
+--         created_at,
+--         created_by,
+--         created_by_group,
+--         updated_at,
+--         updated_by,
+--         is_deleted
+--     )
+--     SELECT
+--         gen_random_uuid(),
+--         acc_map.new_id,
+--         ABS(t1.amount),
+--         CASE
+--             WHEN t1.id_currency = 1 THEN 'PLN'
+--             WHEN t1.id_currency = 2 THEN 'EUR'
+--             WHEN t1.id_currency = 3 THEN 'USD'
+--             ELSE 'PLN'
+--         END,
+--         'INCOME',
+--         COALESCE(t1.comment, ''),
+--         cat_map.new_id,
+--         t1.date,
+--         COALESCE(user_map.new_id, 'migration-script'),
+--         COALESCE(grp_map.new_id, (SELECT id FROM groups LIMIT 1)),
+--         t1.date,
+--         COALESCE(user_map.new_id, 'migration-script'),
+--         false
+--     FROM dblink(
+--         p_old_db_connection_string,
+--         format('SELECT
+--             i.id,
+--             i.amount,
+--             i.date,
+--             i.comment,
+--             i.id_account,
+--             i.id_income_category,
+--             i.id_user,
+--             i.id_group,
+--             (SELECT id_currency FROM account WHERE id = i.id_account) AS id_currency
+--          FROM income AS i
+--          WHERE i.date > %L
+--          ORDER BY i.date
+--          LIMIT %s',
+--          v_last_sync_at,
+--          p_batch_size)
+--     ) AS t1(
+--         old_id INTEGER,
+--         amount NUMERIC(17,2),
+--         date TIMESTAMP,
+--         comment VARCHAR(200),
+--         old_account_id INTEGER,
+--         old_category_id INTEGER,
+--         old_user_id INTEGER,
+--         old_group_id INTEGER,
+--         id_currency INTEGER
+--     )
+--     LEFT JOIN migration_entity_mapping acc_map
+--         ON acc_map.entity_type = 'ACCOUNT' AND acc_map.old_id = t1.old_account_id
+--     LEFT JOIN migration_entity_mapping cat_map
+--         ON cat_map.entity_type = 'CATEGORY_INCOME' AND cat_map.old_id = t1.old_category_id
+--     LEFT JOIN migration_entity_mapping user_map
+--         ON user_map.entity_type = 'USER' AND user_map.old_id = t1.old_user_id
+--     LEFT JOIN migration_entity_mapping grp_map
+--         ON grp_map.entity_type = 'GROUP' AND grp_map.old_id = t1.old_group_id
+--     WHERE acc_map.new_id IS NOT NULL
+--       AND cat_map.new_id IS NOT NULL
+--     ON CONFLICT DO NOTHING;
+--
+--     GET DIAGNOSTICS v_synced_count = ROW_COUNT;
+--
+--     -- Update sync state
+--     UPDATE migration_sync_state
+--     SET
+--         last_sync_at = COALESCE(
+--             (SELECT MAX(created_at) FROM transaction WHERE type = 'INCOME'),
+--             last_sync_at
+--         ),
+--         last_synced_count = v_synced_count,
+--         total_synced = total_synced + v_synced_count,
+--         updated_at = CLOCK_TIMESTAMP(),
+--         status = 'ACTIVE'
+--     WHERE entity_type = 'INCOME';
+--
+--     RETURN QUERY SELECT v_synced_count, v_error_count, v_skipped_count;
+--
+-- EXCEPTION WHEN OTHERS THEN
+--     UPDATE migration_sync_state
+--     SET
+--         status = 'ERROR',
+--         error_message = SQLERRM,
+--         updated_at = CLOCK_TIMESTAMP()
+--     WHERE entity_type = 'INCOME';
+--
+--     RAISE;
+-- END;
+-- $$ LANGUAGE plpgsql;
+--
+-- -- Procedure to build entity mappings (should be run after initial migration)
+-- CREATE OR REPLACE FUNCTION build_entity_mappings(
+--     p_old_db_connection_string TEXT
+-- ) RETURNS INTEGER AS $$
+-- DECLARE
+--     v_count INTEGER := 0;
+-- BEGIN
+--     -- Map users (old login -> new id)
+--     INSERT INTO migration_entity_mapping (entity_type, old_name, new_id, metadata)
+--     SELECT
+--         'USER',
+--         id, -- new app uses login as id
+--         id::uuid,
+--         jsonb_build_object('email', email)
+--     FROM users
+--     ON CONFLICT DO NOTHING;
+--
+--     -- Map groups (old group_name -> new id)
+--     INSERT INTO migration_entity_mapping (entity_type, old_name, new_id)
+--     SELECT
+--         'GROUP',
+--         name,
+--         id
+--     FROM groups
+--     ON CONFLICT DO NOTHING;
+--
+--     -- For accounts, categories - we need to query old DB to get old IDs
+--     -- This is complex and should be done carefully based on unique identifiers
+--
+--     GET DIAGNOSTICS v_count = ROW_COUNT;
+--     RETURN v_count;
+-- END;
+-- $$ LANGUAGE plpgsql;
+--
+-- -- Helper function to check sync status
+-- CREATE OR REPLACE FUNCTION get_sync_status()
+-- RETURNS TABLE (
+--     entity_type VARCHAR(50),
+--     last_sync_at TIMESTAMP WITH TIME ZONE,
+--     last_synced_count INTEGER,
+--     total_synced INTEGER,
+--     status VARCHAR(20),
+--     error_message TEXT
+-- ) AS $$
+-- BEGIN
+--     RETURN QUERY
+--     SELECT
+--         mss.entity_type,
+--         mss.last_sync_at,
+--         mss.last_synced_count,
+--         mss.total_synced,
+--         mss.status,
+--         mss.error_message
+--     FROM migration_sync_state mss
+--     ORDER BY mss.entity_type;
+-- END;
+-- $$ LANGUAGE plpgsql;
+--
+-- COMMENT ON FUNCTION sync_expenses_from_old_db IS 'Synchronizes expense transactions from old database';
+-- COMMENT ON FUNCTION sync_income_from_old_db IS 'Synchronizes income transactions from old database';
+-- COMMENT ON FUNCTION build_entity_mappings IS 'Builds mapping table between old and new entity IDs';
+-- COMMENT ON FUNCTION get_sync_status IS 'Returns current synchronization status for all entity types';
