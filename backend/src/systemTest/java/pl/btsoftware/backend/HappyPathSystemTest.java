@@ -2,10 +2,16 @@ package pl.btsoftware.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.account.application.UpdateAccountCommand;
 import pl.btsoftware.backend.account.domain.Account;
+import pl.btsoftware.backend.audit.application.AuditLogService;
+import pl.btsoftware.backend.audit.domain.AuditEntityType;
+import pl.btsoftware.backend.audit.domain.AuditLogQuery;
+import pl.btsoftware.backend.audit.domain.AuditOperation;
+import pl.btsoftware.backend.audit.domain.EntityId;
 import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.application.CreateCategoryCommand;
 import pl.btsoftware.backend.category.application.UpdateCategoryCommand;
@@ -44,6 +50,9 @@ public class HappyPathSystemTest {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     @Test
     void shouldCompleteFullUserJourneyWithAccountsCategoriesAndTransactions() {
         var user = registerUser();
@@ -66,6 +75,8 @@ public class HappyPathSystemTest {
         deleteTransactionAndVerifyBalance(expenseTransaction.id(), account.id(), user.id(), "5000.00");
         deleteCategoryAndVerifyRemoval(expenseCategory.id(), user.id());
         deleteAccountAndVerifyRemoval(incomeTransaction.id(), account.id(), user.id());
+
+        verifyAuditTrail(user, account, incomeCategory, expenseCategory, incomeTransaction, expenseTransaction);
     }
 
     private User registerUser() {
@@ -192,5 +203,41 @@ public class HappyPathSystemTest {
         accountModuleFacade.deleteAccount(accountId, userId);
         var allAccounts = accountModuleFacade.getAccounts(userId);
         assertThat(allAccounts).noneMatch(a -> a.id().equals(accountId));
+    }
+
+    private void verifyAuditTrail(User user, Account account, Category incomeCategory, Category expenseCategory, Transaction incomeTransaction, Transaction expenseTransaction) {
+        var groupId = user.groupId();
+
+        var accountQuery = new AuditLogQuery(groupId, AuditEntityType.ACCOUNT, EntityId.from(account.id().value()), null, null, null, null);
+        var accountAuditLogs = auditLogService.findByQuery(accountQuery, PageRequest.of(0, 100));
+        assertThat(accountAuditLogs.getContent()).hasSize(9);
+        assertThat(accountAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.CREATE);
+        assertThat(accountAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.UPDATE);
+        assertThat(accountAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.DELETE);
+
+        var incomeCategoryQuery = new AuditLogQuery(groupId, AuditEntityType.CATEGORY, EntityId.from(incomeCategory.id().value()), null, null, null, null);
+        var incomeCategoryAuditLogs = auditLogService.findByQuery(incomeCategoryQuery, PageRequest.of(0, 100));
+        assertThat(incomeCategoryAuditLogs.getContent()).hasSize(1);
+        assertThat(incomeCategoryAuditLogs.getContent().getFirst().operation()).isEqualTo(AuditOperation.CREATE);
+
+        var expenseCategoryQuery = new AuditLogQuery(groupId, AuditEntityType.CATEGORY, EntityId.from(expenseCategory.id().value()), null, null, null, null);
+        var expenseCategoryAuditLogs = auditLogService.findByQuery(expenseCategoryQuery, PageRequest.of(0, 100));
+        assertThat(expenseCategoryAuditLogs.getContent()).hasSize(3);
+        assertThat(expenseCategoryAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.CREATE);
+        assertThat(expenseCategoryAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.UPDATE);
+        assertThat(expenseCategoryAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.DELETE);
+
+        var incomeTransactionQuery = new AuditLogQuery(groupId, AuditEntityType.TRANSACTION, EntityId.from(incomeTransaction.id().value()), null, null, null, null);
+        var incomeTransactionAuditLogs = auditLogService.findByQuery(incomeTransactionQuery, PageRequest.of(0, 100));
+        assertThat(incomeTransactionAuditLogs.getContent()).hasSize(2);
+        assertThat(incomeTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.CREATE);
+        assertThat(incomeTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.DELETE);
+
+        var expenseTransactionQuery = new AuditLogQuery(groupId, AuditEntityType.TRANSACTION, EntityId.from(expenseTransaction.id().value()), null, null, null, null);
+        var expenseTransactionAuditLogs = auditLogService.findByQuery(expenseTransactionQuery, PageRequest.of(0, 100));
+        assertThat(expenseTransactionAuditLogs.getContent()).hasSize(3);
+        assertThat(expenseTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.CREATE);
+        assertThat(expenseTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.UPDATE);
+        assertThat(expenseTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.DELETE);
     }
 }
