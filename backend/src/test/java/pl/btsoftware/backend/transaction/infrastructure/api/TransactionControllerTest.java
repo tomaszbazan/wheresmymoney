@@ -123,7 +123,6 @@ public class TransactionControllerTest {
     @Test
     void shouldReturnListOfAllTransactions() throws Exception {
         // given
-        var userId = new UserId("user123");
         var transaction1 = createTransaction(randomUUID(), randomUUID(), new BigDecimal("100.00"), "Transaction 1", TransactionType.INCOME);
         var transaction2 = createTransaction(randomUUID(), randomUUID(), new BigDecimal("50.00"), "Transaction 2", TransactionType.EXPENSE);
 
@@ -148,7 +147,6 @@ public class TransactionControllerTest {
     @Test
     void shouldReturnEmptyListWhenNoTransactionsExist() throws Exception {
         // given
-        var userId = new UserId("user123");
         var emptyPage = new PageImpl<Transaction>(emptyList(), PageRequest.of(0, 20), 0);
         when(transactionModuleFacade.getAllTransactions(any(UserId.class), any())).thenReturn(emptyPage);
 
