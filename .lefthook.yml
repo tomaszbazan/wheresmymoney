@@ -3,7 +3,7 @@ pre-commit:
   commands:
     backend-format:
       glob: "backend/**/*.java"
-      run: cd backend && ./gradlew spotlessApply
+      run: cd backend && ./gradlew spotlessCheck
     backend-checkstyle:
       glob: "backend/**/*.java"
       run: cd backend && ./gradlew checkstyleMain checkstyleTest
