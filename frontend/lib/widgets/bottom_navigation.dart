@@ -21,6 +21,7 @@ class BottomNavigation extends StatelessWidget {
         BottomNavigationBarItem(icon: Icon(Icons.arrow_downward), label: 'Wydatki'),
         BottomNavigationBarItem(icon: Icon(Icons.category_outlined), label: 'Wydatki kat.'),
         BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Przychody kat.'),
+        BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historia'),
       ],
     );
   }

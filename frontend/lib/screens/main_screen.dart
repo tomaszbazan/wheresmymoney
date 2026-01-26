@@ -7,6 +7,7 @@ import '../widgets/keyboard_navigation_wrapper.dart';
 import '../widgets/logout_dialog.dart';
 import '../widgets/side_menu.dart';
 import 'accounts_page.dart';
+import 'audit_trail_page.dart';
 import 'categories_page.dart';
 import 'statistics_page.dart';
 import 'transaction_page.dart';
@@ -31,6 +32,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     const TransactionsPage(type: TransactionType.income),
     const CategoriesPage(transactionType: CategoryType.expense),
     const CategoriesPage(transactionType: CategoryType.income),
+    const AuditTrailPage(),
   ];
 
   @override

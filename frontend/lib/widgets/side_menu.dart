@@ -28,6 +28,7 @@ class SideMenu extends StatelessWidget {
             _buildMenuItem(index: 3, icon: Icons.arrow_upward, title: 'Przychody'),
             _buildMenuItem(index: 4, icon: Icons.category_outlined, title: 'Kategorie wydatków'),
             _buildMenuItem(index: 5, icon: Icons.category, title: 'Kategorie przychodów'),
+            _buildMenuItem(index: 6, icon: Icons.history, title: 'Historia zmian'),
             const Spacer(),
             // Logout button
             ListTile(
