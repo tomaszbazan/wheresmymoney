@@ -1,11 +1,10 @@
 package pl.btsoftware.backend.category.domain;
 
+import java.util.List;
+import java.util.Optional;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.users.domain.GroupId;
-
-import java.util.List;
-import java.util.Optional;
 
 public interface CategoryRepository {
     void store(Category category);

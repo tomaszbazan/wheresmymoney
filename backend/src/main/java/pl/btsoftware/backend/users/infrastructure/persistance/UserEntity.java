@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,9 +13,6 @@ import lombok.Setter;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.time.Instant;
-import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -53,19 +52,17 @@ public class UserEntity {
                 user.groupId().value(),
                 user.createdAt(),
                 user.lastLoginAt(),
-                user.joinedGroupAt()
-        );
+                user.joinedGroupAt());
     }
 
     public User toDomain() {
         return new User(
-            new UserId(id),
-            email,
-            displayName,
-            new GroupId(groupId),
-            createdAt,
-            lastLoginAt,
-            joinedGroupAt
-        );
+                new UserId(id),
+                email,
+                displayName,
+                new GroupId(groupId),
+                createdAt,
+                lastLoginAt,
+                joinedGroupAt);
     }
 }

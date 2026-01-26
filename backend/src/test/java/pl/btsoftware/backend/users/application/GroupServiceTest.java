@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.users.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.users.domain.Group;
@@ -7,8 +9,6 @@ import pl.btsoftware.backend.users.domain.UserId;
 import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryGroupInvitationRepository;
 import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryGroupRepository;
 import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryUserRepository;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class GroupServiceTest {
     private GroupService groupService;

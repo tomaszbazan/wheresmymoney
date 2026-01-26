@@ -9,5 +9,4 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @ConditionalOnProperty(name = "gemini.enabled", havingValue = "true", matchIfMissing = false)
 @EnableRetry
 @EnableAsync
-public class AsyncRetryConfig {
-}
+public class AsyncRetryConfig {}

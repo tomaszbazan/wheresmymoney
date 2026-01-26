@@ -1,10 +1,9 @@
 package pl.btsoftware.backend.users.domain;
 
-import org.jetbrains.annotations.NotNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.UUID;
-
-import static java.util.Objects.requireNonNull;
+import org.jetbrains.annotations.NotNull;
 
 public record UserId(String value) {
     public UserId {
@@ -19,8 +18,7 @@ public record UserId(String value) {
         return new UserId(value);
     }
 
-    @NotNull
-    @Override
+    @NotNull @Override
     public String toString() {
         return value;
     }

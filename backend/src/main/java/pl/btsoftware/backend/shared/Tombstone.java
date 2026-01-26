@@ -1,14 +1,11 @@
 package pl.btsoftware.backend.shared;
 
-import java.time.OffsetDateTime;
-
 import static java.time.OffsetDateTime.now;
 import static java.time.ZoneOffset.UTC;
 
-public record Tombstone(
-        boolean isDeleted,
-        OffsetDateTime deletedAt
-) {
+import java.time.OffsetDateTime;
+
+public record Tombstone(boolean isDeleted, OffsetDateTime deletedAt) {
     public static Tombstone active() {
         return new Tombstone(false, null);
     }

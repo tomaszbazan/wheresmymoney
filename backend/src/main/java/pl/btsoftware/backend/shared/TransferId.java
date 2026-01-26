@@ -1,11 +1,10 @@
 package pl.btsoftware.backend.shared;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
-
 import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
+
+import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 
 public record TransferId(UUID value) {
     public TransferId {
@@ -20,8 +19,7 @@ public record TransferId(UUID value) {
         return new TransferId(id);
     }
 
-    @NotNull
-    @Override
+    @NotNull @Override
     public String toString() {
         return value.toString();
     }

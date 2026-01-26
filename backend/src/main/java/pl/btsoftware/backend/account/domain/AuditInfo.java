@@ -1,13 +1,12 @@
 package pl.btsoftware.backend.account.domain;
 
-import pl.btsoftware.backend.users.domain.GroupId;
-import pl.btsoftware.backend.users.domain.UserId;
+import static java.time.OffsetDateTime.now;
+import static java.time.ZoneOffset.UTC;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
-
-import static java.time.OffsetDateTime.now;
-import static java.time.ZoneOffset.UTC;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.UserId;
 
 public record AuditInfo(UserId who, GroupId fromGroup, OffsetDateTime when) {
 

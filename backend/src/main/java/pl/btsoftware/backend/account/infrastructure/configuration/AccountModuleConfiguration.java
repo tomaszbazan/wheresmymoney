@@ -21,12 +21,18 @@ public class AccountModuleConfiguration {
     }
 
     @Bean
-    public AccountService accountService(AccountRepository accountRepository, UsersModuleFacade usersModuleFacade, TransactionQueryFacade transactionQueryFacade, AuditModuleFacade auditModuleFacade) {
-        return new AccountService(accountRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
+    public AccountService accountService(
+            AccountRepository accountRepository,
+            UsersModuleFacade usersModuleFacade,
+            TransactionQueryFacade transactionQueryFacade,
+            AuditModuleFacade auditModuleFacade) {
+        return new AccountService(
+                accountRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
     }
 
     @Bean
-    public AccountModuleFacade accountModuleFacade(AccountService accountService, UsersModuleFacade usersModuleFacade) {
+    public AccountModuleFacade accountModuleFacade(
+            AccountService accountService, UsersModuleFacade usersModuleFacade) {
         return new AccountModuleFacade(accountService, usersModuleFacade);
     }
 
@@ -34,5 +40,4 @@ public class AccountModuleConfiguration {
     public AccountController accountController(AccountModuleFacade accountModuleFacade) {
         return new AccountController(accountModuleFacade);
     }
-
 }

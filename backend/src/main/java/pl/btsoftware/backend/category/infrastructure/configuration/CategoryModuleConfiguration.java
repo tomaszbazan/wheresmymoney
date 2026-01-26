@@ -29,15 +29,18 @@ public class CategoryModuleConfiguration {
     }
 
     @Bean
-    public CategoryService categoryService(CategoryRepository categoryRepository,
-                                           UsersModuleFacade usersModuleFacade,
-                                           TransactionQueryFacade transactionQueryFacade,
-                                           AuditModuleFacade auditModuleFacade) {
-        return new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
+    public CategoryService categoryService(
+            CategoryRepository categoryRepository,
+            UsersModuleFacade usersModuleFacade,
+            TransactionQueryFacade transactionQueryFacade,
+            AuditModuleFacade auditModuleFacade) {
+        return new CategoryService(
+                categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
     }
 
     @Bean
-    public CategoryModuleFacade categoryModuleFacade(CategoryService categoryService, UsersModuleFacade usersModuleFacade) {
+    public CategoryModuleFacade categoryModuleFacade(
+            CategoryService categoryService, UsersModuleFacade usersModuleFacade) {
         return new CategoryModuleFacade(categoryService, usersModuleFacade);
     }
 

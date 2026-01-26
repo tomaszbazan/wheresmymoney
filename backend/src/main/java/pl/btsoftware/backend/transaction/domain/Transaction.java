@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.transaction.domain;
 
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.shared.validation.NameValidationRules;
@@ -7,9 +9,6 @@ import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionInva
 import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
 
 public record Transaction(
         TransactionId id,
@@ -22,17 +21,24 @@ public record Transaction(
         TransactionHash transactionHash,
         AuditInfo createdInfo,
         AuditInfo updatedInfo,
-        Tombstone tombstone
-) {
-    public Transaction(TransactionId id, AccountId accountId, Money amount, TransactionType type, String description,
-                       CategoryId categoryId, LocalDate transactionDate, TransactionHash transactionHash,
-                       AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
+        Tombstone tombstone) {
+    public Transaction(
+            TransactionId id,
+            AccountId accountId,
+            Money amount,
+            TransactionType type,
+            String description,
+            CategoryId categoryId,
+            LocalDate transactionDate,
+            TransactionHash transactionHash,
+            AuditInfo createdInfo,
+            AuditInfo updatedInfo,
+            Tombstone tombstone) {
         NameValidationRules.validate(
                 description,
                 null,
                 TransactionDescriptionTooLongException::new,
-                TransactionDescriptionInvalidCharactersException::new
-        );
+                TransactionDescriptionInvalidCharactersException::new);
         this.id = id;
         this.accountId = accountId;
         this.amount = amount;
@@ -54,8 +60,7 @@ public record Transaction(
             CategoryId categoryId,
             LocalDate transactionDate,
             TransactionHash transactionHash,
-            AuditInfo createdInfo
-    ) {
+            AuditInfo createdInfo) {
         return new Transaction(
                 TransactionId.generate(),
                 accountId,
@@ -67,8 +72,7 @@ public record Transaction(
                 transactionHash,
                 createdInfo,
                 createdInfo,
-                Tombstone.active()
-        );
+                Tombstone.active());
     }
 
     public UserId createdBy() {
@@ -92,22 +96,66 @@ public record Transaction(
     }
 
     public Transaction updateAmount(Money newAmount, UserId updatedBy) {
-        return new Transaction(id, accountId, newAmount, type, description, categoryId, transactionDate, transactionHash, createdInfo,
-                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+        return new Transaction(
+                id,
+                accountId,
+                newAmount,
+                type,
+                description,
+                categoryId,
+                transactionDate,
+                transactionHash,
+                createdInfo,
+                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when())
+                        .updateTimestamp(),
+                tombstone);
     }
 
     public Transaction updateDescription(String newDescription, UserId updatedBy) {
-        return new Transaction(id, accountId, amount, type, newDescription, categoryId, transactionDate, transactionHash, createdInfo,
-                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+        return new Transaction(
+                id,
+                accountId,
+                amount,
+                type,
+                newDescription,
+                categoryId,
+                transactionDate,
+                transactionHash,
+                createdInfo,
+                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when())
+                        .updateTimestamp(),
+                tombstone);
     }
 
     public Transaction updateCategory(CategoryId newCategoryId, UserId updatedBy) {
-        return new Transaction(id, accountId, amount, type, description, newCategoryId, transactionDate, transactionHash, createdInfo,
-                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(), tombstone);
+        return new Transaction(
+                id,
+                accountId,
+                amount,
+                type,
+                description,
+                newCategoryId,
+                transactionDate,
+                transactionHash,
+                createdInfo,
+                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when())
+                        .updateTimestamp(),
+                tombstone);
     }
 
     public Transaction delete() {
-        return new Transaction(id, accountId, amount, type, description, categoryId, transactionDate, transactionHash, createdInfo, updatedInfo, Tombstone.deleted());
+        return new Transaction(
+                id,
+                accountId,
+                amount,
+                type,
+                description,
+                categoryId,
+                transactionDate,
+                transactionHash,
+                createdInfo,
+                updatedInfo,
+                Tombstone.deleted());
     }
 
     public boolean isDeleted() {

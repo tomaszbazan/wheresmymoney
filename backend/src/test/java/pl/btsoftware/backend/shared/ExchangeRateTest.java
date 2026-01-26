@@ -1,15 +1,14 @@
 package pl.btsoftware.backend.shared;
 
-import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.shared.error.InvalidExchangeRateException;
-
-import java.math.BigDecimal;
-
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static pl.btsoftware.backend.shared.Currency.*;
+
+import java.math.BigDecimal;
+import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.shared.error.InvalidExchangeRateException;
 
 class ExchangeRateTest {
 

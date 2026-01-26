@@ -1,13 +1,12 @@
 package pl.btsoftware.backend.shared;
 
-import pl.btsoftware.backend.shared.error.InvalidExchangeRateException;
-
-import java.math.BigDecimal;
-
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import static java.util.Objects.requireNonNull;
+
+import java.math.BigDecimal;
+import pl.btsoftware.backend.shared.error.InvalidExchangeRateException;
 
 public record ExchangeRate(BigDecimal rate, Currency fromCurrency, Currency toCurrency) {
     private static final int SCALE = 6;

@@ -1,14 +1,13 @@
 package pl.btsoftware.backend.account.domain;
 
-import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.users.domain.GroupId;
-import pl.btsoftware.backend.users.domain.UserId;
+import static java.util.UUID.randomUUID;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-
-import static java.util.UUID.randomUUID;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.UserId;
 
 class AuditInfoTest {
 

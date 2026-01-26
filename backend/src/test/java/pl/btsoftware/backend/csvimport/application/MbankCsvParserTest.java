@@ -1,18 +1,17 @@
 package pl.btsoftware.backend.csvimport.application;
 
-import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.csvimport.domain.CsvImportException;
-import pl.btsoftware.backend.csvimport.domain.ErrorType;
-import pl.btsoftware.backend.shared.Currency;
-import pl.btsoftware.backend.shared.TransactionType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.csvimport.domain.CsvImportException;
+import pl.btsoftware.backend.csvimport.domain.ErrorType;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.TransactionType;
 
 class MbankCsvParserTest {
 
@@ -21,7 +20,8 @@ class MbankCsvParserTest {
     @Test
     void shouldParseValidCsvFromSampleFile() {
         // given
-        var csvStream = getClass().getClassLoader().getResourceAsStream("mbank_transaction_list.csv");
+        var csvStream =
+                getClass().getClassLoader().getResourceAsStream("mbank_transaction_list.csv");
 
         assertThat(csvStream).isNotNull();
 
@@ -38,13 +38,18 @@ class MbankCsvParserTest {
     @Test
     void shouldParseIncomeTransaction() {
         // given
-        var csvStream = getClass().getClassLoader().getResourceAsStream("mbank_transaction_list.csv");
+        var csvStream =
+                getClass().getClassLoader().getResourceAsStream("mbank_transaction_list.csv");
 
         // when
         var result = parser.parse(csvStream, Currency.PLN);
 
         // then
-        var incomeProposal = result.proposals().stream().filter(p -> p.type() == TransactionType.INCOME).findFirst().orElseThrow();
+        var incomeProposal =
+                result.proposals().stream()
+                        .filter(p -> p.type() == TransactionType.INCOME)
+                        .findFirst()
+                        .orElseThrow();
 
         assertThat(incomeProposal.type()).isEqualTo(TransactionType.INCOME);
         assertThat(incomeProposal.amount()).isEqualTo(new BigDecimal("1100.00"));
@@ -56,13 +61,18 @@ class MbankCsvParserTest {
     @Test
     void shouldParseExpenseTransaction() {
         // given
-        var csvStream = getClass().getClassLoader().getResourceAsStream("mbank_transaction_list.csv");
+        var csvStream =
+                getClass().getClassLoader().getResourceAsStream("mbank_transaction_list.csv");
 
         // when
         var result = parser.parse(csvStream, Currency.PLN);
 
         // then
-        var expenseProposal = result.proposals().stream().filter(p -> p.type() == TransactionType.EXPENSE).findFirst().orElseThrow();
+        var expenseProposal =
+                result.proposals().stream()
+                        .filter(p -> p.type() == TransactionType.EXPENSE)
+                        .findFirst()
+                        .orElseThrow();
 
         assertThat(expenseProposal.type()).isEqualTo(TransactionType.EXPENSE);
         assertThat(expenseProposal.amount()).isLessThan(BigDecimal.ZERO);
@@ -119,9 +129,10 @@ class MbankCsvParserTest {
     @Test
     void shouldRejectMissingRequiredColumn() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;\n"
-                      + "\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;\n"
+                        + "\n";
         var stream = createInputStream(content);
 
         // when & then
@@ -133,9 +144,10 @@ class MbankCsvParserTest {
     @Test
     void shouldRejectWrongColumnOrder() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Opis operacji;#Data operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Opis operacji;#Data operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "\n";
         var stream = createInputStream(content);
 
         // when & then
@@ -158,9 +170,10 @@ class MbankCsvParserTest {
     @Test
     void shouldReturnInvalidDateFormatErrorTypeForInvalidDate() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "invalid-date;Test description;Account;Category;100.00 PLN\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "invalid-date;Test description;Account;Category;100.00 PLN\n";
         var stream = createInputStream(content);
 
         // when
@@ -175,9 +188,10 @@ class MbankCsvParserTest {
     @Test
     void shouldReturnInvalidAmountFormatErrorTypeForInvalidAmount() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "2024-01-15;Test description;Account;Category; PLN\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "2024-01-15;Test description;Account;Category; PLN\n";
         var stream = createInputStream(content);
 
         // when
@@ -192,9 +206,10 @@ class MbankCsvParserTest {
     @Test
     void shouldReturnInvalidCurrencyErrorTypeForUnsupportedCurrency() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "2024-01-15;Test description;Account;Category;100.00 XYZ\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "2024-01-15;Test description;Account;Category;100.00 XYZ\n";
         var stream = createInputStream(content);
 
         // when
@@ -209,9 +224,10 @@ class MbankCsvParserTest {
     @Test
     void shouldReturnCurrencyMismatchErrorTypeForDifferentCurrency() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "2024-01-15;Test description;Account;Category;100.00 EUR\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "2024-01-15;Test description;Account;Category;100.00 EUR\n";
         var stream = createInputStream(content);
 
         // when
@@ -230,9 +246,10 @@ class MbankCsvParserTest {
     @Test
     void shouldRemoveMultipleSpacesFromDescription() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "2024-01-15;Test    description   with     multiple  spaces;Account;Category;100.00 PLN\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "2024-01-15;Test    description   with     multiple  spaces;Account;Category;100.00 PLN\n";
         var stream = createInputStream(content);
 
         // when
@@ -240,15 +257,17 @@ class MbankCsvParserTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: Test description with multiple spaces");
+        assertThat(result.proposals().getFirst().description())
+                .isEqualTo("Category: Test description with multiple spaces");
     }
 
     @Test
     void shouldRemoveTransakcjaNierozliczonaPhrase() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "2024-01-15;APTEKA ZAKUP transakcja nierozliczona;Account;Category;-100.00 PLN\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "2024-01-15;APTEKA ZAKUP transakcja nierozliczona;Account;Category;-100.00 PLN\n";
         var stream = createInputStream(content);
 
         // when
@@ -262,9 +281,10 @@ class MbankCsvParserTest {
     @Test
     void shouldRemovePrzelewZewnetrznyPrzychodzacyPhrase() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "2024-01-15;FRANCISZEK BELA PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY;Account;Category;1100.00 PLN\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "2024-01-15;FRANCISZEK BELA PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY;Account;Category;1100.00 PLN\n";
         var stream = createInputStream(content);
 
         // when
@@ -272,15 +292,17 @@ class MbankCsvParserTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: FRANCISZEK BELA");
+        assertThat(result.proposals().getFirst().description())
+                .isEqualTo("Category: FRANCISZEK BELA");
     }
 
     @Test
     void shouldRemoveTabsAndNewlinesFromDescription() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "2024-01-15;\"Test\tdescription\nwith               tabs\nand\nnewlines\";Account;Category;100.00 PLN\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "2024-01-15;\"Test\tdescription\nwith               tabs\nand\nnewlines\";Account;Category;100.00 PLN\n";
         var stream = createInputStream(content);
 
         // when
@@ -288,15 +310,17 @@ class MbankCsvParserTest {
 
         // then
         assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description()).isEqualTo("Category: Test description with tabs and newlines");
+        assertThat(result.proposals().getFirst().description())
+                .isEqualTo("Category: Test description with tabs and newlines");
     }
 
     @Test
     void shouldCleanDescriptionWithMultipleIssues() {
         // given
-        var content = createValidHeaderLines(26)
-                      + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
-                      + "2024-01-15;\"APTEKA    ZAKUP\t\n  PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY   transakcja nierozliczona  \";Account;Category;-100.00 PLN\n";
+        var content =
+                createValidHeaderLines(26)
+                        + "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;\n"
+                        + "2024-01-15;\"APTEKA    ZAKUP\t\n  PRZELEW ZEWNĘTRZNY PRZYCHODZĄCY   transakcja nierozliczona  \";Account;Category;-100.00 PLN\n";
         var stream = createInputStream(content);
 
         // when

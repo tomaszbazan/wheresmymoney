@@ -1,10 +1,9 @@
 package pl.btsoftware.backend.category.infrastructure.api;
 
-import pl.btsoftware.backend.category.domain.Category;
-import pl.btsoftware.backend.shared.Color;
-
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import pl.btsoftware.backend.category.domain.Category;
+import pl.btsoftware.backend.shared.Color;
 
 public record CategoryView(
         UUID id,
@@ -13,8 +12,7 @@ public record CategoryView(
         Color color,
         UUID parentId,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
-) {
+        OffsetDateTime updatedAt) {
     public static CategoryView from(Category category) {
         return new CategoryView(
                 category.id().value(),
@@ -23,7 +21,6 @@ public record CategoryView(
                 category.color(),
                 category.parentId() != null ? category.parentId().value() : null,
                 category.createdAt(),
-                category.lastUpdatedAt()
-        );
+                category.lastUpdatedAt());
     }
 }

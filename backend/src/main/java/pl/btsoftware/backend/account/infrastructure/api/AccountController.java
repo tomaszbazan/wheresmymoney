@@ -1,5 +1,10 @@
 package pl.btsoftware.backend.account.infrastructure.api;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static pl.btsoftware.backend.shared.AccountId.from;
+
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,12 +15,6 @@ import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
 import pl.btsoftware.backend.account.application.UpdateAccountCommand;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.util.UUID;
-
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static pl.btsoftware.backend.shared.AccountId.from;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -40,17 +39,33 @@ public class AccountController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public AccountView createAccount(@Validated @RequestBody CreateAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
+    public AccountView createAccount(
+            @Validated @RequestBody CreateAccountRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
-        log.info("Received request to create account with name: {} and currency: {}", request.name(), request.currency());
-        return AccountView.from(accountModuleFacade.createAccount(new CreateAccountCommand(request.name(), request.currency(), userId)));
+        log.info(
+                "Received request to create account with name: {} and currency: {}",
+                request.name(),
+                request.currency());
+        return AccountView.from(
+                accountModuleFacade.createAccount(
+                        new CreateAccountCommand(request.name(), request.currency(), userId)));
     }
 
     @PutMapping("/{id}")
-    public AccountView updateAccount(@PathVariable UUID id, @Validated @RequestBody UpdateAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
+    public AccountView updateAccount(
+            @PathVariable UUID id,
+            @Validated @RequestBody UpdateAccountRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
-        log.info("Received request to update account with id: {} and new name: {} by user: {}", id, request.name(), userId);
-        return AccountView.from(accountModuleFacade.updateAccount(new UpdateAccountCommand(from(id), request.name()), userId));
+        log.info(
+                "Received request to update account with id: {} and new name: {} by user: {}",
+                id,
+                request.name(),
+                userId);
+        return AccountView.from(
+                accountModuleFacade.updateAccount(
+                        new UpdateAccountCommand(from(id), request.name()), userId));
     }
 
     @DeleteMapping("/{id}")
@@ -60,5 +75,4 @@ public class AccountController {
         log.info("Received request to delete account with id: {} by user: {}", id, userId);
         accountModuleFacade.deleteAccount(from(id), userId);
     }
-
 }

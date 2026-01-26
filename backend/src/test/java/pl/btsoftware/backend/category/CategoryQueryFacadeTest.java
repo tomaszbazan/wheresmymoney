@@ -1,5 +1,10 @@
 package pl.btsoftware.backend.category;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.instancio.Select.field;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,11 +17,6 @@ import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.instancio.Select.field;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class CategoryQueryFacadeTest {
 
@@ -31,7 +31,12 @@ class CategoryQueryFacadeTest {
         var transactionQueryFacade = mock(TransactionQueryFacade.class);
         usersModuleFacade = mock(UsersModuleFacade.class);
         var auditModuleFacade = mock(AuditModuleFacade.class);
-        categoryService = new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
+        categoryService =
+                new CategoryService(
+                        categoryRepository,
+                        usersModuleFacade,
+                        transactionQueryFacade,
+                        auditModuleFacade);
         categoryQueryFacade = new CategoryQueryFacade(categoryRepository);
     }
 
@@ -47,15 +52,14 @@ class CategoryQueryFacadeTest {
     @Test
     void shouldReturnTrueWhenCategoriesExist() {
         var groupId = GroupId.generate();
-        var user = Instancio.of(User.class)
-                .set(field(User::groupId), groupId)
-                .create();
+        var user = Instancio.of(User.class).set(field(User::groupId), groupId).create();
         when(usersModuleFacade.findUserOrThrow(user.id())).thenReturn(user);
 
-        var command = Instancio.of(CreateCategoryCommand.class)
-                .set(field(CreateCategoryCommand::userId), user.id())
-                .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
-                .create();
+        var command =
+                Instancio.of(CreateCategoryCommand.class)
+                        .set(field(CreateCategoryCommand::userId), user.id())
+                        .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
+                        .create();
         categoryService.createCategory(command);
 
         var hasCategories = categoryQueryFacade.hasCategories(CategoryType.EXPENSE, groupId);
@@ -66,15 +70,14 @@ class CategoryQueryFacadeTest {
     @Test
     void shouldReturnFalseForDifferentCategoryType() {
         var groupId = GroupId.generate();
-        var user = Instancio.of(User.class)
-                .set(field(User::groupId), groupId)
-                .create();
+        var user = Instancio.of(User.class).set(field(User::groupId), groupId).create();
         when(usersModuleFacade.findUserOrThrow(user.id())).thenReturn(user);
 
-        var command = Instancio.of(CreateCategoryCommand.class)
-                .set(field(CreateCategoryCommand::userId), user.id())
-                .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
-                .create();
+        var command =
+                Instancio.of(CreateCategoryCommand.class)
+                        .set(field(CreateCategoryCommand::userId), user.id())
+                        .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
+                        .create();
         categoryService.createCategory(command);
 
         var hasCategories = categoryQueryFacade.hasCategories(CategoryType.INCOME, groupId);
@@ -86,15 +89,14 @@ class CategoryQueryFacadeTest {
     void shouldReturnFalseForDifferentGroup() {
         var groupId1 = GroupId.generate();
         var groupId2 = GroupId.generate();
-        var user = Instancio.of(User.class)
-                .set(field(User::groupId), groupId1)
-                .create();
+        var user = Instancio.of(User.class).set(field(User::groupId), groupId1).create();
         when(usersModuleFacade.findUserOrThrow(user.id())).thenReturn(user);
 
-        var command = Instancio.of(CreateCategoryCommand.class)
-                .set(field(CreateCategoryCommand::userId), user.id())
-                .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
-                .create();
+        var command =
+                Instancio.of(CreateCategoryCommand.class)
+                        .set(field(CreateCategoryCommand::userId), user.id())
+                        .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
+                        .create();
         categoryService.createCategory(command);
 
         var hasCategories = categoryQueryFacade.hasCategories(CategoryType.EXPENSE, groupId2);

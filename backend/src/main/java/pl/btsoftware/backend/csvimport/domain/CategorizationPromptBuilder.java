@@ -2,23 +2,23 @@ package pl.btsoftware.backend.csvimport.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.shared.TransactionType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
-
 @Component
 public class CategorizationPromptBuilder {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public CategorizationPrompt build(List<TransactionProposal> transactions, List<Category> categories) {
+    public CategorizationPrompt build(
+            List<TransactionProposal> transactions, List<Category> categories) {
         if (transactions.isEmpty()) {
             throw new IllegalArgumentException("Transaction list cannot be empty");
         }
@@ -26,7 +26,12 @@ public class CategorizationPromptBuilder {
             throw new IllegalArgumentException("Category list cannot be empty");
         }
 
-        var promptStructure = new PromptStructure(buildSystemInstructions(), buildTransactions(transactions), buildCategoryTree(categories), buildExpectedResponseFormat());
+        var promptStructure =
+                new PromptStructure(
+                        buildSystemInstructions(),
+                        buildTransactions(transactions),
+                        buildCategoryTree(categories),
+                        buildExpectedResponseFormat());
 
         return new CategorizationPrompt(toJson(promptStructure));
     }
@@ -35,7 +40,7 @@ public class CategorizationPromptBuilder {
         return """
                 You are a financial transaction categorization AI. Your task is to suggest appropriate categories \
                 for transactions based on their description and type.
-                
+
                 Rules:
                 1. Match transaction description to the most specific category available
                 2. Consider transaction type (INCOME/EXPENSE) when selecting categories
@@ -44,7 +49,7 @@ public class CategorizationPromptBuilder {
                 5. If uncertain, choose the most general matching category with lower confidence
                 6. Return null categoryId if no suitable category exists
                 7. Use the exact categoryId from the provided category tree
-                
+
                 Response format:
                 Return a JSON array of objects without any other characters like: json or `, one for each transaction, with the following structure:
                 [
@@ -86,7 +91,12 @@ public class CategorizationPromptBuilder {
         var roots = new ArrayList<CategoryNode>();
 
         for (var category : categories) {
-            var node = new CategoryNode(category.id().value(), category.name(), category.type(), new ArrayList<>());
+            var node =
+                    new CategoryNode(
+                            category.id().value(),
+                            category.name(),
+                            category.type(),
+                            new ArrayList<>());
             categoryMap.put(category.id(), node);
         }
 
@@ -113,16 +123,20 @@ public class CategorizationPromptBuilder {
         }
     }
 
-    private record PromptStructure(String systemInstructions, List<TransactionForPrompt> transactions,
-                                   List<CategoryNode> categories, String expectedResponseFormat) {
-    }
+    private record PromptStructure(
+            String systemInstructions,
+            List<TransactionForPrompt> transactions,
+            List<CategoryNode> categories,
+            String expectedResponseFormat) {}
 
-    private record TransactionForPrompt(UUID transactionId, String description, TransactionType type) {
+    private record TransactionForPrompt(
+            UUID transactionId, String description, TransactionType type) {
         private static TransactionForPrompt from(TransactionProposal proposal) {
-            return new TransactionForPrompt(proposal.transactionId().value(), proposal.description(), proposal.type());
+            return new TransactionForPrompt(
+                    proposal.transactionId().value(), proposal.description(), proposal.type());
         }
     }
 
-    private record CategoryNode(UUID categoryId, String name, CategoryType type, List<CategoryNode> children) {
-    }
+    private record CategoryNode(
+            UUID categoryId, String name, CategoryType type, List<CategoryNode> children) {}
 }

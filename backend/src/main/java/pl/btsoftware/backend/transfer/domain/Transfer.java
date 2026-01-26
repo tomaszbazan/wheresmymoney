@@ -7,17 +7,42 @@ import pl.btsoftware.backend.transfer.domain.error.TransferDescriptionInvalidCha
 import pl.btsoftware.backend.transfer.domain.error.TransferDescriptionTooLongException;
 import pl.btsoftware.backend.users.domain.GroupId;
 
-public record Transfer(TransferId id, AccountId sourceAccountId, AccountId targetAccountId, Money sourceAmount,
-                       Money targetAmount, ExchangeRate exchangeRate, String description, AuditInfo createdInfo,
-                       AuditInfo updatedInfo, Tombstone tombstone) {
-    public static Transfer create(AccountId sourceAccountId, AccountId targetAccountId, Money sourceAmount, Money targetAmount, ExchangeRate exchangeRate, String description, AuditInfo createdInfo) {
+public record Transfer(
+        TransferId id,
+        AccountId sourceAccountId,
+        AccountId targetAccountId,
+        Money sourceAmount,
+        Money targetAmount,
+        ExchangeRate exchangeRate,
+        String description,
+        AuditInfo createdInfo,
+        AuditInfo updatedInfo,
+        Tombstone tombstone) {
+    public static Transfer create(
+            AccountId sourceAccountId,
+            AccountId targetAccountId,
+            Money sourceAmount,
+            Money targetAmount,
+            ExchangeRate exchangeRate,
+            String description,
+            AuditInfo createdInfo) {
         NameValidationRules.validate(
                 description,
                 null,
                 TransferDescriptionTooLongException::new,
                 TransferDescriptionInvalidCharactersException::new);
 
-        return new Transfer(TransferId.generate(), sourceAccountId, targetAccountId, sourceAmount, targetAmount, exchangeRate, description, createdInfo, createdInfo, Tombstone.active());
+        return new Transfer(
+                TransferId.generate(),
+                sourceAccountId,
+                targetAccountId,
+                sourceAmount,
+                targetAmount,
+                exchangeRate,
+                description,
+                createdInfo,
+                createdInfo,
+                Tombstone.active());
     }
 
     public GroupId ownedBy() {

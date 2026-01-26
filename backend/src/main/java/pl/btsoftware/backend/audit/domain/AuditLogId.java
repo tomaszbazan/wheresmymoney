@@ -1,11 +1,10 @@
 package pl.btsoftware.backend.audit.domain;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
-
 import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
+
+import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 
 public record AuditLogId(UUID value) {
     public AuditLogId {
@@ -20,8 +19,7 @@ public record AuditLogId(UUID value) {
         return new AuditLogId(value);
     }
 
-    @NotNull
-    @Override
+    @NotNull @Override
     public String toString() {
         return value.toString();
     }

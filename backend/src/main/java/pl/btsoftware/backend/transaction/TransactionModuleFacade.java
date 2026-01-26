@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.transaction;
 
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,9 +11,6 @@ import pl.btsoftware.backend.transaction.application.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.util.List;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 public class TransactionModuleFacade {
@@ -34,7 +33,8 @@ public class TransactionModuleFacade {
 
     public List<Transaction> getTransactionsByAccountId(UUID accountId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        return transactionService.getTransactionsByAccountId(AccountId.from(accountId), user.groupId());
+        return transactionService.getTransactionsByAccountId(
+                AccountId.from(accountId), user.groupId());
     }
 
     public Transaction updateTransaction(UpdateTransactionCommand command, UserId userId) {
@@ -45,7 +45,8 @@ public class TransactionModuleFacade {
         transactionService.deleteTransaction(TransactionId.of(transactionId), userId);
     }
 
-    public BulkCreateResult bulkCreateTransactions(BulkCreateTransactionCommand command, UserId userId) {
+    public BulkCreateResult bulkCreateTransactions(
+            BulkCreateTransactionCommand command, UserId userId) {
         return transactionService.bulkCreateTransactions(command, userId);
     }
 }

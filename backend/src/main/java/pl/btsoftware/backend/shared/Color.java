@@ -1,13 +1,12 @@
 package pl.btsoftware.backend.shared;
 
+import static java.util.Objects.isNull;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.regex.Pattern;
 import pl.btsoftware.backend.shared.error.ColorInvalidFormatException;
 import pl.btsoftware.backend.shared.error.ColorValueNullException;
-
-import java.util.regex.Pattern;
-
-import static java.util.Objects.isNull;
 
 public record Color(String value) {
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("^#[0-9A-Fa-f]{6}$");

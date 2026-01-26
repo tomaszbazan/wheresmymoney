@@ -1,15 +1,19 @@
 package pl.btsoftware.backend.users.domain;
 
-import pl.btsoftware.backend.shared.validation.NameValidationRules;
-import pl.btsoftware.backend.users.domain.error.*;
-
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import pl.btsoftware.backend.shared.validation.NameValidationRules;
+import pl.btsoftware.backend.users.domain.error.*;
 
-public record Group(GroupId id, String name, String description, Set<UserId> memberIds, UserId createdBy,
-                    Instant createdAt) {
+public record Group(
+        GroupId id,
+        String name,
+        String description,
+        Set<UserId> memberIds,
+        UserId createdBy,
+        Instant createdAt) {
 
     public Group {
         validateName(name);
@@ -24,7 +28,14 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
         memberIds = Set.copyOf(memberIds);
     }
 
-    private Group(GroupId id, String name, String description, Set<UserId> memberIds, UserId createdBy, Instant createdAt, boolean validateMembers) {
+    private Group(
+            GroupId id,
+            String name,
+            String description,
+            Set<UserId> memberIds,
+            UserId createdBy,
+            Instant createdAt,
+            boolean validateMembers) {
         this(id, name, description, memberIds, createdBy, createdAt);
 
         if (validateMembers && memberIds.isEmpty()) {
@@ -35,13 +46,7 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
     public static Group create(String name, String description, UserId creatorId) {
         Set<UserId> initialMembers = Set.of(creatorId);
         return new Group(
-                GroupId.generate(),
-                name,
-                description,
-                initialMembers,
-                creatorId,
-                Instant.now()
-        );
+                GroupId.generate(), name, description, initialMembers, creatorId, Instant.now());
     }
 
     public static Group createEmpty(String name, String description, UserId creatorId) {
@@ -52,20 +57,12 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
                 new HashSet<>(),
                 creatorId,
                 Instant.now(),
-                false
-        );
+                false);
     }
 
-    public static Group createEmptyWithId(GroupId id, String name, String description, UserId creatorId, Instant createdAt) {
-        return new Group(
-                id,
-                name,
-                description,
-                new HashSet<>(),
-                creatorId,
-                createdAt,
-                false
-        );
+    public static Group createEmptyWithId(
+            GroupId id, String name, String description, UserId creatorId, Instant createdAt) {
+        return new Group(id, name, description, new HashSet<>(), creatorId, createdAt, false);
     }
 
     public Set<UserId> memberIds() {
@@ -108,7 +105,6 @@ public record Group(GroupId id, String name, String description, Set<UserId> mem
                 name,
                 GroupNameEmptyException::new,
                 GroupNameTooLongException::new,
-                GroupNameInvalidCharactersException::new
-        );
+                GroupNameInvalidCharactersException::new);
     }
 }

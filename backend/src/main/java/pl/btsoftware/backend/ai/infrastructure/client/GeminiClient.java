@@ -2,6 +2,7 @@ package pl.btsoftware.backend.ai.infrastructure.client;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
+import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.retry.annotation.Backoff;
@@ -9,8 +10,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import pl.btsoftware.backend.ai.infrastructure.config.GeminiConfig;
-
-import java.util.concurrent.CompletableFuture;
 
 @Component
 @ConditionalOnProperty(name = "gemini.enabled", havingValue = "true")
@@ -26,16 +25,13 @@ public class GeminiClient {
 
     private Client initializeClient() {
         log.info("Initializing Gemini API client with model: {}", config.getModelName());
-        return Client.builder()
-                .apiKey(config.getApiKey())
-                .build();
+        return Client.builder().apiKey(config.getApiKey()).build();
     }
 
     @Async
     @Retryable(
             retryFor = {Exception.class},
-            backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000)
-    )
+            backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000))
     public CompletableFuture<String> generateContent(String prompt) {
         validatePrompt(prompt);
 

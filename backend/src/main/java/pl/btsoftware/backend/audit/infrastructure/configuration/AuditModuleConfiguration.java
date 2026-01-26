@@ -11,8 +11,10 @@ import pl.btsoftware.backend.users.UsersModuleFacade;
 public class AuditModuleConfiguration {
 
     @Bean
-    public AuditLogController auditLogController(AuditLogService auditLogService, UsersModuleFacade usersModuleFacade,
-                                                 PaginationValidator paginationValidator) {
+    public AuditLogController auditLogController(
+            AuditLogService auditLogService,
+            UsersModuleFacade usersModuleFacade,
+            PaginationValidator paginationValidator) {
         return new AuditLogController(auditLogService, usersModuleFacade, paginationValidator);
     }
 }

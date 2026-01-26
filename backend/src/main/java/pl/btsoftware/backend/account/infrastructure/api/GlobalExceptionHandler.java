@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.account.infrastructure.api;
 
+import static org.springframework.http.HttpStatus.*;
+
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +19,6 @@ import pl.btsoftware.backend.shared.error.InvalidExchangeRateException;
 import pl.btsoftware.backend.transfer.domain.error.TransferDescriptionTooLongException;
 import pl.btsoftware.backend.transfer.domain.error.TransferNotFoundException;
 import pl.btsoftware.backend.transfer.domain.error.TransferToSameAccountException;
-
-import static org.springframework.http.HttpStatus.*;
 
 @ControllerAdvice
 @Slf4j
@@ -49,7 +49,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccountAlreadyExistsException.class)
-    public ResponseEntity<String> handleAccountAlreadyExistsException(AccountAlreadyExistsException ex) {
+    public ResponseEntity<String> handleAccountAlreadyExistsException(
+            AccountAlreadyExistsException ex) {
         log.error("{}", ex.getMessage(), ex);
         return ResponseEntity.status(CONFLICT).body(ex.getMessage());
     }
@@ -60,19 +61,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+    public ResponseEntity<String> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex) {
         return new ResponseEntity<>(ex.getMessage(), BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException ex) {
         var message = "Invalid category type: " + ex.getValue();
         log.error(message, ex);
         return new ResponseEntity<>(message, BAD_REQUEST);
     }
 
     @ExceptionHandler(NoCategoriesAvailableException.class)
-    public ResponseEntity<String> handleNoCategoriesAvailableException(NoCategoriesAvailableException ex) {
+    public ResponseEntity<String> handleNoCategoriesAvailableException(
+            NoCategoriesAvailableException ex) {
         log.error("{}", ex.getMessage(), ex);
         return ResponseEntity.status(PRECONDITION_FAILED).body(ex.getMessage());
     }
@@ -85,9 +89,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            TransferToSameAccountException.class,
-            InvalidExchangeRateException.class,
-            TransferDescriptionTooLongException.class
+        TransferToSameAccountException.class,
+        InvalidExchangeRateException.class,
+        TransferDescriptionTooLongException.class
     })
     public ResponseEntity<String> handleTransferBadRequest(RuntimeException ex) {
         log.error("{}", ex.getMessage(), ex);

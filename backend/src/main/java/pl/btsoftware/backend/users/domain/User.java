@@ -1,18 +1,29 @@
 package pl.btsoftware.backend.users.domain;
 
+import java.time.Instant;
+import java.util.Objects;
 import pl.btsoftware.backend.shared.validation.NameValidationRules;
 import pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException;
 import pl.btsoftware.backend.users.domain.error.DisplayNameInvalidCharactersException;
 import pl.btsoftware.backend.users.domain.error.DisplayNameTooLongException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 
-import java.time.Instant;
-import java.util.Objects;
-
-public record User(UserId id, String email, String displayName, GroupId groupId, Instant createdAt, Instant lastLoginAt,
-                   Instant joinedGroupAt) {
-    public User(UserId id, String email, String displayName,
-                GroupId groupId, Instant createdAt, Instant lastLoginAt, Instant joinedGroupAt) {
+public record User(
+        UserId id,
+        String email,
+        String displayName,
+        GroupId groupId,
+        Instant createdAt,
+        Instant lastLoginAt,
+        Instant joinedGroupAt) {
+    public User(
+            UserId id,
+            String email,
+            String displayName,
+            GroupId groupId,
+            Instant createdAt,
+            Instant lastLoginAt,
+            Instant joinedGroupAt) {
         validateEmail(email);
         validateDisplayName(displayName);
 
@@ -27,15 +38,7 @@ public record User(UserId id, String email, String displayName, GroupId groupId,
 
     public static User create(UserId id, String email, String displayName, GroupId groupId) {
         Instant now = Instant.now();
-        return new User(
-                id,
-                email,
-                displayName,
-                groupId,
-                now,
-                now,
-                now
-        );
+        return new User(id, email, displayName, groupId, now, now, now);
     }
 
     public User changeGroup(GroupId newGroupId) {
@@ -53,7 +56,6 @@ public record User(UserId id, String email, String displayName, GroupId groupId,
                 displayName,
                 DisplayNameEmptyException::new,
                 DisplayNameTooLongException::new,
-                DisplayNameInvalidCharactersException::new
-        );
+                DisplayNameInvalidCharactersException::new);
     }
 }

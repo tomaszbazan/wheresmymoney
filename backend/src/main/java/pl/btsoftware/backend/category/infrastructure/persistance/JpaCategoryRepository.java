@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.category.infrastructure.persistance;
 
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -8,9 +10,6 @@ import pl.btsoftware.backend.category.domain.CategoryRepository;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.users.domain.GroupId;
-
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,19 +26,23 @@ public class JpaCategoryRepository implements CategoryRepository {
 
     @Override
     public Optional<Category> findById(CategoryId id, GroupId groupId) {
-        return repository.findByIdAndCreatedByGroupAndIsDeletedFalse(id.value(), groupId.value())
+        return repository
+                .findByIdAndCreatedByGroupAndIsDeletedFalse(id.value(), groupId.value())
                 .map(CategoryEntity::toDomain);
     }
 
     @Override
     public Optional<Category> findByIdIncludingDeleted(CategoryId id, GroupId groupId) {
-        return repository.findByIdAndCreatedByGroup(id.value(), groupId.value())
+        return repository
+                .findByIdAndCreatedByGroup(id.value(), groupId.value())
                 .map(CategoryEntity::toDomain);
     }
 
     @Override
     public List<Category> findByType(CategoryType type, GroupId groupId) {
-        return repository.findByTypeAndCreatedByGroupAndIsDeletedFalse(type, groupId.value()).stream()
+        return repository
+                .findByTypeAndCreatedByGroupAndIsDeletedFalse(type, groupId.value())
+                .stream()
                 .map(CategoryEntity::toDomain)
                 .toList();
     }

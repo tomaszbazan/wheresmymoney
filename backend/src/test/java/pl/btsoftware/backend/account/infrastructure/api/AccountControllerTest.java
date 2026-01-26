@@ -1,6 +1,26 @@
 package pl.btsoftware.backend.account.infrastructure.api;
 
+import static java.util.Collections.emptyList;
+import static java.util.UUID.randomUUID;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.instancio.Select.field;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static pl.btsoftware.backend.shared.Currency.EUR;
+import static pl.btsoftware.backend.shared.Currency.PLN;
+import static pl.btsoftware.backend.shared.JwtTokenFixture.createTokenFor;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Stream;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,46 +44,18 @@ import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static java.util.Collections.emptyList;
-import static java.util.UUID.randomUUID;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.instancio.Select.field;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static pl.btsoftware.backend.shared.Currency.EUR;
-import static pl.btsoftware.backend.shared.Currency.PLN;
-import static pl.btsoftware.backend.shared.JwtTokenFixture.createTokenFor;
-
 @WebMvcTest(controllers = AccountController.class)
 @Import(WebConfig.class)
 public class AccountControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Autowired private ObjectMapper objectMapper;
 
-    @MockBean
-    private AccountModuleFacade accountModuleFacade;
+    @MockBean private AccountModuleFacade accountModuleFacade;
 
     private static Stream<Arguments> incorrectName() {
-        return Stream.of(
-                Arguments.of(""),
-                Arguments.of("  "),
-                Arguments.of("a".repeat(101))
-        );
+        return Stream.of(Arguments.of(""), Arguments.of("  "), Arguments.of("a".repeat(101)));
     }
 
     @Test
@@ -78,9 +70,10 @@ public class AccountControllerTest {
         when(accountModuleFacade.getAccounts(userId)).thenReturn(List.of(account1, account2));
 
         // when & then
-        mockMvc.perform(get("/api/accounts")
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/accounts")
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.accounts", hasSize(2)))
@@ -101,9 +94,10 @@ public class AccountControllerTest {
         when(accountModuleFacade.getAccounts(userId)).thenReturn(emptyList());
 
         // when & then
-        mockMvc.perform(get("/api/accounts")
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/accounts")
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.accounts", hasSize(0)));
@@ -115,9 +109,10 @@ public class AccountControllerTest {
         var accountId = randomUUID();
 
         // when & then
-        mockMvc.perform(delete("/api/accounts/" + accountId)
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor("test-user")))
+        mockMvc.perform(
+                        delete("/api/accounts/" + accountId)
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor("test-user")))
                 .andExpect(status().isNoContent());
     }
 
@@ -128,17 +123,19 @@ public class AccountControllerTest {
         var accountId = AccountId.generate();
         var updatedAccount = createAccount(accountId, "Updated Account", PLN);
 
-        when(accountModuleFacade.updateAccount(new UpdateAccountCommand(accountId, "Updated Account"), userId))
+        when(accountModuleFacade.updateAccount(
+                        new UpdateAccountCommand(accountId, "Updated Account"), userId))
                 .thenReturn(updatedAccount);
 
         UpdateAccountRequest request = new UpdateAccountRequest("Updated Account");
         String json = objectMapper.writeValueAsString(request);
 
         // when & then
-        mockMvc.perform(put("/api/accounts/" + accountId.value())
-                        .contentType(APPLICATION_JSON)
-                        .content(json)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        put("/api/accounts/" + accountId.value())
+                                .contentType(APPLICATION_JSON)
+                                .content(json)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(accountId.value().toString()))
@@ -153,9 +150,11 @@ public class AccountControllerTest {
         var accountId = AccountId.generate();
         var createdAccount = createAccount(accountId, "Test Account", EUR);
 
-        when(accountModuleFacade.createAccount(any(CreateAccountCommand.class))).thenReturn(createdAccount);
+        when(accountModuleFacade.createAccount(any(CreateAccountCommand.class)))
+                .thenReturn(createdAccount);
 
-        var createAccountRequest = """
+        var createAccountRequest =
+                """
                 {
                     "name": "Test Account",
                     "currency": "EUR"
@@ -163,10 +162,11 @@ public class AccountControllerTest {
                 """;
 
         // when & then
-        mockMvc.perform(post("/api/accounts")
-                        .contentType(APPLICATION_JSON)
-                        .content(createAccountRequest)
-                        .with(createTokenFor("test-user")))
+        mockMvc.perform(
+                        post("/api/accounts")
+                                .contentType(APPLICATION_JSON)
+                                .content(createAccountRequest)
+                                .with(createTokenFor("test-user")))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(accountId.value().toString()))
@@ -184,10 +184,11 @@ public class AccountControllerTest {
         var createAccountRequest = new CreateAccountRequest(name, PLN);
 
         // when & then
-        mockMvc.perform(post("/api/accounts")
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createAccountRequest))
-                        .with(createTokenFor("test-user")))
+        mockMvc.perform(
+                        post("/api/accounts")
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createAccountRequest))
+                                .with(createTokenFor("test-user")))
                 .andExpect(status().isBadRequest());
     }
 
@@ -197,17 +198,19 @@ public class AccountControllerTest {
         var createAccountRequest = new CreateAccountRequest(null, PLN);
 
         // when & then
-        mockMvc.perform(post("/api/accounts")
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createAccountRequest))
-                        .with(createTokenFor("test-user")))
+        mockMvc.perform(
+                        post("/api/accounts")
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(createAccountRequest))
+                                .with(createTokenFor("test-user")))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldRejectAccountCreationWithUnsupportedCurrency() throws Exception {
         // given
-        var createAccountRequest = """
+        var createAccountRequest =
+                """
                 {
                     "name": "Test Account",
                     "currency": "JPY"
@@ -215,10 +218,11 @@ public class AccountControllerTest {
                 """;
 
         // when & then
-        mockMvc.perform(post("/api/accounts")
-                        .contentType(APPLICATION_JSON)
-                        .content(createAccountRequest)
-                        .with(createTokenFor("test-user")))
+        mockMvc.perform(
+                        post("/api/accounts")
+                                .contentType(APPLICATION_JSON)
+                                .content(createAccountRequest)
+                                .with(createTokenFor("test-user")))
                 .andExpect(status().isBadRequest());
     }
 
@@ -232,9 +236,10 @@ public class AccountControllerTest {
         when(accountModuleFacade.getAccount(accountId, userId)).thenReturn(account);
 
         // when & then
-        mockMvc.perform(get("/api/accounts/" + accountId.value())
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/accounts/" + accountId.value())
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(accountId.value().toString()))
@@ -255,11 +260,17 @@ public class AccountControllerTest {
                 .thenThrow(new AccountNotFoundException(nonExistentId));
 
         // when & then
-        mockMvc.perform(get("/api/accounts/" + nonExistentId.value())
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/accounts/" + nonExistentId.value())
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId.value())));
+                .andExpect(
+                        content()
+                                .string(
+                                        containsString(
+                                                "Account not found with id: "
+                                                        + nonExistentId.value())));
     }
 
     @Test
@@ -272,11 +283,14 @@ public class AccountControllerTest {
                 .thenThrow(new AccountNotFoundException(accountId));
 
         // when & then
-        mockMvc.perform(get("/api/accounts/" + accountId.value())
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor("other-user")))
+        mockMvc.perform(
+                        get("/api/accounts/" + accountId.value())
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor("other-user")))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Account not found with id: " + accountId)));
+                .andExpect(
+                        content()
+                                .string(containsString("Account not found with id: " + accountId)));
     }
 
     @Test
@@ -291,12 +305,18 @@ public class AccountControllerTest {
         var updateRequest = new UpdateAccountRequest("Updated Name");
 
         // when & then
-        mockMvc.perform(put("/api/accounts/" + nonExistentId.value())
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest))
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        put("/api/accounts/" + nonExistentId.value())
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateRequest))
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId.value())));
+                .andExpect(
+                        content()
+                                .string(
+                                        containsString(
+                                                "Account not found with id: "
+                                                        + nonExistentId.value())));
     }
 
     @ParameterizedTest
@@ -306,9 +326,10 @@ public class AccountControllerTest {
         var updateAccountRequest = new UpdateAccountRequest(name);
 
         // when & then
-        mockMvc.perform(put("/api/accounts/" + randomUUID())
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateAccountRequest)))
+        mockMvc.perform(
+                        put("/api/accounts/" + randomUUID())
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateAccountRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -318,9 +339,10 @@ public class AccountControllerTest {
         var updateAccountRequest = new UpdateAccountRequest(null);
 
         // when & then
-        mockMvc.perform(put("/api/accounts/" + randomUUID())
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateAccountRequest)))
+        mockMvc.perform(
+                        put("/api/accounts/" + randomUUID())
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateAccountRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -330,14 +352,21 @@ public class AccountControllerTest {
         var nonExistentId = AccountId.generate();
 
         doThrow(new AccountNotFoundException(nonExistentId))
-                .when(accountModuleFacade).deleteAccount(eq(nonExistentId), any(UserId.class));
+                .when(accountModuleFacade)
+                .deleteAccount(eq(nonExistentId), any(UserId.class));
 
         // when & then
-        mockMvc.perform(delete("/api/accounts/" + nonExistentId.value())
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor("test-user")))
+        mockMvc.perform(
+                        delete("/api/accounts/" + nonExistentId.value())
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor("test-user")))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Account not found with id: " + nonExistentId.value())));
+                .andExpect(
+                        content()
+                                .string(
+                                        containsString(
+                                                "Account not found with id: "
+                                                        + nonExistentId.value())));
     }
 
     private Account createAccount(AccountId accountId, String name, Currency currency) {
@@ -347,18 +376,17 @@ public class AccountControllerTest {
                 Money.of(BigDecimal.ZERO, currency),
                 Instancio.create(AuditInfo.class),
                 Instancio.create(AuditInfo.class),
-                Tombstone.active()
-        );
+                Tombstone.active());
     }
 
-    private Account createAccount(AccountId accountId, String name, Currency currency, UserId userId) {
+    private Account createAccount(
+            AccountId accountId, String name, Currency currency, UserId userId) {
         return new Account(
                 accountId,
                 name,
                 Money.of(BigDecimal.ZERO, currency),
                 Instancio.of(AuditInfo.class).set(field(AuditInfo::who), userId).create(),
                 Instancio.create(AuditInfo.class),
-                Tombstone.active()
-        );
+                Tombstone.active());
     }
 }

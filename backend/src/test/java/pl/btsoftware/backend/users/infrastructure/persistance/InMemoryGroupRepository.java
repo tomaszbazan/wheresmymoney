@@ -1,13 +1,12 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.GroupRepository;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class InMemoryGroupRepository implements GroupRepository {
     private final Map<GroupId, Group> groups = new HashMap<>();
@@ -25,9 +24,7 @@ public class InMemoryGroupRepository implements GroupRepository {
 
     @Override
     public Optional<Group> findByName(String name) {
-        return groups.values().stream()
-                .filter(group -> group.name().equals(name))
-                .findFirst();
+        return groups.values().stream().filter(group -> group.name().equals(name)).findFirst();
     }
 
     @Override

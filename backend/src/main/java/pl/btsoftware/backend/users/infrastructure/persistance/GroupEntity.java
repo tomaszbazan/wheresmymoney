@@ -1,6 +1,11 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,12 +13,6 @@ import lombok.Setter;
 import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "groups")
@@ -49,21 +48,18 @@ public class GroupEntity {
                 group.id().value(),
                 group.name(),
                 group.description(),
-                group.memberIds().stream()
-                        .map(UserId::value)
-                .collect(Collectors.toSet()),
+                group.memberIds().stream().map(UserId::value).collect(Collectors.toSet()),
                 group.createdBy().value(),
-                group.createdAt()
-        );
+                group.createdAt());
     }
 
     public Group toDomain() {
-        Set<UserId> domainMemberIds = memberIds.stream()
-                .map(UserId::new)
-                .collect(Collectors.toSet());
+        Set<UserId> domainMemberIds =
+                memberIds.stream().map(UserId::new).collect(Collectors.toSet());
 
         if (domainMemberIds.isEmpty()) {
-            return Group.createEmptyWithId(new GroupId(id), name, description, new UserId(createdBy), createdAt);
+            return Group.createEmptyWithId(
+                    new GroupId(id), name, description, new UserId(createdBy), createdAt);
         } else {
             return new Group(
                     new GroupId(id),
@@ -71,8 +67,7 @@ public class GroupEntity {
                     description,
                     domainMemberIds,
                     new UserId(createdBy),
-                    createdAt
-            );
+                    createdAt);
         }
     }
 }

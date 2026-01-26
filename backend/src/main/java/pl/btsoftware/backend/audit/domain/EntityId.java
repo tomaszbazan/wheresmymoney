@@ -1,10 +1,9 @@
 package pl.btsoftware.backend.audit.domain;
 
-import org.jetbrains.annotations.NotNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.UUID;
-
-import static java.util.Objects.requireNonNull;
+import org.jetbrains.annotations.NotNull;
 
 public record EntityId(UUID value) {
     public EntityId {
@@ -15,8 +14,7 @@ public record EntityId(UUID value) {
         return new EntityId(value);
     }
 
-    @NotNull
-    @Override
+    @NotNull @Override
     public String toString() {
         return value.toString();
     }

@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.csvimport.application;
 
+import java.util.HashMap;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -7,9 +9,6 @@ import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.csvimport.domain.*;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
-
-import java.util.HashMap;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,18 +24,19 @@ public class CsvParseService {
         var account = accountFacade.getAccount(command.accountId(), user.groupId());
         var parseResult = parser.parse(command.csvFile(), account.balance().currency());
 
-        var categorizedProposals = applyCategorySuggestions(parseResult.proposals(), user.groupId());
+        var categorizedProposals =
+                applyCategorySuggestions(parseResult.proposals(), user.groupId());
 
         return new CsvParseResult(
                 categorizedProposals,
                 parseResult.errors(),
                 parseResult.totalRows(),
                 parseResult.successCount(),
-                parseResult.errorCount()
-        );
+                parseResult.errorCount());
     }
 
-    private List<TransactionProposal> applyCategorySuggestions(List<TransactionProposal> proposals, GroupId groupId) {
+    private List<TransactionProposal> applyCategorySuggestions(
+            List<TransactionProposal> proposals, GroupId groupId) {
         if (proposals.isEmpty()) {
             return proposals;
         }
@@ -55,28 +55,29 @@ public class CsvParseService {
         return applySuggestions(proposals, suggestions);
     }
 
-    private List<TransactionProposal> applySuggestions(List<TransactionProposal> proposals, List<CategorySuggestion> suggestions) {
+    private List<TransactionProposal> applySuggestions(
+            List<TransactionProposal> proposals, List<CategorySuggestion> suggestions) {
         var suggestionMap = new HashMap<TransactionProposalId, CategorySuggestion>();
         for (var suggestion : suggestions) {
             suggestionMap.put(suggestion.transactionProposalId(), suggestion);
         }
 
         return proposals.stream()
-                .map(proposal -> {
-                    var suggestion = suggestionMap.get(proposal.transactionId());
-                    if (suggestion != null) {
-                        return new TransactionProposal(
-                                proposal.transactionId(),
-                                proposal.transactionDate(),
-                                proposal.description(),
-                                proposal.amount(),
-                                proposal.currency(),
-                                proposal.type(),
-                                suggestion.categoryId()
-                        );
-                    }
-                    return proposal;
-                })
+                .map(
+                        proposal -> {
+                            var suggestion = suggestionMap.get(proposal.transactionId());
+                            if (suggestion != null) {
+                                return new TransactionProposal(
+                                        proposal.transactionId(),
+                                        proposal.transactionDate(),
+                                        proposal.description(),
+                                        proposal.amount(),
+                                        proposal.currency(),
+                                        proposal.type(),
+                                        suggestion.categoryId());
+                            }
+                            return proposal;
+                        })
                 .toList();
     }
 }

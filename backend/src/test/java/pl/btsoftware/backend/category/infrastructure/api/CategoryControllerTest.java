@@ -1,6 +1,23 @@
 package pl.btsoftware.backend.category.infrastructure.api;
 
+import static java.util.Collections.emptyList;
+import static java.util.UUID.randomUUID;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static pl.btsoftware.backend.shared.CategoryType.EXPENSE;
+import static pl.btsoftware.backend.shared.CategoryType.INCOME;
+import static pl.btsoftware.backend.shared.JwtTokenFixture.createTokenFor;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,36 +41,15 @@ import pl.btsoftware.backend.shared.Color;
 import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.util.List;
-
-import static java.util.Collections.emptyList;
-import static java.util.UUID.randomUUID;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static pl.btsoftware.backend.shared.CategoryType.EXPENSE;
-import static pl.btsoftware.backend.shared.CategoryType.INCOME;
-import static pl.btsoftware.backend.shared.JwtTokenFixture.createTokenFor;
-
 @WebMvcTest(controllers = CategoryController.class)
 @Import(WebConfig.class)
 public class CategoryControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Autowired private ObjectMapper objectMapper;
 
-    @MockBean
-    private CategoryModuleFacade categoryModuleFacade;
+    @MockBean private CategoryModuleFacade categoryModuleFacade;
 
     @Test
     void shouldCreateCategory() throws Exception {
@@ -62,9 +58,11 @@ public class CategoryControllerTest {
         var categoryId = CategoryId.generate();
         var createdCategory = createCategory(categoryId, "Food", EXPENSE, "#FF5722");
 
-        when(categoryModuleFacade.createCategory(any(CreateCategoryCommand.class))).thenReturn(createdCategory);
+        when(categoryModuleFacade.createCategory(any(CreateCategoryCommand.class)))
+                .thenReturn(createdCategory);
 
-        var createCategoryRequest = """
+        var createCategoryRequest =
+                """
                 {
                     "name": "Food",
                     "type": "EXPENSE",
@@ -73,10 +71,11 @@ public class CategoryControllerTest {
                 """;
 
         // when & then
-        mockMvc.perform(post("/api/categories")
-                        .contentType(APPLICATION_JSON)
-                        .content(createCategoryRequest)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        post("/api/categories")
+                                .contentType(APPLICATION_JSON)
+                                .content(createCategoryRequest)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(categoryId.value().toString()))
@@ -86,7 +85,6 @@ public class CategoryControllerTest {
                 .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.updatedAt").exists());
     }
-
 
     @Test
     void shouldGetCategoryById() throws Exception {
@@ -98,9 +96,10 @@ public class CategoryControllerTest {
         when(categoryModuleFacade.getCategoryById(categoryId, userId)).thenReturn(category);
 
         // when & then
-        mockMvc.perform(get("/api/categories/" + categoryId.value())
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/categories/" + categoryId.value())
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(categoryId.value().toString()))
@@ -121,11 +120,17 @@ public class CategoryControllerTest {
                 .thenThrow(new CategoryNotFoundException(nonExistentId));
 
         // when & then
-        mockMvc.perform(get("/api/categories/" + nonExistentId.value())
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/categories/" + nonExistentId.value())
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Category not found with id: " + nonExistentId.value())));
+                .andExpect(
+                        content()
+                                .string(
+                                        containsString(
+                                                "Category not found with id: "
+                                                        + nonExistentId.value())));
     }
 
     @ParameterizedTest
@@ -142,10 +147,11 @@ public class CategoryControllerTest {
                 .thenReturn(List.of(category1, category2));
 
         // when & then
-        mockMvc.perform(get("/api/categories")
-                        .param("type", type.name())
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/categories")
+                                .param("type", type.name())
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.categories", hasSize(2)))
@@ -162,10 +168,11 @@ public class CategoryControllerTest {
         when(categoryModuleFacade.getCategoriesByType(EXPENSE, userId)).thenReturn(emptyList());
 
         // when & then
-        mockMvc.perform(get("/api/categories")
-                        .param("type", "EXPENSE")
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/categories")
+                                .param("type", "EXPENSE")
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.categories", hasSize(0)));
@@ -184,10 +191,11 @@ public class CategoryControllerTest {
         var updateRequest = new UpdateCategoryRequest("Updated Food", Color.of("#FF9800"), null);
 
         // when & then
-        mockMvc.perform(put("/api/categories/" + categoryId.value())
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest))
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        put("/api/categories/" + categoryId.value())
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateRequest))
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(categoryId.value().toString()))
@@ -207,14 +215,19 @@ public class CategoryControllerTest {
         var updateRequest = new UpdateCategoryRequest("Updated Name", Color.of("#FF5722"), null);
 
         // when & then
-        mockMvc.perform(put("/api/categories/" + nonExistentId.value())
-                        .contentType(APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest))
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        put("/api/categories/" + nonExistentId.value())
+                                .contentType(APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateRequest))
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Category not found with id: " + nonExistentId.value())));
+                .andExpect(
+                        content()
+                                .string(
+                                        containsString(
+                                                "Category not found with id: "
+                                                        + nonExistentId.value())));
     }
-
 
     @Test
     void shouldDeleteCategory() throws Exception {
@@ -223,9 +236,10 @@ public class CategoryControllerTest {
         var categoryId = randomUUID();
 
         // when & then
-        mockMvc.perform(delete("/api/categories/" + categoryId)
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        delete("/api/categories/" + categoryId)
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isOk());
     }
 
@@ -236,14 +250,20 @@ public class CategoryControllerTest {
         var nonExistentId = randomUUID();
 
         doThrow(new CategoryNotFoundException(CategoryId.of(nonExistentId)))
-                .when(categoryModuleFacade).deleteCategory(nonExistentId, userId);
+                .when(categoryModuleFacade)
+                .deleteCategory(nonExistentId, userId);
 
         // when & then
-        mockMvc.perform(delete("/api/categories/" + nonExistentId)
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        delete("/api/categories/" + nonExistentId)
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Category not found with id: " + nonExistentId)));
+                .andExpect(
+                        content()
+                                .string(
+                                        containsString(
+                                                "Category not found with id: " + nonExistentId)));
     }
 
     @Test
@@ -253,14 +273,20 @@ public class CategoryControllerTest {
         var categoryId = randomUUID();
 
         doThrow(new CategoryHasTransactionsException(CategoryId.of(categoryId)))
-                .when(categoryModuleFacade).deleteCategory(categoryId, userId);
+                .when(categoryModuleFacade)
+                .deleteCategory(categoryId, userId);
 
         // when & then
-        mockMvc.perform(delete("/api/categories/" + categoryId)
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        delete("/api/categories/" + categoryId)
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Category cannot be deleted because it has associated transactions")));
+                .andExpect(
+                        content()
+                                .string(
+                                        containsString(
+                                                "Category cannot be deleted because it has associated transactions")));
     }
 
     @Test
@@ -269,15 +295,17 @@ public class CategoryControllerTest {
         var userId = UserId.generate();
 
         // when & then
-        mockMvc.perform(get("/api/categories")
-                        .param("type", "XXX")
-                        .contentType(APPLICATION_JSON)
-                        .with(createTokenFor(userId.value())))
+        mockMvc.perform(
+                        get("/api/categories")
+                                .param("type", "XXX")
+                                .contentType(APPLICATION_JSON)
+                                .with(createTokenFor(userId.value())))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Invalid category type")));
     }
 
-    private Category createCategory(CategoryId categoryId, String name, CategoryType type, String color) {
+    private Category createCategory(
+            CategoryId categoryId, String name, CategoryType type, String color) {
         return new Category(
                 categoryId,
                 name,
@@ -286,7 +314,6 @@ public class CategoryControllerTest {
                 null,
                 Instancio.create(AuditInfo.class),
                 Instancio.create(AuditInfo.class),
-                Tombstone.active()
-        );
+                Tombstone.active());
     }
 }

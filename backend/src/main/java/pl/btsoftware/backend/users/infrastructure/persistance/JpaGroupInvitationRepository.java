@@ -1,14 +1,13 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Repository;
-import pl.btsoftware.backend.users.domain.*;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Repository;
+import pl.btsoftware.backend.users.domain.*;
 
 @Repository
 @AllArgsConstructor
@@ -24,30 +23,28 @@ public class JpaGroupInvitationRepository implements GroupInvitationRepository {
 
     @Override
     public Optional<GroupInvitation> findById(GroupInvitationId invitationId) {
-        return jpaRepository.findById(invitationId.value())
-            .map(GroupInvitationEntity::toDomain);
+        return jpaRepository.findById(invitationId.value()).map(GroupInvitationEntity::toDomain);
     }
 
     @Override
     public Optional<GroupInvitation> findByToken(String token) {
-        return jpaRepository.findByInvitationToken(token)
-            .map(GroupInvitationEntity::toDomain);
+        return jpaRepository.findByInvitationToken(token).map(GroupInvitationEntity::toDomain);
     }
 
     @Override
     public List<GroupInvitation> findPendingByGroupId(GroupId groupId) {
-        return jpaRepository.findByGroupIdAndStatus(groupId.value(), InvitationStatus.PENDING)
-            .stream()
-            .map(GroupInvitationEntity::toDomain)
-            .collect(Collectors.toList());
+        return jpaRepository
+                .findByGroupIdAndStatus(groupId.value(), InvitationStatus.PENDING)
+                .stream()
+                .map(GroupInvitationEntity::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<GroupInvitation> findPendingByEmail(String email) {
-        return jpaRepository.findByInviteeEmailAndStatus(email, InvitationStatus.PENDING)
-            .stream()
-            .map(GroupInvitationEntity::toDomain)
-            .collect(Collectors.toList());
+        return jpaRepository.findByInviteeEmailAndStatus(email, InvitationStatus.PENDING).stream()
+                .map(GroupInvitationEntity::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

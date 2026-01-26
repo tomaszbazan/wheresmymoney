@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.audit.infrastructure.api;
 
+import java.time.OffsetDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +13,6 @@ import pl.btsoftware.backend.audit.domain.AuditLogId;
 import pl.btsoftware.backend.shared.pagination.PaginationValidator;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/audit-logs")
@@ -33,13 +32,14 @@ public class AuditLogController {
             @RequestParam(required = false) OffsetDateTime toDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
+            @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         var user = usersModuleFacade.findUserOrThrow(userId);
 
         var validatedSize = paginationValidator.validatePageSize(size);
-        var queryRequest = new AuditLogQueryRequest(entityType, entityId, operation, performedBy, fromDate, toDate);
+        var queryRequest =
+                new AuditLogQueryRequest(
+                        entityType, entityId, operation, performedBy, fromDate, toDate);
         var query = queryRequest.toDomain(user.groupId());
         var pageable = PageRequest.of(page, validatedSize);
 
@@ -51,14 +51,17 @@ public class AuditLogController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AuditLogView> getAuditLogById(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
+            @PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         var user = usersModuleFacade.findUserOrThrow(userId);
 
-        var auditLog = auditLogService.findById(AuditLogId.of(id), user.groupId())
-                .orElseThrow(() -> new IllegalArgumentException("Audit log not found with id: " + id));
+        var auditLog =
+                auditLogService
+                        .findById(AuditLogId.of(id), user.groupId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Audit log not found with id: " + id));
         var auditLogView = AuditLogView.from(auditLog);
 
         return ResponseEntity.ok(auditLogView);

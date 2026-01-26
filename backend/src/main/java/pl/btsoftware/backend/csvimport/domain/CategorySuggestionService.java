@@ -1,5 +1,9 @@
 package pl.btsoftware.backend.csvimport.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -9,11 +13,6 @@ import pl.btsoftware.backend.category.domain.CategoryRepository;
 import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.users.domain.GroupId;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @ConditionalOnBean(GeminiClient.class)
@@ -25,7 +24,8 @@ public class CategorySuggestionService {
     private final CategorizationPromptBuilder promptBuilder;
     private final GeminiResponseParser responseParser;
 
-    public List<CategorySuggestion> suggestCategories(List<TransactionProposal> transactions, GroupId groupId) {
+    public List<CategorySuggestion> suggestCategories(
+            List<TransactionProposal> transactions, GroupId groupId) {
         validateInputs(transactions, groupId);
 
         var transactionsByType = groupTransactionsByType(transactions);
@@ -56,11 +56,13 @@ public class CategorySuggestionService {
         }
     }
 
-    private Map<TransactionType, List<TransactionProposal>> groupTransactionsByType(List<TransactionProposal> transactions) {
+    private Map<TransactionType, List<TransactionProposal>> groupTransactionsByType(
+            List<TransactionProposal> transactions) {
         return transactions.stream().collect(Collectors.groupingBy(TransactionProposal::type));
     }
 
-    private List<CategorySuggestion> processByType(List<TransactionProposal> transactions, TransactionType type, GroupId groupId) {
+    private List<CategorySuggestion> processByType(
+            List<TransactionProposal> transactions, TransactionType type, GroupId groupId) {
         var categoryType = mapTransactionTypeToCategory(type);
         var categories = categoryRepository.findByType(categoryType, groupId);
 

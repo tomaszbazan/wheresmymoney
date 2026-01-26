@@ -5,6 +5,7 @@ plugins {
     id 'checkstyle'
     id 'com.github.spotbugs' version '6.4.2'
     id 'org.sonarqube' version '6.3.1.5724'
+    id 'com.diffplug.spotless' version '8.2.0'
 }
 
 group = 'pl.btsoftware'
@@ -23,6 +24,19 @@ checkstyle {
 
 spotbugs {
     excludeFilter = file('config/spotbugs/exclude.xml')
+}
+
+spotless {
+    java {
+        importOrder()
+        removeUnusedImports()
+
+        cleanthat()
+
+        googleJavaFormat().aosp()
+
+        formatAnnotations()
+    }
 }
 
 configurations {

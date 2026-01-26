@@ -20,18 +20,21 @@ public class UserController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserView registerUser(@RequestBody @Validated RegisterUserRequest request,
-                                 @RequestParam(required = false) String invitationToken) {
-        log.info("Registering user with email: {}, invitationToken present: {}",
-                request.email(), invitationToken != null);
-
-        var command = new RegisterUserCommand(
-                request.externalAuthId(),
+    public UserView registerUser(
+            @RequestBody @Validated RegisterUserRequest request,
+            @RequestParam(required = false) String invitationToken) {
+        log.info(
+                "Registering user with email: {}, invitationToken present: {}",
                 request.email(),
-                request.displayName(),
-                request.groupName(),
-                invitationToken
-        );
+                invitationToken != null);
+
+        var command =
+                new RegisterUserCommand(
+                        request.externalAuthId(),
+                        request.email(),
+                        request.displayName(),
+                        request.groupName(),
+                        invitationToken);
 
         var user = usersModuleFacade.registerUser(command);
 

@@ -1,5 +1,8 @@
 package pl.btsoftware.backend.category.domain;
 
+import static lombok.AccessLevel.PRIVATE;
+
+import java.time.OffsetDateTime;
 import lombok.With;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.category.application.UpdateCategoryCommand;
@@ -14,10 +17,6 @@ import pl.btsoftware.backend.shared.validation.NameValidationRules;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.time.OffsetDateTime;
-
-import static lombok.AccessLevel.PRIVATE;
-
 public record Category(
         CategoryId id,
         @With(PRIVATE) String name,
@@ -27,8 +26,15 @@ public record Category(
         AuditInfo createdInfo,
         @With(PRIVATE) AuditInfo updatedInfo,
         Tombstone tombstone) {
-    public Category(CategoryId id, String name, CategoryType type, Color color, CategoryId parentId, AuditInfo createdInfo,
-                    AuditInfo updatedInfo, Tombstone tombstone) {
+    public Category(
+            CategoryId id,
+            String name,
+            CategoryType type,
+            Color color,
+            CategoryId parentId,
+            AuditInfo createdInfo,
+            AuditInfo updatedInfo,
+            Tombstone tombstone) {
         validateName(name);
         this.id = id;
         this.name = name.trim();
@@ -45,8 +51,7 @@ public record Category(
             CategoryType type,
             Color color,
             CategoryId parentId,
-            AuditInfo createdInfo
-    ) {
+            AuditInfo createdInfo) {
         return new Category(
                 CategoryId.generate(),
                 name,
@@ -55,16 +60,11 @@ public record Category(
                 parentId,
                 createdInfo,
                 createdInfo,
-                Tombstone.active()
-        );
+                Tombstone.active());
     }
 
     public static Category create(
-            String name,
-            CategoryType type,
-            Color color,
-            AuditInfo createdInfo
-    ) {
+            String name, CategoryType type, Color color, AuditInfo createdInfo) {
         return create(name, type, color, null, createdInfo);
     }
 
@@ -93,8 +93,7 @@ public record Category(
                 name,
                 CategoryNameEmptyException::new,
                 CategoryNameTooLongException::new,
-                CategoryNameInvalidCharactersException::new
-        );
+                CategoryNameInvalidCharactersException::new);
     }
 
     public boolean isDeleted() {
@@ -102,7 +101,8 @@ public record Category(
     }
 
     public Category delete() {
-        return new Category(id, name, type, color, parentId, createdInfo, updatedInfo, Tombstone.deleted());
+        return new Category(
+                id, name, type, color, parentId, createdInfo, updatedInfo, Tombstone.deleted());
     }
 
     private AuditInfo createUpdateInfo(UserId updatedBy) {
@@ -112,13 +112,18 @@ public record Category(
     public Category updateWith(UpdateCategoryCommand command, UserId updatedBy) {
         var category = this;
         if (command.color() != null && !command.color().equals(this.color)) {
-            category = category.withColor(command.color()).withUpdatedInfo(createUpdateInfo(updatedBy));
+            category =
+                    category.withColor(command.color())
+                            .withUpdatedInfo(createUpdateInfo(updatedBy));
         }
         if (command.name() != null && !command.name().equals(this.name)) {
-            category = category.withName(command.name()).withUpdatedInfo(createUpdateInfo(updatedBy));
+            category =
+                    category.withName(command.name()).withUpdatedInfo(createUpdateInfo(updatedBy));
         }
         if (command.parentId() != this.parentId) {
-            category = category.withParentId(command.parentId()).withUpdatedInfo(createUpdateInfo(updatedBy));
+            category =
+                    category.withParentId(command.parentId())
+                            .withUpdatedInfo(createUpdateInfo(updatedBy));
         }
         return category;
     }

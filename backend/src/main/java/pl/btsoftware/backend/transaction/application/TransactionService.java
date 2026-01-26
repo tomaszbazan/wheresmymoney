@@ -1,6 +1,8 @@
 package pl.btsoftware.backend.transaction.application;
 
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +23,6 @@ import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @RequiredArgsConstructor
 public class TransactionService {
     private final TransactionRepository transactionRepository;
@@ -42,16 +41,20 @@ public class TransactionService {
         var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value());
         var transaction = command.toDomain(auditInfo);
 
-        validateNotDuplicate(transaction.accountId(), transaction.transactionHash(), user.groupId());
+        validateNotDuplicate(
+                transaction.accountId(), transaction.transactionHash(), user.groupId());
 
         transactionRepository.store(transaction);
         if (transaction.type() == TransactionType.INCOME) {
-            accountModuleFacade.deposit(command.accountId(), transaction.amount(), command.userId());
+            accountModuleFacade.deposit(
+                    command.accountId(), transaction.amount(), command.userId());
         } else {
-            accountModuleFacade.withdraw(command.accountId(), transaction.amount(), command.userId());
+            accountModuleFacade.withdraw(
+                    command.accountId(), transaction.amount(), command.userId());
         }
 
-        auditModuleFacade.logTransactionCreated(transaction.id(), transaction.description(), command.userId(), user.groupId());
+        auditModuleFacade.logTransactionCreated(
+                transaction.id(), transaction.description(), command.userId(), user.groupId());
         return transaction;
     }
 
@@ -62,20 +65,25 @@ public class TransactionService {
     }
 
     private void validateCategoriesExist(TransactionType type, GroupId groupId) {
-        var categoryType = type == TransactionType.INCOME ? CategoryType.INCOME : CategoryType.EXPENSE;
+        var categoryType =
+                type == TransactionType.INCOME ? CategoryType.INCOME : CategoryType.EXPENSE;
         if (!categoryQueryFacade.hasCategories(categoryType, groupId)) {
             throw new NoCategoriesAvailableException(categoryType);
         }
     }
 
     private void validateNotDuplicate(AccountId accountId, TransactionHash hash, GroupId groupId) {
-        transactionRepository.findByAccountIdAndHash(accountId, hash, groupId).ifPresent(duplicate -> {
-            throw new DuplicateTransactionException(hash);
-        });
+        transactionRepository
+                .findByAccountIdAndHash(accountId, hash, groupId)
+                .ifPresent(
+                        duplicate -> {
+                            throw new DuplicateTransactionException(hash);
+                        });
     }
 
     public Transaction getTransactionById(TransactionId transactionId, GroupId groupId) {
-        return transactionRepository.findById(transactionId, groupId)
+        return transactionRepository
+                .findById(transactionId, groupId)
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
     }
 
@@ -90,8 +98,11 @@ public class TransactionService {
     @Transactional
     public Transaction updateTransaction(UpdateTransactionCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var transaction = transactionRepository.findById(command.transactionId(), user.groupId())
-                .orElseThrow(() -> new TransactionNotFoundException(command.transactionId()));
+        var transaction =
+                transactionRepository
+                        .findById(command.transactionId(), user.groupId())
+                        .orElseThrow(
+                                () -> new TransactionNotFoundException(command.transactionId()));
 
         validateCategoriesExist(transaction.type(), user.groupId());
 
@@ -116,7 +127,8 @@ public class TransactionService {
         }
 
         if (command.description() != null) {
-            updatedTransaction = updatedTransaction.updateDescription(command.description(), userId);
+            updatedTransaction =
+                    updatedTransaction.updateDescription(command.description(), userId);
         }
 
         if (command.categoryId() != null) {
@@ -124,15 +136,18 @@ public class TransactionService {
         }
 
         transactionRepository.store(updatedTransaction);
-        auditModuleFacade.logTransactionUpdated(command.transactionId(), updatedTransaction.description(), userId, user.groupId());
+        auditModuleFacade.logTransactionUpdated(
+                command.transactionId(), updatedTransaction.description(), userId, user.groupId());
         return updatedTransaction;
     }
 
     @Transactional
     public void deleteTransaction(TransactionId transactionId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var transaction = transactionRepository.findByIdIncludingDeleted(transactionId, user.groupId())
-                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
+        var transaction =
+                transactionRepository
+                        .findByIdIncludingDeleted(transactionId, user.groupId())
+                        .orElseThrow(() -> new TransactionNotFoundException(transactionId));
 
         if (transaction.isDeleted()) {
             throw new TransactionAlreadyDeletedException(transactionId);
@@ -145,11 +160,13 @@ public class TransactionService {
             accountModuleFacade.deposit(transaction.accountId(), transaction.amount(), userId);
         }
         transactionRepository.store(deletedTransaction);
-        auditModuleFacade.logTransactionDeleted(transactionId, transaction.description(), userId, user.groupId());
+        auditModuleFacade.logTransactionDeleted(
+                transactionId, transaction.description(), userId, user.groupId());
     }
 
     @Transactional
-    public BulkCreateResult bulkCreateTransactions(BulkCreateTransactionCommand command, UserId userId) {
+    public BulkCreateResult bulkCreateTransactions(
+            BulkCreateTransactionCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var accountId = command.accountId();
         var transactions = command.transactions();
@@ -162,14 +179,20 @@ public class TransactionService {
         validateCurrencyForAllCommands(transactions, account.balance().currency());
 
         var auditInfo = AuditInfo.create(userId.value(), user.groupId().value());
-        var allTransactions = transactions.stream().map(createTransactionCommand -> {
-            validateCategoriesExist(createTransactionCommand.type(), user.groupId());
-            return createTransactionCommand.toDomain(auditInfo);
-        }).toList();
+        var allTransactions =
+                transactions.stream()
+                        .map(
+                                createTransactionCommand -> {
+                                    validateCategoriesExist(
+                                            createTransactionCommand.type(), user.groupId());
+                                    return createTransactionCommand.toDomain(auditInfo);
+                                })
+                        .toList();
 
         var allHashes = allTransactions.stream().map(Transaction::transactionHash).toList();
 
-        var existingHashes = transactionRepository.findExistingHashes(accountId, allHashes, user.groupId());
+        var existingHashes =
+                transactionRepository.findExistingHashes(accountId, allHashes, user.groupId());
 
         var savedIds = new ArrayList<TransactionId>();
         var duplicateCount = 0;
@@ -180,9 +203,11 @@ public class TransactionService {
             } else {
                 transactionRepository.store(transaction);
                 if (transaction.type() == TransactionType.INCOME) {
-                    accountModuleFacade.deposit(transaction.accountId(), transaction.amount(), userId);
+                    accountModuleFacade.deposit(
+                            transaction.accountId(), transaction.amount(), userId);
                 } else {
-                    accountModuleFacade.withdraw(transaction.accountId(), transaction.amount(), userId);
+                    accountModuleFacade.withdraw(
+                            transaction.accountId(), transaction.amount(), userId);
                 }
                 savedIds.add(transaction.id());
             }
@@ -191,7 +216,8 @@ public class TransactionService {
         return BulkCreateResult.of(savedIds, duplicateCount);
     }
 
-    private void validateCurrencyForAllCommands(List<CreateTransactionCommand> commands, Currency accountCurrency) {
+    private void validateCurrencyForAllCommands(
+            List<CreateTransactionCommand> commands, Currency accountCurrency) {
         for (var command : commands) {
             validateCurrencyMatch(command.amount().currency(), accountCurrency);
         }

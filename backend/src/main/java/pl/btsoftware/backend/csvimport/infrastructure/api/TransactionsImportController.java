@@ -1,5 +1,9 @@
 package pl.btsoftware.backend.csvimport.infrastructure.api;
 
+import static pl.btsoftware.backend.csvimport.domain.ErrorType.*;
+
+import java.io.IOException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -16,33 +20,37 @@ import pl.btsoftware.backend.csvimport.domain.CsvImportException;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.io.IOException;
-import java.util.UUID;
-
-import static pl.btsoftware.backend.csvimport.domain.ErrorType.*;
-
 @RestController
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
 @Slf4j
 public class TransactionsImportController {
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
-    private static final String[] ALLOWED_CONTENT_TYPES = {"text/csv", "application/csv", "text/plain"};
+    private static final String[] ALLOWED_CONTENT_TYPES = {
+        "text/csv", "application/csv", "text/plain"
+    };
 
     private final CsvParseService csvParseService;
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public CsvParseResultView importTransactions(@RequestParam("csvFile") MultipartFile file, @RequestParam("accountId") UUID accountId, @AuthenticationPrincipal Jwt jwt) {
+    public CsvParseResultView importTransactions(
+            @RequestParam("csvFile") MultipartFile file,
+            @RequestParam("accountId") UUID accountId,
+            @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received CSV parse request for account: {} by user: {}", accountId, userId);
 
         validateFile(file);
 
         try {
-            var command = new ParseCsvCommand(file.getInputStream(), userId, AccountId.from(accountId));
+            var command =
+                    new ParseCsvCommand(file.getInputStream(), userId, AccountId.from(accountId));
             var result = csvParseService.parse(command);
 
-            log.info("CSV parsing completed: {} proposals, {} errors", result.successCount(), result.errorCount());
+            log.info(
+                    "CSV parsing completed: {} proposals, {} errors",
+                    result.successCount(),
+                    result.errorCount());
             return CsvParseResultView.from(result);
         } catch (IOException e) {
             log.error("Failed to read CSV file", e);
@@ -56,12 +64,14 @@ public class TransactionsImportController {
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new CsvImportException(FILE_TOO_LARGE, "File size exceeds maximum allowed size of 10MB");
+            throw new CsvImportException(
+                    FILE_TOO_LARGE, "File size exceeds maximum allowed size of 10MB");
         }
 
         var contentType = file.getContentType();
         if (contentType == null || !isAllowedContentType(contentType)) {
-            throw new CsvImportException(INVALID_FILE_TYPE, "Invalid file type. Allowed types: CSV");
+            throw new CsvImportException(
+                    INVALID_FILE_TYPE, "Invalid file type. Allowed types: CSV");
         }
     }
 

@@ -1,13 +1,13 @@
 package pl.btsoftware.backend.shared;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import pl.btsoftware.backend.shared.error.ColorInvalidFormatException;
 import pl.btsoftware.backend.shared.error.ColorValueNullException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ColorTest {
 
@@ -31,14 +31,7 @@ class ColorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "#000000",
-            "#FFFFFF",
-            "#123456",
-            "#abcdef",
-            "#ABCDEF",
-            "#9a8b7c"
-    })
+    @ValueSource(strings = {"#000000", "#FFFFFF", "#123456", "#abcdef", "#ABCDEF", "#9a8b7c"})
     void shouldAcceptValidHexColors(String colorValue) {
         // when & then
         var color = Color.of(colorValue);
@@ -46,20 +39,21 @@ class ColorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "AABBCC",      // missing #
-            "#AABBG",      // invalid character G (too short)
-            "#AABBCCDD",   // too long
-            "#AAB",        // too short
-            "#GGHHII",     // invalid characters
-            "",            // empty
-            " #AABBCC",    // leading space
-            "#AABBCC ",    // trailing space
-            "#aabbcc\n",   // newline
-            "rgb(255,255,255)", // not hex format
-            "red",         // color name
-            "#"            // just hash
-    })
+    @ValueSource(
+            strings = {
+                "AABBCC", // missing #
+                "#AABBG", // invalid character G (too short)
+                "#AABBCCDD", // too long
+                "#AAB", // too short
+                "#GGHHII", // invalid characters
+                "", // empty
+                " #AABBCC", // leading space
+                "#AABBCC ", // trailing space
+                "#aabbcc\n", // newline
+                "rgb(255,255,255)", // not hex format
+                "red", // color name
+                "#" // just hash
+            })
     void shouldRejectInvalidHexColors(String invalidColor) {
         // when & then
         assertThatThrownBy(() -> Color.of(invalidColor))

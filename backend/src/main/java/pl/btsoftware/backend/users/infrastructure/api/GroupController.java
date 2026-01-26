@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.users.infrastructure.api;
 
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -10,8 +11,6 @@ import pl.btsoftware.backend.users.application.InviteToGroupCommand;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/groups")
 @AllArgsConstructor
@@ -21,8 +20,8 @@ public class GroupController {
 
     @PostMapping("/invite")
     @ResponseStatus(HttpStatus.CREATED)
-    public GroupInvitationView inviteToGroup(@RequestBody @Validated InviteToGroupRequest request,
-                                            @RequestParam String inviterId) {
+    public GroupInvitationView inviteToGroup(
+            @RequestBody @Validated InviteToGroupRequest request, @RequestParam String inviterId) {
         log.info("Creating invitation for email: {} by inviter: {}", request.email(), inviterId);
 
         var command = new InviteToGroupCommand(request.email());
@@ -37,8 +36,10 @@ public class GroupController {
     public GroupInvitationView getInvitationDetails(@PathVariable String token) {
         log.info("Getting invitation details for token: {}", token);
 
-        var invitation = usersModuleFacade.findInvitationByToken(token)
-            .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
+        var invitation =
+                usersModuleFacade
+                        .findInvitationByToken(token)
+                        .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
 
         return GroupInvitationView.from(invitation);
     }
@@ -57,8 +58,10 @@ public class GroupController {
     public GroupView getGroup(@PathVariable UUID groupId) {
         log.info("Getting group details for ID: {}", groupId);
 
-        var group = usersModuleFacade.findGroupById(new GroupId(groupId))
-            .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+        var group =
+                usersModuleFacade
+                        .findGroupById(new GroupId(groupId))
+                        .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
         return GroupView.from(group);
     }

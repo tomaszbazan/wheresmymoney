@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.category;
 
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.category.application.CategoryService;
 import pl.btsoftware.backend.category.application.CreateCategoryCommand;
@@ -10,9 +12,6 @@ import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.util.List;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 public class CategoryModuleFacade {

@@ -1,14 +1,13 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.User;
 import pl.btsoftware.backend.users.domain.UserId;
 import pl.btsoftware.backend.users.domain.UserRepository;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 public class JpaUserRepository implements UserRepository {
@@ -27,16 +26,14 @@ public class JpaUserRepository implements UserRepository {
 
     @Override
     public Optional<User> findById(UserId userId) {
-        return jpaRepository.findById(userId.value())
-            .map(UserEntity::toDomain);
+        return jpaRepository.findById(userId.value()).map(UserEntity::toDomain);
     }
 
     @Override
     public List<User> findByGroupId(GroupId groupId) {
-        return jpaRepository.findByGroupId(groupId.value())
-            .stream()
-            .map(UserEntity::toDomain)
-            .collect(Collectors.toList());
+        return jpaRepository.findByGroupId(groupId.value()).stream()
+                .map(UserEntity::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

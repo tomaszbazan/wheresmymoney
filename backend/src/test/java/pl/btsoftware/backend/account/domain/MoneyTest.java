@@ -1,22 +1,20 @@
 package pl.btsoftware.backend.account.domain;
 
-import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.error.MoneyCurrencyMismatchException;
-
-import java.math.BigDecimal;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static pl.btsoftware.backend.shared.Currency.*;
+
+import java.math.BigDecimal;
+import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.error.MoneyCurrencyMismatchException;
 
 class MoneyTest {
 
     @Test
     void shouldThrowExceptionWhenAmountIsNull() {
         // when & then
-        assertThatThrownBy(() -> new Money(null, PLN))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new Money(null, PLN)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -25,7 +23,6 @@ class MoneyTest {
         assertThatThrownBy(() -> new Money(BigDecimal.TEN, null))
                 .isInstanceOf(NullPointerException.class);
     }
-
 
     @Test
     void shouldAcceptAllSupportedCurrencies() {
@@ -163,7 +160,6 @@ class MoneyTest {
         // Original balance should be unchanged (immutability check)
         assertThat(money.currency()).isEqualTo(PLN);
     }
-
 
     @Test
     void shouldChangeAmount() {

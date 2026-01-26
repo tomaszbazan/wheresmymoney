@@ -1,18 +1,22 @@
 package pl.btsoftware.backend.csvimport.domain;
 
+import static java.util.Objects.requireNonNull;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import pl.btsoftware.backend.csvimport.domain.error.TransactionProposalDescriptionTooLongException;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionType;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
-import static java.util.Objects.requireNonNull;
-
-public record TransactionProposal(TransactionProposalId transactionId, LocalDate transactionDate, String description,
-                                  BigDecimal amount, Currency currency,
-                                  TransactionType type, CategoryId categoryId) {
+public record TransactionProposal(
+        TransactionProposalId transactionId,
+        LocalDate transactionDate,
+        String description,
+        BigDecimal amount,
+        Currency currency,
+        TransactionType type,
+        CategoryId categoryId) {
     public static final int MAX_DESCRIPTION_LENGTH = 200;
 
     public TransactionProposal {

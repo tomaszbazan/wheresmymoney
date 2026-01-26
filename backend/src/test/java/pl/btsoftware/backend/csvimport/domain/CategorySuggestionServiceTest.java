@@ -1,5 +1,15 @@
 package pl.btsoftware.backend.csvimport.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.account.domain.AuditInfo;
@@ -13,17 +23,6 @@ import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 class CategorySuggestionServiceTest {
 
@@ -39,7 +38,9 @@ class CategorySuggestionServiceTest {
         geminiClient = mock(GeminiClient.class);
         var promptBuilder = new CategorizationPromptBuilder();
         var responseParser = new GeminiResponseParser();
-        service = new CategorySuggestionService(categoryRepository, geminiClient, promptBuilder, responseParser);
+        service =
+                new CategorySuggestionService(
+                        categoryRepository, geminiClient, promptBuilder, responseParser);
         testGroupId = GroupId.generate();
         testAuditInfo = AuditInfo.create(UserId.generate(), testGroupId);
     }
@@ -50,7 +51,9 @@ class CategorySuggestionServiceTest {
         var foodCategory = createAndStoreCategory("Food", CategoryType.EXPENSE);
         var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
 
-        var geminiResponse = String.format("""
+        var geminiResponse =
+                String.format(
+                        """
                 [
                   {
                     "transactionId": "4517b374-b493-4ef0-ab64-f381fd70585d",
@@ -58,9 +61,11 @@ class CategorySuggestionServiceTest {
                     "confidence": 0.95
                   }
                 ]
-                """, foodCategory.id().value());
+                                """,
+                        foodCategory.id().value());
 
-        when(geminiClient.generateContent(any())).thenReturn(CompletableFuture.completedFuture(geminiResponse));
+        when(geminiClient.generateContent(any()))
+                .thenReturn(CompletableFuture.completedFuture(geminiResponse));
 
         // when
         var result = service.suggestCategories(List.of(transaction), testGroupId);
@@ -79,7 +84,9 @@ class CategorySuggestionServiceTest {
         createAndStoreCategory("Salary", CategoryType.INCOME);
         var expenseTransaction = createTransaction("McDonald's", TransactionType.EXPENSE);
 
-        var geminiResponse = String.format("""
+        var geminiResponse =
+                String.format(
+                        """
                 [
                   {
                     "transactionId": 0,
@@ -87,9 +94,11 @@ class CategorySuggestionServiceTest {
                     "confidence": 0.95
                   }
                 ]
-                """, expenseCategory.id().value());
+                                """,
+                        expenseCategory.id().value());
 
-        when(geminiClient.generateContent(any())).thenReturn(CompletableFuture.completedFuture(geminiResponse));
+        when(geminiClient.generateContent(any()))
+                .thenReturn(CompletableFuture.completedFuture(geminiResponse));
 
         // when
         service.suggestCategories(List.of(expenseTransaction), testGroupId);
@@ -104,7 +113,8 @@ class CategorySuggestionServiceTest {
         createAndStoreCategory("Food", CategoryType.EXPENSE);
         var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
 
-        when(geminiClient.generateContent(any())).thenReturn(CompletableFuture.failedFuture(new GeminiClientException("API Error")));
+        when(geminiClient.generateContent(any()))
+                .thenReturn(CompletableFuture.failedFuture(new GeminiClientException("API Error")));
 
         // when
         var result = service.suggestCategories(List.of(transaction), testGroupId);
@@ -138,7 +148,9 @@ class CategorySuggestionServiceTest {
         var expenseTransaction = createTransaction("McDonald's", TransactionType.EXPENSE);
         var incomeTransaction = createTransaction("Monthly salary", TransactionType.INCOME);
 
-        var expenseResponse = String.format("""
+        var expenseResponse =
+                String.format(
+                        """
                 [
                   {
                     "transactionId": "2dce750e-6ddc-4e42-8b5b-4637898cc394",
@@ -146,9 +158,12 @@ class CategorySuggestionServiceTest {
                     "confidence": 0.95
                   }
                 ]
-                """, expenseCategory.id().value());
+                                """,
+                        expenseCategory.id().value());
 
-        var incomeResponse = String.format("""
+        var incomeResponse =
+                String.format(
+                        """
                 [
                   {
                     "transactionId": "bdcaebd1-fc55-428c-ad53-c7ed5867b102",
@@ -156,12 +171,17 @@ class CategorySuggestionServiceTest {
                     "confidence": 0.90
                   }
                 ]
-                """, incomeCategory.id().value());
+                                """,
+                        incomeCategory.id().value());
 
-        when(geminiClient.generateContent(any())).thenReturn(CompletableFuture.completedFuture(expenseResponse)).thenReturn(CompletableFuture.completedFuture(incomeResponse));
+        when(geminiClient.generateContent(any()))
+                .thenReturn(CompletableFuture.completedFuture(expenseResponse))
+                .thenReturn(CompletableFuture.completedFuture(incomeResponse));
 
         // when
-        var result = service.suggestCategories(List.of(expenseTransaction, incomeTransaction), testGroupId);
+        var result =
+                service.suggestCategories(
+                        List.of(expenseTransaction, incomeTransaction), testGroupId);
 
         // then
         assertThat(result).isNotNull();
@@ -196,7 +216,6 @@ class CategorySuggestionServiceTest {
                 BigDecimal.valueOf(100),
                 Currency.PLN,
                 type,
-                null
-        );
+                null);
     }
 }

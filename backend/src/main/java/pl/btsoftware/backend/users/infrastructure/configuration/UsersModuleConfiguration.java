@@ -25,21 +25,24 @@ public class UsersModuleConfiguration {
     }
 
     @Bean
-    public GroupInvitationRepository groupInvitationRepository(JpaGroupInvitationRepository jpaGroupInvitationRepository) {
+    public GroupInvitationRepository groupInvitationRepository(
+            JpaGroupInvitationRepository jpaGroupInvitationRepository) {
         return jpaGroupInvitationRepository;
     }
 
     @Bean
-    public UserService userService(UserRepository userRepository,
-                                   GroupRepository groupRepository,
-                                   GroupInvitationRepository groupInvitationRepository) {
+    public UserService userService(
+            UserRepository userRepository,
+            GroupRepository groupRepository,
+            GroupInvitationRepository groupInvitationRepository) {
         return new UserService(userRepository, groupRepository, groupInvitationRepository);
     }
 
     @Bean
-    public GroupService groupService(GroupRepository groupRepository,
-                                     GroupInvitationRepository groupInvitationRepository,
-                                     UserRepository userRepository) {
+    public GroupService groupService(
+            GroupRepository groupRepository,
+            GroupInvitationRepository groupInvitationRepository,
+            UserRepository userRepository) {
         return new GroupService(groupRepository, groupInvitationRepository, userRepository);
     }
 }

@@ -1,16 +1,15 @@
 package pl.btsoftware.backend.users.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.time.Instant;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.users.domain.error.CannotRemoveLastGroupMemberException;
 import pl.btsoftware.backend.users.domain.error.GroupNameEmptyException;
 import pl.btsoftware.backend.users.domain.error.GroupNameInvalidCharactersException;
 import pl.btsoftware.backend.users.domain.error.GroupNameTooLongException;
-
-import java.time.Instant;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GroupTest {
 
@@ -127,8 +126,16 @@ class GroupTest {
 
     @Test
     void shouldAllowCreationWithEmptyMembers() {
-        // The canonical constructor allows empty members - only the private constructor with validation doesn't
-        Group group = new Group(GroupId.generate(), "Name", "Description", Set.of(), UserId.generate(), Instant.now());
+        // The canonical constructor allows empty members - only the private constructor with
+        // validation doesn't
+        Group group =
+                new Group(
+                        GroupId.generate(),
+                        "Name",
+                        "Description",
+                        Set.of(),
+                        UserId.generate(),
+                        Instant.now());
 
         assertThat(group.isEmpty()).isTrue();
         assertThat(group.getMemberCount()).isEqualTo(0);

@@ -1,16 +1,14 @@
 package pl.btsoftware.backend.csvimport.infrastructure.api;
 
-import pl.btsoftware.backend.csvimport.domain.CsvParseResult;
-
 import java.util.List;
+import pl.btsoftware.backend.csvimport.domain.CsvParseResult;
 
 public record CsvParseResultView(
         List<TransactionProposalView> proposals,
         List<ParseErrorView> errors,
         int totalRows,
         int successCount,
-        int errorCount
-) {
+        int errorCount) {
     public CsvParseResultView {
         proposals = List.copyOf(proposals);
         errors = List.copyOf(errors);
@@ -22,7 +20,6 @@ public record CsvParseResultView(
                 result.errors().stream().map(ParseErrorView::from).toList(),
                 result.totalRows(),
                 result.successCount(),
-                result.errorCount()
-        );
+                result.errorCount());
     }
 }

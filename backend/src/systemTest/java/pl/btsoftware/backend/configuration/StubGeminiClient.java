@@ -1,11 +1,10 @@
 package pl.btsoftware.backend.configuration;
 
+import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import pl.btsoftware.backend.ai.infrastructure.client.GeminiClient;
 import pl.btsoftware.backend.ai.infrastructure.config.GeminiConfig;
-
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class StubGeminiClient extends GeminiClient {

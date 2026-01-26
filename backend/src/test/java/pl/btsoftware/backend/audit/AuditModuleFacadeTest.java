@@ -1,5 +1,8 @@
 package pl.btsoftware.backend.audit;
 
+import static java.util.UUID.randomUUID;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,9 +18,6 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import static java.util.UUID.randomUUID;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuditModuleFacadeTest {
 
@@ -128,7 +128,8 @@ public class AuditModuleFacadeTest {
             var log = logs.getContent().get(0);
             assertThat(log.operation()).isEqualTo(AuditOperation.UPDATE);
             assertThat(log.entityType()).isEqualTo(AuditEntityType.TRANSACTION);
-            assertThat(log.changeDescription()).isEqualTo("Transaction updated: Transaction updated");
+            assertThat(log.changeDescription())
+                    .isEqualTo("Transaction updated: Transaction updated");
         }
 
         @Test
@@ -145,7 +146,8 @@ public class AuditModuleFacadeTest {
             var log = logs.getContent().get(0);
             assertThat(log.operation()).isEqualTo(AuditOperation.DELETE);
             assertThat(log.entityType()).isEqualTo(AuditEntityType.TRANSACTION);
-            assertThat(log.changeDescription()).isEqualTo("Transaction deleted: Deleted transaction");
+            assertThat(log.changeDescription())
+                    .isEqualTo("Transaction deleted: Deleted transaction");
         }
     }
 
@@ -157,7 +159,8 @@ public class AuditModuleFacadeTest {
             var categoryName = "Food";
             var categoryType = "EXPENSE";
 
-            auditModuleFacade.logCategoryCreated(categoryId, categoryName, categoryType, userId, groupId);
+            auditModuleFacade.logCategoryCreated(
+                    categoryId, categoryName, categoryType, userId, groupId);
 
             var query = AuditLogQuery.allForGroup(groupId);
             var logs = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));

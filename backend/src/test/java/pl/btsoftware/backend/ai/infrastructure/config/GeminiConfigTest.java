@@ -1,12 +1,12 @@
 package pl.btsoftware.backend.ai.infrastructure.config;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class GeminiConfigTest {
 
@@ -38,7 +38,9 @@ class GeminiConfigTest {
     @Test
     void shouldThrowExceptionWhenApiKeyIsMissing() {
         // given
-        assumeTrue(System.getenv("GEMINI_API_KEY") == null, "Test skipped because GEMINI_API_KEY environment variable is set");
+        assumeTrue(
+                System.getenv("GEMINI_API_KEY") == null,
+                "Test skipped because GEMINI_API_KEY environment variable is set");
         System.clearProperty("GEMINI_API_KEY");
 
         // when & then

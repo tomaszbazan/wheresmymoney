@@ -1,6 +1,9 @@
 package pl.btsoftware.backend.account.infrastructure.persistance;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,36 +14,46 @@ import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.Tombstone;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 @Entity
 @Table(name = "account")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 public class AccountEntity {
-    @Id
-    private UUID id;
+    @Id private UUID id;
     private String name;
     private BigDecimal balance;
+
     @Enumerated(EnumType.STRING)
     private Currency currency;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
+
     @Column(name = "created_by")
     private String createdBy;
+
     @Column(name = "created_by_group")
     private UUID ownedByGroup;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
     @Column(name = "updated_by")
     private String updatedBy;
-    @Version
-    private Long version;
 
-    public AccountEntity(UUID id, String name, BigDecimal balance, Currency currency, OffsetDateTime createdAt, String createdBy, UUID ownedByGroup, OffsetDateTime updatedAt, String updatedBy) {
+    @Version private Long version;
+
+    public AccountEntity(
+            UUID id,
+            String name,
+            BigDecimal balance,
+            Currency currency,
+            OffsetDateTime createdAt,
+            String createdBy,
+            UUID ownedByGroup,
+            OffsetDateTime updatedAt,
+            String updatedBy) {
         this.id = id;
         this.name = name;
         this.balance = balance;
@@ -62,14 +75,19 @@ public class AccountEntity {
                 account.createdBy().value(),
                 account.ownedBy().value(),
                 account.lastUpdatedAt(),
-                account.lastUpdatedBy().value()
-        );
+                account.lastUpdatedBy().value());
     }
 
     public Account toDomain() {
         AccountId accountId = AccountId.from(id);
         var createdAuditInfo = AuditInfo.create(createdBy, ownedByGroup, createdAt);
         var updatedAuditInfo = AuditInfo.create(updatedBy, ownedByGroup, updatedAt);
-        return new Account(accountId, name, Money.of(balance, currency), createdAuditInfo, updatedAuditInfo, Tombstone.active());
+        return new Account(
+                accountId,
+                name,
+                Money.of(balance, currency),
+                createdAuditInfo,
+                updatedAuditInfo,
+                Tombstone.active());
     }
 }
