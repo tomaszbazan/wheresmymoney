@@ -5,6 +5,7 @@ import '../utils/error_handler.dart';
 import '../widgets/account_form_dialog.dart';
 import '../widgets/account_list_item.dart';
 import '../widgets/account_summary_card.dart';
+import '../widgets/transfer_dialog.dart';
 
 class AccountsPage extends StatefulWidget {
   final AccountService? accountService;
@@ -98,6 +99,21 @@ class _AccountsPageState extends State<AccountsPage> {
     }
   }
 
+  void _showTransferDialog(Map<String, dynamic> sourceAccount) {
+    showDialog<void>(
+      context: context,
+      builder:
+          (context) => TransferDialog(
+            accounts: accounts,
+            sourceAccount: sourceAccount,
+            onSuccess: () {
+              _fetchAccounts();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transfer zakończony sukcesem')));
+            },
+          ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -171,6 +187,7 @@ class _AccountsPageState extends State<AccountsPage> {
                               _showDeleteConfirmationDialog(context, account['name'] as String).then((confirmed) {
                                 if (confirmed && mounted) {
                                   final accountToDelete = Map<String, dynamic>.from(account);
+                                  // ignore: use_build_context_synchronously
                                   _deleteAccountById(accountToDelete, context);
                                 }
                               });
@@ -179,6 +196,7 @@ class _AccountsPageState extends State<AccountsPage> {
                               final accountToDelete = Map<String, dynamic>.from(account);
                               _deleteAccountById(accountToDelete, context);
                             },
+                            onTransferRequest: () => _showTransferDialog(account),
                           );
                         },
                       ),

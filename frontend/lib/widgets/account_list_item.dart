@@ -6,8 +6,9 @@ class AccountListItem extends StatelessWidget {
   final Map<String, dynamic> account;
   final VoidCallback onDeleteRequest;
   final VoidCallback? onDismissed;
+  final VoidCallback? onTransferRequest;
 
-  const AccountListItem({super.key, required this.account, required this.onDeleteRequest, this.onDismissed});
+  const AccountListItem({super.key, required this.account, required this.onDeleteRequest, this.onDismissed, this.onTransferRequest});
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +53,7 @@ class AccountListItem extends StatelessWidget {
           '${account['balance'].toStringAsFixed(2)} ${account['currency'] ?? 'zł'}',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isNegative ? Colors.red : Colors.black),
         ),
+        if (onTransferRequest != null) IconButton(icon: const Icon(Icons.swap_horiz, color: Colors.blue), onPressed: onTransferRequest, tooltip: 'Wykonaj przelew'),
         IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: onDeleteRequest),
       ],
     );
