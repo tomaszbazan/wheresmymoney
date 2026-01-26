@@ -17,10 +17,12 @@ void main() {
       fakeAuthService = FakeAuthService();
     });
 
-    test('getTransactions sends GET request to /transactions', () async {
+    test('getTransactions sends GET request to /transactions with page params', () async {
       final mockClient = MockClient((request) async {
         expect(request.method, 'GET');
         expect(request.url.path, '/api/transactions');
+        expect(request.url.queryParameters['page'], '0');
+        expect(request.url.queryParameters['size'], '20');
         expect(request.headers['Authorization'], 'Bearer fake-jwt-token');
         expect(request.headers['Content-Type'], 'application/json');
 
@@ -39,6 +41,10 @@ void main() {
                 'transactionDate': '2024-01-01',
               },
             ],
+            'page': 0,
+            'size': 20,
+            'totalElements': 1,
+            'totalPages': 1,
           }),
           200,
         );
@@ -46,24 +52,31 @@ void main() {
 
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
-      final transactions = await transactionService.getTransactions();
+      final transactionPage = await transactionService.getTransactions(page: 0, size: 20);
 
-      expect(transactions, hasLength(1));
-      expect(transactions.first.id, 'trans-1');
-      expect(transactions.first.amount, 100.0);
-      expect(transactions.first.type, TransactionType.income);
+      expect(transactionPage.transactions, hasLength(1));
+      expect(transactionPage.transactions.first.id, 'trans-1');
+      expect(transactionPage.transactions.first.amount, 100.0);
+      expect(transactionPage.transactions.first.type, TransactionType.income);
+      expect(transactionPage.page, 0);
+      expect(transactionPage.size, 20);
+      expect(transactionPage.totalElements, 1);
+      expect(transactionPage.totalPages, 1);
     });
 
-    test('getTransactions returns empty list when no transactions key', () async {
+    test('getTransactions returns empty page', () async {
       final mockClient = MockClient((request) async {
-        return http.Response(jsonEncode({}), 200);
+        return http.Response(jsonEncode({'transactions': <Map<String, dynamic>>[], 'page': 0, 'size': 20, 'totalElements': 0, 'totalPages': 0}), 200);
       });
 
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
-      final transactions = await transactionService.getTransactions();
+      final transactionPage = await transactionService.getTransactions(page: 0, size: 20);
 
-      expect(transactions, isEmpty);
+      expect(transactionPage.transactions, isEmpty);
+      expect(transactionPage.totalElements, 0);
+      expect(transactionPage.totalPages, 0);
+      expect(transactionPage.hasMore, false);
     });
 
     test('getTransactions throws HttpException on error', () async {
@@ -73,7 +86,7 @@ void main() {
 
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
-      expect(() => transactionService.getTransactions(), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
+      expect(() => transactionService.getTransactions(page: 0, size: 20), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
     });
 
     test('getTransactionsByAccountId sends GET to correct endpoint', () async {

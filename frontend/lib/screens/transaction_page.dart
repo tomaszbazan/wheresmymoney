@@ -11,8 +11,8 @@ import '../services/transaction_service.dart';
 import '../utils/error_handler.dart';
 import '../widgets/csv_upload_dialog.dart';
 import '../widgets/no_categories_dialog.dart';
+import '../widgets/paginated_transaction_list.dart';
 import '../widgets/transaction_form.dart';
-import '../widgets/transaction_list.dart';
 
 class TransactionsPage extends StatefulWidget {
   final TransactionType type;
@@ -29,25 +29,23 @@ class _TransactionsPageState extends State<TransactionsPage> {
   final RestCategoryService _categoryService = RestCategoryService();
   final CsvImportService _csvImportService = CsvImportService();
 
-  List<Transaction> _transactions = [];
   List<Account> _accounts = [];
   bool _isLoading = false;
+  VoidCallback? _refreshCallback;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadAccounts();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadAccounts() async {
     setState(() => _isLoading = true);
 
     try {
-      final allTransactions = await _transactionService.getTransactions();
       final accounts = await _accountService.getAccounts();
 
       setState(() {
-        _transactions = allTransactions.where((t) => widget.type == TransactionType.income ? t.isIncome : t.isExpense).toList();
         _accounts = accounts;
       });
     } catch (e) {
@@ -56,6 +54,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  void _refreshTransactionList() {
+    _refreshCallback?.call();
   }
 
   Future<bool> _hasCategoriesForType() async {
@@ -89,7 +91,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 type: widget.type,
                 onSaved: (transaction) {
                   Navigator.of(context).pop();
-                  _loadData();
+                  _refreshTransactionList();
                 },
               ),
             ),
@@ -118,7 +120,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 transaction: transaction,
                 onSaved: (updatedTransaction) {
                   Navigator.of(context).pop();
-                  _loadData();
+                  _refreshTransactionList();
                 },
               ),
             ),
@@ -143,7 +145,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
     if (confirmed == true) {
       try {
         await _transactionService.deleteTransaction(transaction.id);
-        _loadData();
+        _refreshTransactionList();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transakcja została usunięta')));
         }
@@ -163,7 +165,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
     final result = await showDialog<bool>(context: context, builder: (context) => CsvUploadDialog(csvImportService: _csvImportService, accounts: _accounts));
 
     if (result == true) {
-      _loadData();
+      _refreshTransactionList();
     }
   }
 
@@ -205,7 +207,14 @@ class _TransactionsPageState extends State<TransactionsPage> {
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : TransactionList(transactions: _transactions, accounts: _accounts, onEdit: _showEditTransactionDialog, onDelete: _deleteTransaction),
+              : TransactionList(
+                accounts: _accounts,
+                type: widget.type,
+                transactionService: _transactionService,
+                onEdit: _showEditTransactionDialog,
+                onDelete: _deleteTransaction,
+                onRefreshRequested: (callback) => _refreshCallback = callback,
+              ),
       floatingActionButton: FloatingActionButton(onPressed: _showAddTransactionMenu, tooltip: 'Dodaj transakcję', child: const Icon(Icons.add)),
     );
   }

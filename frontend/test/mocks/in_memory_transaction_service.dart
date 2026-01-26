@@ -1,5 +1,6 @@
 import 'package:frontend/models/bulk_create_response.dart';
 import 'package:frontend/models/transaction.dart';
+import 'package:frontend/models/transaction_page.dart';
 import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/services/transaction_service.dart';
 import 'package:uuid/uuid.dart';
@@ -9,12 +10,19 @@ class InMemoryTransactionService implements TransactionService {
   Exception? _apiError;
 
   @override
-  Future<List<Transaction>> getTransactions() async {
+  Future<TransactionPage> getTransactions({required int page, required int size}) async {
     if (_apiError != null) {
       throw _apiError!;
     }
 
-    return _transactions.values.toList();
+    final allTransactions = _transactions.values.toList();
+    final totalElements = allTransactions.length;
+    final totalPages = (totalElements / size).ceil();
+    final start = page * size;
+    final end = (start + size < totalElements) ? start + size : totalElements;
+    final pageTransactions = (start >= totalElements) ? <Transaction>[] : allTransactions.sublist(start, end);
+
+    return TransactionPage(transactions: pageTransactions, page: page, size: size, totalElements: totalElements, totalPages: totalPages);
   }
 
   @override
@@ -104,14 +112,15 @@ class InMemoryTransactionService implements TransactionService {
 
     for (final txData in transactions) {
       final id = const Uuid().v4();
+      final dateStr = (txData['transactionDate'] ?? txData['date']) as String;
       final transaction = Transaction(
         id: id,
         accountId: accountId,
         amount: (txData['amount']['value'] as num).toDouble(),
         description: txData['description'] as String,
-        createdAt: DateTime.parse(txData['date'] as String),
-        updatedAt: DateTime.parse(txData['date'] as String),
-        transactionDate: DateTime.parse(txData['date'] as String),
+        createdAt: DateTime.parse(dateStr),
+        updatedAt: DateTime.parse(dateStr),
+        transactionDate: DateTime.parse(dateStr),
         type: TransactionType.values.firstWhere((t) => t.name.toUpperCase() == txData['type']),
         categoryId: txData['categoryId'] as String,
         categoryName: null,

@@ -3,11 +3,12 @@ import 'package:http/http.dart' as http;
 
 import '../models/bulk_create_response.dart';
 import '../models/transaction.dart';
+import '../models/transaction_page.dart';
 import 'auth_service.dart';
 import 'http_client.dart';
 
 abstract class TransactionService {
-  Future<List<Transaction>> getTransactions();
+  Future<TransactionPage> getTransactions({required int page, required int size});
 
   Future<List<Transaction>> getTransactionsByAccountId(String accountId);
 
@@ -33,8 +34,8 @@ class RestTransactionService implements TransactionService {
 
   RestTransactionService({AuthService? authService, http.Client? httpClient}) : _apiClient = ApiClient(authService ?? AuthService(), httpClient: httpClient);
   @override
-  Future<List<Transaction>> getTransactions() async {
-    return await _apiClient.getList<Transaction>('/transactions', 'transactions', Transaction.fromJson);
+  Future<TransactionPage> getTransactions({required int page, required int size}) async {
+    return await _apiClient.get<TransactionPage>('/transactions?page=$page&size=$size', TransactionPage.fromJson);
   }
 
   @override
