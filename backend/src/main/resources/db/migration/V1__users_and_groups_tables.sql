@@ -11,13 +11,13 @@ CREATE TABLE groups
 -- Create users table
 CREATE TABLE users
 (
-    id VARCHAR(100) PRIMARY KEY,
-    email            VARCHAR(255)             NOT NULL UNIQUE,
-    display_name     VARCHAR(100)             NOT NULL,
-    group_id         UUID                     NOT NULL,
-    created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_login_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    joined_group_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id              UUID PRIMARY KEY,
+    email           VARCHAR(255)             NOT NULL UNIQUE,
+    display_name    VARCHAR(100)             NOT NULL,
+    group_id        UUID                     NOT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    joined_group_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE RESTRICT
 );
 
@@ -25,7 +25,7 @@ CREATE TABLE users
 CREATE TABLE group_members
 (
     group_id UUID NOT NULL,
-    user_id VARCHAR(100) NOT NULL,
+    user_id UUID NOT NULL,
     PRIMARY KEY (group_id, user_id),
     FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
