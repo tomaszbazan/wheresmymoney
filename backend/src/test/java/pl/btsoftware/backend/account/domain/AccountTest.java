@@ -24,8 +24,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.instancio.Select.field;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static pl.btsoftware.backend.shared.Currency.PLN;
-import static pl.btsoftware.backend.shared.TransactionType.EXPENSE;
-import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
 class AccountTest {
 
@@ -35,8 +33,7 @@ class AccountTest {
                 arguments("", AccountNameEmptyException.class),
                 arguments("   ", AccountNameEmptyException.class),
                 arguments("a".repeat(101), AccountNameTooLongException.class),
-                arguments("Invalid\nName", AccountNameInvalidCharactersException.class)
-        );
+                arguments("Invalid\nName", AccountNameInvalidCharactersException.class));
     }
 
     @Test
@@ -148,7 +145,6 @@ class AccountTest {
         assertThat(account.balance().currency()).isEqualTo(currency);
     }
 
-
     @ParameterizedTest
     @MethodSource("accountNameValidationTestCases")
     void shouldValidateNameInPrimaryConstructor(String name, Class<? extends Exception> expectedException) {
@@ -162,170 +158,55 @@ class AccountTest {
     }
 
     @Test
-    void shouldAddIncomeTransactionAndUpdateBalance() {
+    void shouldDepositAndUpdateBalance() {
         // given
         var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var amount = Money.of(BigDecimal.valueOf(100), PLN);
 
         // when
-        var updatedAccount = account.addTransaction(amount, INCOME);
+        var updatedAccount = account.deposit(amount);
 
         // then
         assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(100));
     }
 
     @Test
-    void shouldAddExpenseTransactionAndUpdateBalance() {
+    void shouldWithdrawAndUpdateBalance() {
         // given
         var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var amount = Money.of(BigDecimal.valueOf(50), PLN);
 
         // when
-        var updatedAccount = account.addTransaction(amount, EXPENSE);
+        var updatedAccount = account.withdraw(amount);
 
         // then
         assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(-50));
     }
 
     @Test
-    void shouldAddMultipleTransactions() {
+    void shouldPerformMultipleOperations() {
         // given
         var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
-        var incomeAmount = Money.of(BigDecimal.valueOf(200), PLN);
-        var expenseAmount = Money.of(BigDecimal.valueOf(75), PLN);
+        var depositAmount = Money.of(BigDecimal.valueOf(200), PLN);
+        var withdrawAmount = Money.of(BigDecimal.valueOf(75), PLN);
 
         // when
-        var accountAfterIncome = account.addTransaction(incomeAmount, INCOME);
-        var accountAfterBoth = accountAfterIncome.addTransaction(expenseAmount, EXPENSE);
+        var accountAfterDeposit = account.deposit(depositAmount);
+        var accountAfterBoth = accountAfterDeposit.withdraw(withdrawAmount);
 
         // then
         assertThat(accountAfterBoth.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(125));
     }
 
     @Test
-    void shouldThrowExceptionWhenAddingTransactionWithMismatchedCurrency() {
+    void shouldThrowExceptionWhenDepositingWithMismatchedCurrency() {
         // given
         var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
         var amount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
 
         // when & then
-        assertThatThrownBy(() -> account.addTransaction(amount, INCOME))
+        assertThatThrownBy(() -> account.deposit(amount))
                 .isInstanceOf(TransactionCurrencyMismatchException.class);
     }
 
-    @Test
-    void shouldThrowExceptionForUnsupportedTransactionTypeWhenAddTransaction() {
-        // given
-        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
-        var amount = Money.of(BigDecimal.valueOf(100), PLN);
-
-        // when & then
-        assertThatThrownBy(() -> account.addTransaction(amount, null))
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    void shouldRemoveIncomeTransactionAndUpdateBalance() {
-        // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
-        var amount = Money.of(BigDecimal.valueOf(100), PLN);
-        var accountWithTransaction = account.addTransaction(amount, INCOME);
-
-        // when
-        var updatedAccount = accountWithTransaction.removeTransaction(amount, INCOME);
-
-        // then
-        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test
-    void shouldRemoveExpenseTransactionAndUpdateBalance() {
-        // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
-        var amount = Money.of(BigDecimal.valueOf(50), PLN);
-        var accountWithTransaction = account.addTransaction(amount, EXPENSE);
-
-        // when
-        var updatedAccount = accountWithTransaction.removeTransaction(amount, EXPENSE);
-
-        // then
-        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenRemovingTransactionWithMismatchedCurrency() {
-        // given
-        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
-        var amount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
-
-        // when & then
-        assertThatThrownBy(() -> account.removeTransaction(amount, INCOME))
-                .isInstanceOf(TransactionCurrencyMismatchException.class);
-    }
-
-    @Test
-    void shouldThrowExceptionForUnsupportedTransactionTypeInRemoveTransaction() {
-        // given
-        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
-        var amount = Money.of(BigDecimal.valueOf(100), PLN);
-
-        // when & then
-        assertThatThrownBy(() -> account.removeTransaction(amount, null))
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    void shouldChangeIncomeTransactionAmount() {
-        // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
-        var oldAmount = Money.of(BigDecimal.valueOf(100), PLN);
-        var newAmount = Money.of(BigDecimal.valueOf(150), PLN);
-        var accountWithTransaction = account.addTransaction(oldAmount, INCOME);
-
-        // when
-        var updatedAccount = accountWithTransaction.changeTransaction(oldAmount, newAmount, INCOME);
-
-        // then
-        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(150));
-    }
-
-    @Test
-    void shouldChangeExpenseTransactionAmount() {
-        // given
-        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
-        var oldAmount = Money.of(BigDecimal.valueOf(75), PLN);
-        var newAmount = Money.of(BigDecimal.valueOf(100), PLN);
-        var accountWithTransaction = account.addTransaction(oldAmount, EXPENSE);
-
-        // when
-        var updatedAccount = accountWithTransaction.changeTransaction(oldAmount, newAmount, EXPENSE);
-
-        // then
-        assertThat(updatedAccount.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(-100));
-    }
-
-    @Test
-    void shouldThrowExceptionWhenChangingTransactionWithMismatchedCurrency() {
-        // given
-        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
-        var oldAmount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
-        var newAmount = Money.of(BigDecimal.valueOf(150), Currency.EUR);
-
-        // when & then
-        assertThatThrownBy(() -> account.changeTransaction(oldAmount, newAmount, INCOME))
-                .isInstanceOf(TransactionCurrencyMismatchException.class);
-    }
-
-    @Test
-    void shouldThrowExceptionForUnsupportedTransactionTypeInChangeTransaction() {
-        // given
-        var account = Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
-        var oldAmount = Money.of(BigDecimal.valueOf(100), PLN);
-        var newAmount = Money.of(BigDecimal.valueOf(150), PLN);
-        var accountWithTransaction = account.addTransaction(oldAmount, INCOME);
-
-        // when & then
-        assertThatThrownBy(() -> accountWithTransaction.changeTransaction(oldAmount, newAmount, null))
-                .isInstanceOf(NullPointerException.class);
-    }
 }

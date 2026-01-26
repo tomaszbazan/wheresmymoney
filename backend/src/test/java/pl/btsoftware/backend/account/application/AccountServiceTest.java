@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import pl.btsoftware.backend.account.domain.AccountRepository;
 import pl.btsoftware.backend.account.domain.error.*;
 import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountRepository;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.transaction.TransactionQueryFacade;
@@ -37,7 +38,8 @@ public class AccountServiceTest {
         this.accountRepository = new InMemoryAccountRepository();
         this.transactionQueryFacade = Mockito.mock(TransactionQueryFacade.class);
         this.usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
-        this.accountService = new AccountService(accountRepository, usersModuleFacade, transactionQueryFacade);
+        var auditModuleFacade = Mockito.mock(AuditModuleFacade.class);
+        this.accountService = new AccountService(accountRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
     }
 
     private void userExistsInGroup(UserId userAId, GroupId groupId) {

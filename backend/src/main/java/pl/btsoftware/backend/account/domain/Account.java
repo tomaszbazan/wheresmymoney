@@ -4,7 +4,10 @@ import jakarta.annotation.Nullable;
 import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 import pl.btsoftware.backend.account.domain.error.AccountNameInvalidCharactersException;
 import pl.btsoftware.backend.account.domain.error.AccountNameTooLongException;
-import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.shared.validation.NameValidationRules;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.users.domain.GroupId;
@@ -31,7 +34,8 @@ public record Account(AccountId id, String name, Money balance,
 
     public Account(AccountId id, String name, @Nullable Currency currency, UserView createdBy) {
         this(id, name, zero(currency == null ? DEFAULT : currency),
-                AuditInfo.create(createdBy.id(), createdBy.groupId()), AuditInfo.create(createdBy.id(), createdBy.groupId()), Tombstone.active());
+                AuditInfo.create(createdBy.id(), createdBy.groupId()),
+                AuditInfo.create(createdBy.id(), createdBy.groupId()), Tombstone.active());
     }
 
     public Account(AccountId id, String name, Money balance, AuditInfo createBy) {
@@ -43,8 +47,7 @@ public record Account(AccountId id, String name, Money balance,
                 newName,
                 AccountNameEmptyException::new,
                 AccountNameTooLongException::new,
-                AccountNameInvalidCharactersException::new
-        );
+                AccountNameInvalidCharactersException::new);
     }
 
     public Account changeName(String newName) {
@@ -72,60 +75,19 @@ public record Account(AccountId id, String name, Money balance,
         return updatedInfo.when();
     }
 
-    public Account addTransaction(Money amount, TransactionType transactionType) {
+    public Account deposit(Money amount) {
+        return updateBalance(amount);
+    }
+
+    public Account withdraw(Money amount) {
+        return updateBalance(amount.negate());
+    }
+
+    private Account updateBalance(Money amount) {
         if (balance().currency() != amount.currency()) {
             throw new TransactionCurrencyMismatchException(amount.currency(), balance().currency());
         }
-        switch (transactionType) {
-            case INCOME -> {
-                return updateBalance(amount);
-            }
-            case EXPENSE -> {
-                return updateBalance(amount.negate());
-            }
-            default -> {
-                return this;
-            }
-        }
-    }
-
-    public Account removeTransaction(Money amount, TransactionType transactionType) {
-        if (balance().currency() != amount.currency()) {
-            throw new TransactionCurrencyMismatchException(amount.currency(), balance().currency());
-        }
-        switch (transactionType) {
-            case INCOME -> {
-                return updateBalance(amount.negate());
-            }
-            case EXPENSE -> {
-                return updateBalance(amount);
-            }
-            default -> {
-                return this;
-            }
-        }
-    }
-
-    public Account changeTransaction(Money oldAmount, Money newAmount, TransactionType transactionType) {
-        if (balance().currency() != oldAmount.currency() && balance().currency() != newAmount.currency()) {
-            throw new TransactionCurrencyMismatchException(newAmount.currency(), balance().currency());
-        }
-        var balanceChange = newAmount.subtract(oldAmount);
-        switch (transactionType) {
-            case INCOME -> {
-                return updateBalance(balanceChange);
-            }
-            case EXPENSE -> {
-                return updateBalance(balanceChange.negate());
-            }
-            default -> {
-                return this;
-            }
-        }
-    }
-
-    private Account updateBalance(Money transactionAmount) {
-        Money newBalance = balance.add(transactionAmount);
+        Money newBalance = balance.add(amount);
         return new Account(id, name, newBalance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 

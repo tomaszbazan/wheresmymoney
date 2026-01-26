@@ -7,10 +7,10 @@ import pl.btsoftware.backend.account.domain.AccountRepository;
 import pl.btsoftware.backend.account.domain.error.AccountAlreadyExistsException;
 import pl.btsoftware.backend.account.domain.error.AccountHasTransactionsException;
 import pl.btsoftware.backend.account.domain.error.AccountNotFoundException;
+import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
@@ -24,6 +24,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final UsersModuleFacade usersModuleFacade;
     private final TransactionQueryFacade transactionQueryFacade;
+    private final AuditModuleFacade auditModuleFacade;
 
     public Account createAccount(CreateAccountCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
@@ -34,6 +35,7 @@ public class AccountService {
 
         var account = command.toDomain(user);
         accountRepository.store(account);
+        auditModuleFacade.logAccountCreated(account.id(), account.name(), command.userId(), user.groupId());
         return account;
     }
 
@@ -63,14 +65,16 @@ public class AccountService {
             throw new AccountAlreadyExistsException();
         }
 
+        var oldName = account.name();
         var updatedAccount = account.changeName(newName);
         accountRepository.store(updatedAccount);
+        auditModuleFacade.logAccountUpdated(accountId, oldName, newName, updatedAccount.lastUpdatedBy(), groupId);
         return updatedAccount;
     }
 
     public void deleteAccount(AccountId accountId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        accountRepository.findById(accountId, user.groupId())
+        var account = accountRepository.findById(accountId, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var hasTransactions = transactionQueryFacade.hasTransactions(accountId, user.groupId());
@@ -79,32 +83,24 @@ public class AccountService {
         }
 
         accountRepository.deleteById(accountId);
+        auditModuleFacade.logAccountDeleted(accountId, account.name(), userId, user.groupId());
     }
 
-    public void addTransaction(AccountId accountId, Money amount, TransactionType transactionType, UserId userId) {
+    public void deposit(AccountId accountId, Money amount, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var account = accountRepository.findById(accountId, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
-        var updatedAccount = account.addTransaction(amount, transactionType);
+        var updatedAccount = account.deposit(amount);
         accountRepository.store(updatedAccount);
     }
 
-    public void removeTransaction(AccountId accountId, Money amount, TransactionType transactionType, UserId userId) {
+    public void withdraw(AccountId accountId, Money amount, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var account = accountRepository.findById(accountId, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
-        var updatedAccount = account.removeTransaction(amount, transactionType);
-        accountRepository.store(updatedAccount);
-    }
-
-    public void changeTransaction(AccountId accountId, Money oldAmount, Money newAmount, TransactionType transactionType, UserId userId) {
-        var user = usersModuleFacade.findUserOrThrow(userId);
-        var account = accountRepository.findById(accountId, user.groupId())
-                .orElseThrow(() -> new AccountNotFoundException(accountId));
-
-        var updatedAccount = account.changeTransaction(oldAmount, newAmount, transactionType);
+        var updatedAccount = account.withdraw(amount);
         accountRepository.store(updatedAccount);
     }
 }

@@ -7,7 +7,6 @@ import pl.btsoftware.backend.account.application.UpdateAccountCommand;
 import pl.btsoftware.backend.account.domain.Account;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -44,16 +43,11 @@ public class AccountModuleFacade {
         accountService.deleteAccount(accountId, userId);
     }
 
-    public void addTransaction(AccountId accountId, Money amount, TransactionType transactionType, UserId userId) {
-        accountService.addTransaction(accountId, amount, transactionType, userId);
+    public void deposit(AccountId accountId, Money amount, UserId userId) {
+        accountService.deposit(accountId, amount, userId);
     }
 
-    public void removeTransaction(AccountId accountId, Money amount, TransactionType transactionType, UserId userId) {
-        accountService.removeTransaction(accountId, amount, transactionType, userId);
-    }
-
-    public void changeTransaction(AccountId accountId, Money oldAmount, Money newAmount,
-                                  TransactionType transactionType, UserId userId) {
-        accountService.changeTransaction(accountId, oldAmount, newAmount, transactionType, userId);
+    public void withdraw(AccountId accountId, Money amount, UserId userId) {
+        accountService.withdraw(accountId, amount, userId);
     }
 }

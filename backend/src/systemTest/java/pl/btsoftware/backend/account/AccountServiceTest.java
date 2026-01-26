@@ -18,8 +18,6 @@ import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static pl.btsoftware.backend.shared.Currency.*;
-import static pl.btsoftware.backend.shared.TransactionType.EXPENSE;
-import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
 @SystemTest
 public class AccountServiceTest {
@@ -53,7 +51,8 @@ public class AccountServiceTest {
         accountService.createAccount(command);
 
         // when & then
-        assertThatThrownBy(() -> accountService.createAccount(new CreateAccountCommand("Duplicate Account", PLN, userId)))
+        assertThatThrownBy(
+                () -> accountService.createAccount(new CreateAccountCommand("Duplicate Account", PLN, userId)))
                 .isInstanceOf(AccountAlreadyExistsException.class);
     }
 
@@ -129,7 +128,7 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        accountService.addTransaction(account.id(), Money.of(new BigDecimal("500"), PLN), INCOME, userId);
+        accountService.deposit(account.id(), Money.of(new BigDecimal("500"), PLN), userId);
 
         // then
         var updatedAccount = accountService.getById(account.id(), userId);
@@ -144,7 +143,7 @@ public class AccountServiceTest {
         var account = accountService.createAccount(command);
 
         // when
-        accountService.addTransaction(account.id(), Money.of(new BigDecimal("500"), PLN), EXPENSE, userId);
+        accountService.withdraw(account.id(), Money.of(new BigDecimal("500"), PLN), userId);
 
         // then
         var updatedAccount = accountService.getById(account.id(), userId);
@@ -158,8 +157,7 @@ public class AccountServiceTest {
                 "test" + timestamp + "@example.com",
                 "Test User",
                 "Test Group " + timestamp,
-                null
-        );
+                null);
         var user = usersModuleFacade.registerUser(command);
         return user.id();
     }
