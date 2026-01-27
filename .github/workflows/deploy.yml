@@ -32,30 +32,10 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Verify formatting
+      - name: Build
         run: |
           cd backend
-          ./gradlew spotlessCheck
-
-      - name: Run unit tests
-        run: |
-          cd backend
-          ./gradlew test -x systemTest 
-
-      - name: Run integration tests
-        run: |
-          cd backend
-          ./gradlew systemTest -x test
-
-      - name: Run SpotBugs
-        run: |
-          cd backend 
-          ./gradlew spotbugsMain spotbugsTest
-
-      - name: Run Checkstyle
-        run: |
-          cd backend
-          ./gradlew checkstyleMain checkstyleTest
+          ./gradlew build
 
       - name: SonarQube Analysis
         uses: sonarsource/sonarqube-scan-action@master
