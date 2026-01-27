@@ -20,31 +20,44 @@ import pl.btsoftware.backend.users.UsersModuleFacade;
 public class TransactionModuleConfiguration {
 
     @Bean
-    public TransactionRepository transactionRepository(TransactionJpaRepository transactionJpaRepository) {
+    public TransactionRepository transactionRepository(
+            TransactionJpaRepository transactionJpaRepository) {
         return new JpaTransactionRepository(transactionJpaRepository);
     }
 
     @Bean
-    public TransactionQueryFacade transactionQueryFacade(TransactionRepository transactionRepository) {
+    public TransactionQueryFacade transactionQueryFacade(
+            TransactionRepository transactionRepository) {
         return new TransactionQueryFacade(transactionRepository);
     }
 
     @Bean
-    public TransactionService transactionService(TransactionRepository transactionRepository, AccountModuleFacade accountModuleFacade,
-                                                 CategoryQueryFacade categoryQueryFacade, UsersModuleFacade usersModuleFacade,
-                                                 AuditModuleFacade auditModuleFacade) {
-        return new TransactionService(transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade, auditModuleFacade);
+    public TransactionService transactionService(
+            TransactionRepository transactionRepository,
+            AccountModuleFacade accountModuleFacade,
+            CategoryQueryFacade categoryQueryFacade,
+            UsersModuleFacade usersModuleFacade,
+            AuditModuleFacade auditModuleFacade) {
+        return new TransactionService(
+                transactionRepository,
+                accountModuleFacade,
+                categoryQueryFacade,
+                usersModuleFacade,
+                auditModuleFacade);
     }
 
     @Bean
-    public TransactionModuleFacade transactionModuleFacade(TransactionService transactionService, UsersModuleFacade usersModuleFacade) {
+    public TransactionModuleFacade transactionModuleFacade(
+            TransactionService transactionService, UsersModuleFacade usersModuleFacade) {
         return new TransactionModuleFacade(transactionService, usersModuleFacade);
     }
 
     @Bean
-    public TransactionController transactionController(TransactionModuleFacade transactionModuleFacade, CategoryModuleFacade categoryModuleFacade,
-                                                       PaginationValidator paginationValidator) {
-        return new TransactionController(transactionModuleFacade, categoryModuleFacade, paginationValidator);
+    public TransactionController transactionController(
+            TransactionModuleFacade transactionModuleFacade,
+            CategoryModuleFacade categoryModuleFacade,
+            PaginationValidator paginationValidator) {
+        return new TransactionController(
+                transactionModuleFacade, categoryModuleFacade, paginationValidator);
     }
-
 }

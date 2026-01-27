@@ -1,14 +1,13 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.btsoftware.backend.users.domain.*;
-
-import java.time.Instant;
-import java.util.UUID;
 
 @Entity
 @Table(name = "group_invitations")
@@ -46,27 +45,25 @@ public class GroupInvitationEntity {
 
     public static GroupInvitationEntity from(GroupInvitation invitation) {
         return new GroupInvitationEntity(
-            invitation.id().value(),
+                invitation.id().value(),
                 invitation.groupId().value(),
-            invitation.inviteeEmail(),
-            invitation.invitationToken(),
+                invitation.inviteeEmail(),
+                invitation.invitationToken(),
                 invitation.invitedBy().value(),
-            invitation.status(),
-            invitation.createdAt(),
-            invitation.expiresAt()
-        );
+                invitation.status(),
+                invitation.createdAt(),
+                invitation.expiresAt());
     }
 
     public GroupInvitation toDomain() {
         return new GroupInvitation(
-            new GroupInvitationId(id),
-            new GroupId(groupId),
-            inviteeEmail,
-            invitationToken,
-            new UserId(invitedBy),
-            status,
-            createdAt,
-            expiresAt
-        );
+                new GroupInvitationId(id),
+                new GroupId(groupId),
+                inviteeEmail,
+                invitationToken,
+                new UserId(invitedBy),
+                status,
+                createdAt,
+                expiresAt);
     }
 }

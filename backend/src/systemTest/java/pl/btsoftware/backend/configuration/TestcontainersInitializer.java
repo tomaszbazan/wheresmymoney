@@ -7,7 +7,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.lifecycle.Startables;
 import org.testcontainers.utility.DockerImageName;
 
-class TestcontainersInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+class TestcontainersInitializer
+        implements ApplicationContextInitializer<ConfigurableApplicationContext> {
     private static final String POSTGRES_VERSION = "17";
 
     private static final PostgreSQLContainer<?> POSTGRES =
@@ -20,9 +21,9 @@ class TestcontainersInitializer implements ApplicationContextInitializer<Configu
     @Override
     public void initialize(ConfigurableApplicationContext ctx) {
         TestPropertyValues.of(
-                "spring.datasource.url=" + POSTGRES.getJdbcUrl(),
-                "spring.datasource.username=" + POSTGRES.getUsername(),
-                "spring.datasource.password=" + POSTGRES.getPassword()
-        ).applyTo(ctx.getEnvironment());
+                        "spring.datasource.url=" + POSTGRES.getJdbcUrl(),
+                        "spring.datasource.username=" + POSTGRES.getUsername(),
+                        "spring.datasource.password=" + POSTGRES.getPassword())
+                .applyTo(ctx.getEnvironment());
     }
 }

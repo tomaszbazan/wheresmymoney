@@ -1,5 +1,14 @@
 package pl.btsoftware.backend.users.infrastructure.api;
 
+import static org.instancio.Select.field;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.Test;
@@ -19,44 +28,34 @@ import pl.btsoftware.backend.users.domain.error.InvitationNotFoundException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
 import pl.btsoftware.backend.users.domain.error.UserNotFoundException;
 
-import static org.instancio.Select.field;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @WebMvcTest({UserController.class, UserExceptionHandler.class})
 @Import(WebConfig.class)
 class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Autowired private ObjectMapper objectMapper;
 
-    @MockBean
-    private UsersModuleFacade usersModuleFacade;
+    @MockBean private UsersModuleFacade usersModuleFacade;
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
         // given
         var request = Instancio.create(RegisterUserRequest.class);
 
-        var user = Instancio.of(User.class)
-                .set(field(User::id), new UserId(request.externalAuthId()))
-                .set(field(User::email), request.email())
-                .set(field(User::displayName), request.displayName())
-                .create();
+        var user =
+                Instancio.of(User.class)
+                        .set(field(User::id), new UserId(request.externalAuthId()))
+                        .set(field(User::email), request.email())
+                        .set(field(User::displayName), request.displayName())
+                        .create();
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenReturn(user);
 
         // when & then
-        mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(
+                        post("/api/users/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(user.id().value()))
@@ -73,18 +72,20 @@ class UserControllerTest {
         // given
         var request = Instancio.create(RegisterUserRequest.class);
 
-        var mockUser = Instancio.of(User.class)
-                .set(field(User::id), new UserId(request.externalAuthId()))
-                .set(field(User::email), request.email())
-                .set(field(User::displayName), request.displayName())
-                .create();
+        var mockUser =
+                Instancio.of(User.class)
+                        .set(field(User::id), new UserId(request.externalAuthId()))
+                        .set(field(User::email), request.email())
+                        .set(field(User::displayName), request.displayName())
+                        .create();
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenReturn(mockUser);
 
         // when & then
-        mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .param("invitationToken", "valid-token-123"))
+        mockMvc.perform(
+                        post("/api/users/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                                .param("invitationToken", "valid-token-123"))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(mockUser.id().value()))
@@ -102,8 +103,9 @@ class UserControllerTest {
         var user = Instancio.create(User.class);
         when(usersModuleFacade.findUserOrThrow(new UserId(user.id().value()))).thenReturn(user);
 
-        mockMvc.perform(get("/api/users/profile")
-                        .with(jwt().jwt(jwt -> jwt.subject(user.id().value()))))
+        mockMvc.perform(
+                        get("/api/users/profile")
+                                .with(jwt().jwt(jwt -> jwt.subject(user.id().value()))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(user.id().value()))
@@ -119,11 +121,13 @@ class UserControllerTest {
     void shouldReturn400WhenUserNotFound() throws Exception {
         // given
         var externalAuthId = "non-existent";
-        when(usersModuleFacade.findUserOrThrow(new UserId(externalAuthId))).thenThrow(new UserNotFoundException());
+        when(usersModuleFacade.findUserOrThrow(new UserId(externalAuthId)))
+                .thenThrow(new UserNotFoundException());
 
         // when & then
-        mockMvc.perform(get("/api/users/profile")
-                .with(jwt().jwt(jwt -> jwt.subject(externalAuthId))))
+        mockMvc.perform(
+                        get("/api/users/profile")
+                                .with(jwt().jwt(jwt -> jwt.subject(externalAuthId))))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("User not found"));
     }
@@ -131,83 +135,89 @@ class UserControllerTest {
     @Test
     void shouldReturn500WhenRegisteringUserWithInvalidEmail() throws Exception {
         // given
-        var request = Instancio.of(RegisterUserRequest.class).set(field(RegisterUserRequest::email), "").create();
-        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenThrow(new UserEmailEmptyException());
+        var request =
+                Instancio.of(RegisterUserRequest.class)
+                        .set(field(RegisterUserRequest::email), "")
+                        .create();
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
+                .thenThrow(new UserEmailEmptyException());
 
         // when & then
-        mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(
+                        post("/api/users/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("User email cannot be empty"));
     }
 
     @Test
     void shouldReturn500WhenRegisteringUserWithInvalidDisplayName() throws Exception {
-        RegisterUserRequest request = new RegisterUserRequest("ext-auth-123", "test@example.com", "", "Group");
+        RegisterUserRequest request =
+                new RegisterUserRequest("ext-auth-123", "test@example.com", "", "Group");
 
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
-            .thenThrow(new DisplayNameEmptyException());
+                .thenThrow(new DisplayNameEmptyException());
 
-        mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(
+                        post("/api/users/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Display name cannot be empty"));
     }
 
     @Test
     void shouldReturn404WhenInvitationTokenNotFound() throws Exception {
-        RegisterUserRequest request = new RegisterUserRequest(
-            "ext-auth-999",
-            "test@example.com",
-            "Test User",
-            "Test Group"
-        );
+        RegisterUserRequest request =
+                new RegisterUserRequest(
+                        "ext-auth-999", "test@example.com", "Test User", "Test Group");
 
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
-            .thenThrow(new InvitationNotFoundException());
+                .thenThrow(new InvitationNotFoundException());
 
-        mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .param("invitationToken", "invalid-token"))
+        mockMvc.perform(
+                        post("/api/users/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                                .param("invitationToken", "invalid-token"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Invitation not found"));
     }
 
     @Test
     void shouldReturn409WhenUserAlreadyExists() throws Exception {
-        RegisterUserRequest request = new RegisterUserRequest(
-            "ext-auth-duplicate",
-            "duplicate@example.com",
-            "Duplicate User",
-            "Test Group"
-        );
+        RegisterUserRequest request =
+                new RegisterUserRequest(
+                        "ext-auth-duplicate",
+                        "duplicate@example.com",
+                        "Duplicate User",
+                        "Test Group");
 
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
-            .thenThrow(new IllegalStateException("User with external auth ID already exists"));
+                .thenThrow(new IllegalStateException("User with external auth ID already exists"));
 
-        mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(
+                        post("/api/users/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("User with external auth ID already exists"));
     }
 
     @Test
     void shouldReturnUnauthorizedWhenAccessingProfileWithoutToken() throws Exception {
-        mockMvc.perform(get("/api/users/profile"))
-                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/users/profile")).andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldReturn500WhenRegisterRequestHasNullValues() throws Exception {
         String invalidJson = "{ \"invalidField\": \"value\" }";
 
-        mockMvc.perform(post("/api/users/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
+        mockMvc.perform(
+                        post("/api/users/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(invalidJson))
                 .andExpect(status().isInternalServerError());
     }
 }

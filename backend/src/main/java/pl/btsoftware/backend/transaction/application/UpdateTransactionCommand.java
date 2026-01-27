@@ -5,9 +5,4 @@ import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 
 public record UpdateTransactionCommand(
-        TransactionId transactionId,
-        Money amount,
-        String description,
-        CategoryId categoryId
-) {
-}
+        TransactionId transactionId, Money amount, String description, CategoryId categoryId) {}

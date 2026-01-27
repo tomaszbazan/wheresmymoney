@@ -1,5 +1,8 @@
 package pl.btsoftware.backend.users;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.btsoftware.backend.configuration.SystemTest;
@@ -7,27 +10,22 @@ import pl.btsoftware.backend.users.application.InviteToGroupCommand;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SystemTest
 public class UserGroupTest {
 
-    @Autowired
-    private UsersModuleFacade usersModuleFacade;
+    @Autowired private UsersModuleFacade usersModuleFacade;
 
     @Test
     void shouldCompleteFullUserRegistrationAndGroupInvitationFlow() {
         // 1. Rejestracja użytkownika
         var externalAuthId1 = "ext-auth-" + UUID.randomUUID();
-        var registerCommand = new RegisterUserCommand(
-                externalAuthId1,
-                "user1@example.com",
-                "John Doe",
-                "Johns Family Group",
-                null
-        );
+        var registerCommand =
+                new RegisterUserCommand(
+                        externalAuthId1,
+                        "user1@example.com",
+                        "John Doe",
+                        "Johns Family Group",
+                        null);
 
         var registeredUser = usersModuleFacade.registerUser(registerCommand);
 
@@ -39,8 +37,10 @@ public class UserGroupTest {
 
         // 2. Sprawdzenie czy grupa została poprawnie utworzona
         var groupId = registeredUser.groupId();
-        var createdGroup = usersModuleFacade.findGroupById(groupId)
-                .orElseThrow(() -> new AssertionError("Group should exist"));
+        var createdGroup =
+                usersModuleFacade
+                        .findGroupById(groupId)
+                        .orElseThrow(() -> new AssertionError("Group should exist"));
 
         assertThat(createdGroup).isNotNull();
         assertThat(createdGroup.name()).isEqualTo("Johns Family Group");
@@ -72,13 +72,13 @@ public class UserGroupTest {
 
         // 5. Utworzenie drugiego użytkownika w grupie (przez zaproszenie)
         var externalAuthId2 = "ext-auth-" + UUID.randomUUID();
-        var registerCommand2 = new RegisterUserCommand(
-                externalAuthId2,
-                "user2@example.com",
-                "Jane Smith",
-                "Janes Group",
-                invitation.invitationToken()
-        );
+        var registerCommand2 =
+                new RegisterUserCommand(
+                        externalAuthId2,
+                        "user2@example.com",
+                        "Jane Smith",
+                        "Janes Group",
+                        invitation.invitationToken());
 
         var secondUser = usersModuleFacade.registerUser(registerCommand2);
 
@@ -86,11 +86,13 @@ public class UserGroupTest {
         assertThat(secondUser.id().value()).isEqualTo(externalAuthId2);
         assertThat(secondUser.email()).isEqualTo("user2@example.com");
         assertThat(secondUser.displayName()).isEqualTo("Jane Smith");
-        assertThat(secondUser.groupId()).isEqualTo(groupId);  // Powinna być w tej samej grupie
+        assertThat(secondUser.groupId()).isEqualTo(groupId); // Powinna być w tej samej grupie
 
         // Weryfikacja końcowego stanu grupy
-        var finalGroup = usersModuleFacade.findGroupById(groupId)
-                .orElseThrow(() -> new AssertionError("Group should exist"));
+        var finalGroup =
+                usersModuleFacade
+                        .findGroupById(groupId)
+                        .orElseThrow(() -> new AssertionError("Group should exist"));
 
         assertThat(finalGroup).isNotNull();
         assertThat(finalGroup.name()).isEqualTo("Johns Family Group");
@@ -98,8 +100,10 @@ public class UserGroupTest {
         assertThat(finalGroup.memberIds()).contains(registeredUser.id(), secondUser.id());
 
         // Weryfikacja że zaproszenie zostało zaakceptowane
-        var finalInvitation = usersModuleFacade.findInvitationByToken(invitation.invitationToken())
-                .orElseThrow(() -> new AssertionError("Invitation should exist"));
+        var finalInvitation =
+                usersModuleFacade
+                        .findInvitationByToken(invitation.invitationToken())
+                        .orElseThrow(() -> new AssertionError("Invitation should exist"));
 
         assertThat(finalInvitation).isNotNull();
         assertThat(finalInvitation.isPending()).isFalse();

@@ -1,15 +1,14 @@
 package pl.btsoftware.backend.users.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException;
 import pl.btsoftware.backend.users.domain.error.DisplayNameInvalidCharactersException;
 import pl.btsoftware.backend.users.domain.error.DisplayNameTooLongException;
 import pl.btsoftware.backend.users.domain.error.UserEmailEmptyException;
-
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserTest {
 
@@ -37,49 +36,97 @@ class UserTest {
     @Test
     void shouldThrowExceptionWhenEmailIsNull() {
         // except
-        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), null, "John Doe", GroupId.generate()))
+        assertThatThrownBy(
+                        () ->
+                                User.create(
+                                        new UserId("ext-auth-123"),
+                                        null,
+                                        "John Doe",
+                                        GroupId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsEmpty() {
-        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "", "John Doe", GroupId.generate()))
+        assertThatThrownBy(
+                        () ->
+                                User.create(
+                                        new UserId("ext-auth-123"),
+                                        "",
+                                        "John Doe",
+                                        GroupId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsBlank() {
-        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "   ", "John Doe", GroupId.generate()))
+        assertThatThrownBy(
+                        () ->
+                                User.create(
+                                        new UserId("ext-auth-123"),
+                                        "   ",
+                                        "John Doe",
+                                        GroupId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsNull() {
-        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "test@example.com", null, GroupId.generate()))
+        assertThatThrownBy(
+                        () ->
+                                User.create(
+                                        new UserId("ext-auth-123"),
+                                        "test@example.com",
+                                        null,
+                                        GroupId.generate()))
                 .isInstanceOf(DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsEmpty() {
-        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "test@example.com", "", GroupId.generate()))
+        assertThatThrownBy(
+                        () ->
+                                User.create(
+                                        new UserId("ext-auth-123"),
+                                        "test@example.com",
+                                        "",
+                                        GroupId.generate()))
                 .isInstanceOf(DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsBlank() {
-        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "test@example.com", "   ", GroupId.generate()))
+        assertThatThrownBy(
+                        () ->
+                                User.create(
+                                        new UserId("ext-auth-123"),
+                                        "test@example.com",
+                                        "   ",
+                                        GroupId.generate()))
                 .isInstanceOf(DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsTooLong() {
-        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "test@example.com", "a".repeat(101), GroupId.generate()))
+        assertThatThrownBy(
+                        () ->
+                                User.create(
+                                        new UserId("ext-auth-123"),
+                                        "test@example.com",
+                                        "a".repeat(101),
+                                        GroupId.generate()))
                 .isInstanceOf(DisplayNameTooLongException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameContainsInvalidCharacters() {
-        assertThatThrownBy(() -> User.create(new UserId("ext-auth-123"), "test@example.com", "John<Doe>", GroupId.generate()))
+        assertThatThrownBy(
+                        () ->
+                                User.create(
+                                        new UserId("ext-auth-123"),
+                                        "test@example.com",
+                                        "John<Doe>",
+                                        GroupId.generate()))
                 .isInstanceOf(DisplayNameInvalidCharactersException.class);
     }
 
@@ -100,7 +147,12 @@ class UserTest {
     @Test
     void shouldChangeGroup() {
         // given
-        var user = User.create(new UserId("ext-auth-123"), "test@example.com", "John Doe", GroupId.generate());
+        var user =
+                User.create(
+                        new UserId("ext-auth-123"),
+                        "test@example.com",
+                        "John Doe",
+                        GroupId.generate());
         var newGroupId = GroupId.generate();
         var beforeChange = Instant.now();
 
@@ -114,9 +166,13 @@ class UserTest {
 
     @Test
     void shouldThrowExceptionWhenChangingToNullGroup() {
-        User user = User.create(new UserId("ext-auth-123"), "test@example.com", "John Doe", GroupId.generate());
+        User user =
+                User.create(
+                        new UserId("ext-auth-123"),
+                        "test@example.com",
+                        "John Doe",
+                        GroupId.generate());
 
-        assertThatThrownBy(() -> user.changeGroup(null))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> user.changeGroup(null)).isInstanceOf(NullPointerException.class);
     }
 }

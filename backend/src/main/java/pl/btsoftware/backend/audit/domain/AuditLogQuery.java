@@ -1,10 +1,9 @@
 package pl.btsoftware.backend.audit.domain;
 
+import java.time.OffsetDateTime;
 import org.jetbrains.annotations.Nullable;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.time.OffsetDateTime;
 
 public record AuditLogQuery(
         GroupId groupId,
@@ -13,8 +12,7 @@ public record AuditLogQuery(
         @Nullable AuditOperation operation,
         @Nullable UserId performedBy,
         @Nullable OffsetDateTime fromDate,
-        @Nullable OffsetDateTime toDate
-) {
+        @Nullable OffsetDateTime toDate) {
     public static AuditLogQuery allForGroup(GroupId groupId) {
         return new AuditLogQuery(groupId, null, null, null, null, null, null);
     }

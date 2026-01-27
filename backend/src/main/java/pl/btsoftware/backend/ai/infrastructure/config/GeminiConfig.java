@@ -27,7 +27,8 @@ public class GeminiConfig {
 
     private void validateApiKey() {
         if (apiKey == null || apiKey.isEmpty()) {
-            throw new IllegalStateException("GEMINI_API_KEY environment variable or system property must be set");
+            throw new IllegalStateException(
+                    "GEMINI_API_KEY environment variable or system property must be set");
         }
     }
 }

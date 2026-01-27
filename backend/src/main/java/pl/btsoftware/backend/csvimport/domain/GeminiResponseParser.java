@@ -3,14 +3,13 @@ package pl.btsoftware.backend.csvimport.domain;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.btsoftware.backend.ai.infrastructure.client.GeminiClientException;
 import pl.btsoftware.backend.shared.CategoryId;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -56,7 +55,9 @@ public class GeminiResponseParser {
                 categoryId = CategoryId.of(UUID.fromString(uuidStr));
             }
 
-            suggestions.add(new CategorySuggestion(TransactionProposalId.from(transactionId), categoryId, confidence));
+            suggestions.add(
+                    new CategorySuggestion(
+                            TransactionProposalId.from(transactionId), categoryId, confidence));
         } catch (IllegalArgumentException e) {
             log.warn("Skipping invalid suggestion: {}", e.getMessage());
         } catch (Exception e) {

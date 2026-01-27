@@ -1,8 +1,7 @@
 package pl.btsoftware.backend.users.domain;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 
 public record GroupInvitationId(UUID value) {
     public GroupInvitationId {
@@ -15,8 +14,7 @@ public record GroupInvitationId(UUID value) {
         return new GroupInvitationId(UUID.randomUUID());
     }
 
-    @NotNull
-    @Override
+    @NotNull @Override
     public String toString() {
         return value.toString();
     }

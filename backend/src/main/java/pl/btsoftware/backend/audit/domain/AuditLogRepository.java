@@ -1,10 +1,9 @@
 package pl.btsoftware.backend.audit.domain;
 
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pl.btsoftware.backend.users.domain.GroupId;
-
-import java.util.Optional;
 
 public interface AuditLogRepository {
     void store(AuditLog auditLog);

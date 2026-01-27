@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.account;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import pl.btsoftware.backend.account.application.AccountService;
 import pl.btsoftware.backend.account.application.CreateAccountCommand;
@@ -10,8 +11,6 @@ import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.util.List;
 
 @AllArgsConstructor
 public class AccountModuleFacade {

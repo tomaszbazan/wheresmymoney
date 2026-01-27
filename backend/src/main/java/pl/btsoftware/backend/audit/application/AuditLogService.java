@@ -1,5 +1,8 @@
 package pl.btsoftware.backend.audit.application;
 
+import static pl.btsoftware.backend.audit.domain.AuditOperation.*;
+
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,29 +11,46 @@ import pl.btsoftware.backend.audit.domain.*;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.util.Optional;
-
-import static pl.btsoftware.backend.audit.domain.AuditOperation.*;
-
 @Service
 @AllArgsConstructor
 public class AuditLogService {
     private final AuditLogRepository auditLogRepository;
 
-    public AuditLog logCreate(AuditEntityType entityType, EntityId entityId, UserId performedBy, GroupId groupId, String changeDescription) {
-        var auditLog = AuditLog.create(CREATE, entityType, entityId, performedBy, groupId, changeDescription);
+    public AuditLog logCreate(
+            AuditEntityType entityType,
+            EntityId entityId,
+            UserId performedBy,
+            GroupId groupId,
+            String changeDescription) {
+        var auditLog =
+                AuditLog.create(
+                        CREATE, entityType, entityId, performedBy, groupId, changeDescription);
         auditLogRepository.store(auditLog);
         return auditLog;
     }
 
-    public AuditLog logUpdate(AuditEntityType entityType, EntityId entityId, UserId performedBy, GroupId groupId, String changeDescription) {
-        var auditLog = AuditLog.create(UPDATE, entityType, entityId, performedBy, groupId, changeDescription);
+    public AuditLog logUpdate(
+            AuditEntityType entityType,
+            EntityId entityId,
+            UserId performedBy,
+            GroupId groupId,
+            String changeDescription) {
+        var auditLog =
+                AuditLog.create(
+                        UPDATE, entityType, entityId, performedBy, groupId, changeDescription);
         auditLogRepository.store(auditLog);
         return auditLog;
     }
 
-    public AuditLog logDelete(AuditEntityType entityType, EntityId entityId, UserId performedBy, GroupId groupId, String changeDescription) {
-        var auditLog = AuditLog.create(DELETE, entityType, entityId, performedBy, groupId, changeDescription);
+    public AuditLog logDelete(
+            AuditEntityType entityType,
+            EntityId entityId,
+            UserId performedBy,
+            GroupId groupId,
+            String changeDescription) {
+        var auditLog =
+                AuditLog.create(
+                        DELETE, entityType, entityId, performedBy, groupId, changeDescription);
         auditLogRepository.store(auditLog);
         return auditLog;
     }

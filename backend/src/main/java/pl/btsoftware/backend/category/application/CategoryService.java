@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.category.application;
 
 import jakarta.transaction.Transactional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.audit.AuditModuleFacade;
@@ -16,8 +17,6 @@ import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 public class CategoryService {
@@ -36,12 +35,18 @@ public class CategoryService {
         var category = command.toDomain(auditInfo);
         categoryRepository.store(category);
 
-        auditModuleFacade.logCategoryCreated(category.id(), category.name(), category.type().name(), command.userId(), user.groupId());
+        auditModuleFacade.logCategoryCreated(
+                category.id(),
+                category.name(),
+                category.type().name(),
+                command.userId(),
+                user.groupId());
         return category;
     }
 
     public Category getCategoryById(CategoryId categoryId, GroupId groupId) {
-        return categoryRepository.findById(categoryId, groupId)
+        return categoryRepository
+                .findById(categoryId, groupId)
                 .orElseThrow(() -> new CategoryNotFoundException(categoryId));
     }
 
@@ -56,8 +61,10 @@ public class CategoryService {
     @Transactional
     public Category updateCategory(UpdateCategoryCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var category = categoryRepository.findById(command.categoryId(), user.groupId())
-                .orElseThrow(() -> new CategoryNotFoundException(command.categoryId()));
+        var category =
+                categoryRepository
+                        .findById(command.categoryId(), user.groupId())
+                        .orElseThrow(() -> new CategoryNotFoundException(command.categoryId()));
 
         if (command.parentId() != null && !command.parentId().equals(category.parentId())) {
             validateHierarchyDepth(command.parentId(), user.groupId());
@@ -66,15 +73,22 @@ public class CategoryService {
         var updatedCategory = category.updateWith(command, userId);
 
         categoryRepository.store(updatedCategory);
-        auditModuleFacade.logCategoryUpdated(command.categoryId(), category.name(), updatedCategory.name(), userId, user.groupId());
+        auditModuleFacade.logCategoryUpdated(
+                command.categoryId(),
+                category.name(),
+                updatedCategory.name(),
+                userId,
+                user.groupId());
         return updatedCategory;
     }
 
     @Transactional
     public void deleteCategory(CategoryId categoryId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var category = categoryRepository.findByIdIncludingDeleted(categoryId, user.groupId())
-                .orElseThrow(() -> new CategoryNotFoundException(categoryId));
+        var category =
+                categoryRepository
+                        .findByIdIncludingDeleted(categoryId, user.groupId())
+                        .orElseThrow(() -> new CategoryNotFoundException(categoryId));
 
         if (!category.ownedBy().equals(user.groupId())) {
             throw new CategoryAccessDeniedException();
@@ -106,7 +120,7 @@ public class CategoryService {
         }
 
         var category = categoryRepository.findById(categoryId, groupId);
-        return category.map(value -> 1 + calculateHierarchyDepth(value.parentId(), groupId)).orElse(0);
-
+        return category.map(value -> 1 + calculateHierarchyDepth(value.parentId(), groupId))
+                .orElse(0);
     }
 }

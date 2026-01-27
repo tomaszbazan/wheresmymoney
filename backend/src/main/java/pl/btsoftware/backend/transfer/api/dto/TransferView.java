@@ -1,10 +1,9 @@
 package pl.btsoftware.backend.transfer.api.dto;
 
-import pl.btsoftware.backend.shared.Currency;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import pl.btsoftware.backend.shared.Currency;
 
 public record TransferView(
         UUID id,
@@ -16,5 +15,4 @@ public record TransferView(
         Currency targetCurrency,
         BigDecimal exchangeRate,
         String description,
-        Instant createdAt) {
-}
+        Instant createdAt) {}

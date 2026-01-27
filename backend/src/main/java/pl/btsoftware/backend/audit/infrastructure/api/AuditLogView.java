@@ -1,9 +1,8 @@
 package pl.btsoftware.backend.audit.infrastructure.api;
 
-import pl.btsoftware.backend.audit.domain.AuditLog;
-
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import pl.btsoftware.backend.audit.domain.AuditLog;
 
 public record AuditLogView(
         UUID id,
@@ -13,8 +12,7 @@ public record AuditLogView(
         String performedBy,
         UUID groupId,
         OffsetDateTime performedAt,
-        String changeDescription
-) {
+        String changeDescription) {
     public static AuditLogView from(AuditLog auditLog) {
         return new AuditLogView(
                 auditLog.id().value(),
@@ -24,7 +22,6 @@ public record AuditLogView(
                 auditLog.performedBy().value(),
                 auditLog.groupId().value(),
                 auditLog.performedAt(),
-                auditLog.changeDescription()
-        );
+                auditLog.changeDescription());
     }
 }

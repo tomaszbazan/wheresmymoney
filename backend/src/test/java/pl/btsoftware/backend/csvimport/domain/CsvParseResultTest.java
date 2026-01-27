@@ -1,32 +1,31 @@
 package pl.btsoftware.backend.csvimport.domain;
 
-import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.shared.Currency;
-import pl.btsoftware.backend.shared.TransactionType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static pl.btsoftware.backend.csvimport.domain.ErrorType.INVALID_CSV_FORMAT;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static pl.btsoftware.backend.csvimport.domain.ErrorType.INVALID_CSV_FORMAT;
+import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.shared.Currency;
+import pl.btsoftware.backend.shared.TransactionType;
 
 class CsvParseResultTest {
 
     @Test
     void shouldCreateResultWithProposalsAndErrors() {
         // given
-        var proposal = new TransactionProposal(
-                new TransactionProposalId(UUID.randomUUID()),
-                LocalDate.of(2025, 12, 17),
-                "Wpływy / Test",
-                new BigDecimal("100.00"),
-                Currency.PLN,
-                TransactionType.INCOME,
-                null
-        );
+        var proposal =
+                new TransactionProposal(
+                        new TransactionProposalId(UUID.randomUUID()),
+                        LocalDate.of(2025, 12, 17),
+                        "Wpływy / Test",
+                        new BigDecimal("100.00"),
+                        Currency.PLN,
+                        TransactionType.INCOME,
+                        null);
         var error = new ParseError(INVALID_CSV_FORMAT, 5, "Invalid format");
 
         // when
@@ -43,15 +42,15 @@ class CsvParseResultTest {
     @Test
     void shouldCreateResultWithNoErrors() {
         // given
-        var proposal = new TransactionProposal(
-                new TransactionProposalId(UUID.randomUUID()),
-                LocalDate.of(2025, 12, 17),
-                "Wpływy / Test",
-                new BigDecimal("100.00"),
-                Currency.PLN,
-                TransactionType.INCOME,
-                null
-        );
+        var proposal =
+                new TransactionProposal(
+                        new TransactionProposalId(UUID.randomUUID()),
+                        LocalDate.of(2025, 12, 17),
+                        "Wpływy / Test",
+                        new BigDecimal("100.00"),
+                        Currency.PLN,
+                        TransactionType.INCOME,
+                        null);
 
         // when
         var result = new CsvParseResult(List.of(proposal), List.of(), 1, 1, 0);

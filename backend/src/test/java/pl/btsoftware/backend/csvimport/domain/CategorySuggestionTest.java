@@ -1,10 +1,10 @@
 package pl.btsoftware.backend.csvimport.domain;
 
-import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.shared.CategoryId;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.Test;
+import pl.btsoftware.backend.shared.CategoryId;
 
 class CategorySuggestionTest {
 
@@ -32,7 +32,8 @@ class CategorySuggestionTest {
         var confidence = -0.1;
 
         // when & then
-        assertThatThrownBy(() -> new CategorySuggestion(transactionProposalId, categoryId, confidence))
+        assertThatThrownBy(
+                        () -> new CategorySuggestion(transactionProposalId, categoryId, confidence))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Confidence must be between 0.0 and 1.0");
     }
@@ -45,7 +46,8 @@ class CategorySuggestionTest {
         var confidence = 1.1;
 
         // when & then
-        assertThatThrownBy(() -> new CategorySuggestion(transactionProposalId, categoryId, confidence))
+        assertThatThrownBy(
+                        () -> new CategorySuggestion(transactionProposalId, categoryId, confidence))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Confidence must be between 0.0 and 1.0");
     }

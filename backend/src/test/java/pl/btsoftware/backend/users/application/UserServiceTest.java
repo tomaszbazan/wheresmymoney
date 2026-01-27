@@ -1,5 +1,9 @@
 package pl.btsoftware.backend.users.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.users.domain.*;
@@ -7,11 +11,6 @@ import pl.btsoftware.backend.users.domain.error.InvitationNotFoundException;
 import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryGroupInvitationRepository;
 import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryGroupRepository;
 import pl.btsoftware.backend.users.infrastructure.persistance.InMemoryUserRepository;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserServiceTest {
 
@@ -30,9 +29,9 @@ class UserServiceTest {
 
     @Test
     void shouldRegisterUserInNewGroup() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe", "My Group", null);
 
         User user = userService.registerUser(command);
 
@@ -51,9 +50,8 @@ class UserServiceTest {
 
     @Test
     void shouldRegisterUserWithDefaultGroupName() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", null, null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand("ext-auth-123", "test@example.com", "John Doe", null, null);
 
         User user = userService.registerUser(command);
 
@@ -63,9 +61,8 @@ class UserServiceTest {
 
     @Test
     void shouldRegisterUserWithEmptyGroupName() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand("ext-auth-123", "test@example.com", "John Doe", "", null);
 
         User user = userService.registerUser(command);
 
@@ -79,27 +76,38 @@ class UserServiceTest {
         Group existingGroup = Group.create("Existing Group", "Description", inviterId);
         groupRepository.save(existingGroup);
 
-        GroupInvitation invitation = GroupInvitation.create(existingGroup.id(), "test@example.com", inviterId);
+        GroupInvitation invitation =
+                GroupInvitation.create(existingGroup.id(), "test@example.com", inviterId);
         invitationRepository.save(invitation);
 
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "Ignored Group", invitation.invitationToken()
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123",
+                        "test@example.com",
+                        "John Doe",
+                        "Ignored Group",
+                        invitation.invitationToken());
 
         User user = userService.registerUser(command);
 
         assertThat(user.groupId()).isEqualTo(existingGroup.id());
-        assertThat(groupRepository.findById(existingGroup.id()).get().hasMember(user.id())).isTrue();
-        assertThat(invitationRepository.findByToken(invitation.invitationToken()).get().status()).isEqualTo(InvitationStatus.ACCEPTED);
+        assertThat(groupRepository.findById(existingGroup.id()).get().hasMember(user.id()))
+                .isTrue();
+        assertThat(invitationRepository.findByToken(invitation.invitationToken()).get().status())
+                .isEqualTo(InvitationStatus.ACCEPTED);
         assertThat(groupRepository.size()).isEqualTo(1);
         assertThat(userRepository.size()).isEqualTo(1);
     }
 
     @Test
     void shouldThrowExceptionWhenInvitationTokenNotFound() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "My Group", "invalid-token"
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123",
+                        "test@example.com",
+                        "John Doe",
+                        "My Group",
+                        "invalid-token");
 
         assertThatThrownBy(() -> userService.registerUser(command))
                 .isInstanceOf(InvitationNotFoundException.class);
@@ -107,14 +115,14 @@ class UserServiceTest {
 
     @Test
     void shouldThrowExceptionWhenUserAlreadyExists() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe", "My Group", null);
         userService.registerUser(command);
 
-        RegisterUserCommand duplicateCommand = new RegisterUserCommand(
-                "ext-auth-123", "other@example.com", "Jane Doe", "Other Group", null
-        );
+        RegisterUserCommand duplicateCommand =
+                new RegisterUserCommand(
+                        "ext-auth-123", "other@example.com", "Jane Doe", "Other Group", null);
 
         assertThatThrownBy(() -> userService.registerUser(duplicateCommand))
                 .isInstanceOf(IllegalStateException.class);
@@ -122,12 +130,12 @@ class UserServiceTest {
 
     @Test
     void shouldFindGroupMembers() {
-        RegisterUserCommand command1 = new RegisterUserCommand(
-                "ext-auth-1", "user1@example.com", "User 1", "Group One", null
-        );
-        RegisterUserCommand command2 = new RegisterUserCommand(
-                "ext-auth-2", "user2@example.com", "User 2", "Group Two", null
-        );
+        RegisterUserCommand command1 =
+                new RegisterUserCommand(
+                        "ext-auth-1", "user1@example.com", "User 1", "Group One", null);
+        RegisterUserCommand command2 =
+                new RegisterUserCommand(
+                        "ext-auth-2", "user2@example.com", "User 2", "Group Two", null);
 
         User user1 = userService.registerUser(command1);
         User user2 = userService.registerUser(command2);
@@ -147,12 +155,17 @@ class UserServiceTest {
         Group existingGroup = Group.create("Shared Group", "Description", inviterId);
         groupRepository.save(existingGroup);
 
-        GroupInvitation invitation = GroupInvitation.create(existingGroup.id(), "test@example.com", inviterId);
+        GroupInvitation invitation =
+                GroupInvitation.create(existingGroup.id(), "test@example.com", inviterId);
         invitationRepository.save(invitation);
 
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "Shared Group", invitation.invitationToken()
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123",
+                        "test@example.com",
+                        "John Doe",
+                        "Shared Group",
+                        invitation.invitationToken());
 
         User user = userService.registerUser(command);
 
@@ -162,9 +175,8 @@ class UserServiceTest {
 
     @Test
     void shouldRegisterUserWithWhitespaceGroupName() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "  ", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand("ext-auth-123", "test@example.com", "John Doe", "  ", null);
 
         User user = userService.registerUser(command);
 
@@ -174,9 +186,9 @@ class UserServiceTest {
 
     @Test
     void shouldTrimWhitespaceFromGroupName() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "  My Group  ", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe", "  My Group  ", null);
 
         User user = userService.registerUser(command);
 
@@ -186,12 +198,12 @@ class UserServiceTest {
 
     @Test
     void shouldRegisterMultipleUsersWithDifferentExternalAuthIds() {
-        RegisterUserCommand command1 = new RegisterUserCommand(
-                "ext-auth-123", "user1@example.com", "User One", "Group One", null
-        );
-        RegisterUserCommand command2 = new RegisterUserCommand(
-                "ext-auth-456", "user2@example.com", "User Two", "Group Two", null
-        );
+        RegisterUserCommand command1 =
+                new RegisterUserCommand(
+                        "ext-auth-123", "user1@example.com", "User One", "Group One", null);
+        RegisterUserCommand command2 =
+                new RegisterUserCommand(
+                        "ext-auth-456", "user2@example.com", "User Two", "Group Two", null);
 
         User user1 = userService.registerUser(command1);
         User user2 = userService.registerUser(command2);
@@ -204,10 +216,11 @@ class UserServiceTest {
 
     @Test
     void shouldRegisterUserWithLongDisplayName() {
-        String longDisplayName = "Very Long Display Name That Contains Many Characters And Should Still Be Valid";
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", longDisplayName, "My Group", null
-        );
+        String longDisplayName =
+                "Very Long Display Name That Contains Many Characters And Should Still Be Valid";
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", longDisplayName, "My Group", null);
 
         User user = userService.registerUser(command);
 
@@ -216,9 +229,9 @@ class UserServiceTest {
 
     @Test
     void shouldRegisterUserWithSpecialCharactersInName() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe-Smith", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe-Smith", "My Group", null);
 
         User user = userService.registerUser(command);
 
@@ -227,9 +240,8 @@ class UserServiceTest {
 
     @Test
     void shouldThrowExceptionWhenExternalAuthIdIsNull() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                null, "test@example.com", "John Doe", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(null, "test@example.com", "John Doe", "My Group", null);
 
         assertThatThrownBy(() -> userService.registerUser(command))
                 .isInstanceOf(NullPointerException.class);
@@ -237,74 +249,75 @@ class UserServiceTest {
 
     @Test
     void shouldThrowExceptionWhenEmailIsNull() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", null, "John Doe", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand("ext-auth-123", null, "John Doe", "My Group", null);
 
         assertThatThrownBy(() -> userService.registerUser(command))
-                .isInstanceOf(pl.btsoftware.backend.users.domain.error.UserEmailEmptyException.class);
+                .isInstanceOf(
+                        pl.btsoftware.backend.users.domain.error.UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsEmpty() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "", "John Doe", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand("ext-auth-123", "", "John Doe", "My Group", null);
 
         assertThatThrownBy(() -> userService.registerUser(command))
-                .isInstanceOf(pl.btsoftware.backend.users.domain.error.UserEmailEmptyException.class);
+                .isInstanceOf(
+                        pl.btsoftware.backend.users.domain.error.UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenEmailIsWhitespace() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "   ", "John Doe", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand("ext-auth-123", "   ", "John Doe", "My Group", null);
 
         assertThatThrownBy(() -> userService.registerUser(command))
-                .isInstanceOf(pl.btsoftware.backend.users.domain.error.UserEmailEmptyException.class);
+                .isInstanceOf(
+                        pl.btsoftware.backend.users.domain.error.UserEmailEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsNull() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", null, "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand("ext-auth-123", "test@example.com", null, "My Group", null);
 
         assertThatThrownBy(() -> userService.registerUser(command))
-                .isInstanceOf(pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException.class);
+                .isInstanceOf(
+                        pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsEmpty() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand("ext-auth-123", "test@example.com", "", "My Group", null);
 
         assertThatThrownBy(() -> userService.registerUser(command))
-                .isInstanceOf(pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException.class);
+                .isInstanceOf(
+                        pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenDisplayNameIsWhitespace() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "   ", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "   ", "My Group", null);
 
         assertThatThrownBy(() -> userService.registerUser(command))
-                .isInstanceOf(pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException.class);
+                .isInstanceOf(
+                        pl.btsoftware.backend.users.domain.error.DisplayNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenUserAlreadyExistsWithSameExternalAuthId() {
-        RegisterUserCommand command1 = new RegisterUserCommand(
-                "ext-auth-123", "user1@example.com", "User One", "Group One", null
-        );
+        RegisterUserCommand command1 =
+                new RegisterUserCommand(
+                        "ext-auth-123", "user1@example.com", "User One", "Group One", null);
         userService.registerUser(command1);
 
-        RegisterUserCommand command2 = new RegisterUserCommand(
-                "ext-auth-123", "user2@example.com", "User Two", "Group Two", null
-        );
+        RegisterUserCommand command2 =
+                new RegisterUserCommand(
+                        "ext-auth-123", "user2@example.com", "User Two", "Group Two", null);
 
         assertThatThrownBy(() -> userService.registerUser(command2))
                 .isInstanceOf(IllegalStateException.class)
@@ -313,9 +326,13 @@ class UserServiceTest {
 
     @Test
     void shouldThrowExceptionWhenInvitationTokenIsInvalid() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "My Group", "invalid-token-123"
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123",
+                        "test@example.com",
+                        "John Doe",
+                        "My Group",
+                        "invalid-token-123");
 
         assertThatThrownBy(() -> userService.registerUser(command))
                 .isInstanceOf(InvitationNotFoundException.class);
@@ -323,9 +340,9 @@ class UserServiceTest {
 
     @Test
     void shouldThrowExceptionWhenInvitationTokenIsEmpty() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "My Group", ""
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe", "My Group", "");
 
         User user = userService.registerUser(command);
 
@@ -337,9 +354,9 @@ class UserServiceTest {
 
     @Test
     void shouldThrowExceptionWhenInvitationTokenIsWhitespace() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "My Group", "   "
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe", "My Group", "   ");
 
         User user = userService.registerUser(command);
 
@@ -351,9 +368,9 @@ class UserServiceTest {
 
     @Test
     void shouldCreateDefaultGroupNameWhenDisplayNameContainsSpecialCharacters() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe-Smith", null, null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe-Smith", null, null);
 
         User user = userService.registerUser(command);
 
@@ -363,9 +380,9 @@ class UserServiceTest {
 
     @Test
     void shouldRegisterUserWhenGroupNameIsSameAsDisplayName() {
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "John Doe", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe", "John Doe", null);
 
         User user = userService.registerUser(command);
 
@@ -376,9 +393,9 @@ class UserServiceTest {
     @Test
     void shouldStoreUserDataCorrectlyAfterRegistration() {
         // given
-        var command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "My Group", null
-        );
+        var command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe", "My Group", null);
 
         // when
         var user = userService.registerUser(command);
@@ -398,9 +415,9 @@ class UserServiceTest {
     void shouldSetCorrectTimestampsOnRegistration() {
         java.time.Instant before = java.time.Instant.now();
 
-        RegisterUserCommand command = new RegisterUserCommand(
-                "ext-auth-123", "test@example.com", "John Doe", "My Group", null
-        );
+        RegisterUserCommand command =
+                new RegisterUserCommand(
+                        "ext-auth-123", "test@example.com", "John Doe", "My Group", null);
 
         User user = userService.registerUser(command);
 

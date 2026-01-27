@@ -10,5 +10,4 @@ public abstract class BusinessException extends RuntimeException {
         super(message);
         this.errorCode = errorCode;
     }
-
 }

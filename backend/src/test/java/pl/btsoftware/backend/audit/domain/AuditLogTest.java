@@ -1,13 +1,12 @@
 package pl.btsoftware.backend.audit.domain;
 
+import static java.util.UUID.randomUUID;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.time.ZoneOffset;
-
-import static java.util.UUID.randomUUID;
-import static org.assertj.core.api.Assertions.assertThat;
 
 class AuditLogTest {
 
@@ -20,14 +19,8 @@ class AuditLogTest {
         var groupId = new GroupId(randomUUID());
         var description = "Account created: Main Account";
 
-        var auditLog = AuditLog.create(
-                operation,
-                entityType,
-                entityId,
-                performedBy,
-                groupId,
-                description
-        );
+        var auditLog =
+                AuditLog.create(operation, entityType, entityId, performedBy, groupId, description);
 
         assertThat(auditLog.id()).isNotNull();
         assertThat(auditLog.operation()).isEqualTo(operation);
@@ -48,8 +41,11 @@ class AuditLogTest {
         var performedBy = UserId.of("user456");
         var groupId = new GroupId(randomUUID());
 
-        var auditLog1 = AuditLog.create(operation, entityType, entityId, performedBy, groupId, "First log");
-        var auditLog2 = AuditLog.create(operation, entityType, entityId, performedBy, groupId, "Second log");
+        var auditLog1 =
+                AuditLog.create(operation, entityType, entityId, performedBy, groupId, "First log");
+        var auditLog2 =
+                AuditLog.create(
+                        operation, entityType, entityId, performedBy, groupId, "Second log");
 
         assertThat(auditLog1.id()).isNotEqualTo(auditLog2.id());
     }
@@ -63,7 +59,8 @@ class AuditLogTest {
         var groupId = new GroupId(randomUUID());
         var description = "Category deleted: Food";
 
-        var auditLog = AuditLog.create(operation, entityType, entityId, performedBy, groupId, description);
+        var auditLog =
+                AuditLog.create(operation, entityType, entityId, performedBy, groupId, description);
 
         assertThat(auditLog.operation()).isEqualTo(AuditOperation.DELETE);
         assertThat(auditLog.entityType()).isEqualTo(AuditEntityType.CATEGORY);
@@ -72,14 +69,14 @@ class AuditLogTest {
 
     @Test
     void shouldAllowNullChangeDescription() {
-        var auditLog = AuditLog.create(
-                AuditOperation.CREATE,
-                AuditEntityType.ACCOUNT,
-                EntityId.from(randomUUID()),
-                UserId.of("user123"),
-                new GroupId(randomUUID()),
-                null
-        );
+        var auditLog =
+                AuditLog.create(
+                        AuditOperation.CREATE,
+                        AuditEntityType.ACCOUNT,
+                        EntityId.from(randomUUID()),
+                        UserId.of("user123"),
+                        new GroupId(randomUUID()),
+                        null);
 
         assertThat(auditLog.changeDescription()).isNull();
     }

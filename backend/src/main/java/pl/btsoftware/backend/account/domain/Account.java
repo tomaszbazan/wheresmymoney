@@ -1,6 +1,10 @@
 package pl.btsoftware.backend.account.domain;
 
+import static pl.btsoftware.backend.shared.Currency.DEFAULT;
+import static pl.btsoftware.backend.shared.Money.zero;
+
 import jakarta.annotation.Nullable;
+import java.time.OffsetDateTime;
 import pl.btsoftware.backend.account.domain.error.AccountNameEmptyException;
 import pl.btsoftware.backend.account.domain.error.AccountNameInvalidCharactersException;
 import pl.btsoftware.backend.account.domain.error.AccountNameTooLongException;
@@ -14,15 +18,20 @@ import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
-import java.time.OffsetDateTime;
-
-import static pl.btsoftware.backend.shared.Currency.DEFAULT;
-import static pl.btsoftware.backend.shared.Money.zero;
-
-public record Account(AccountId id, String name, Money balance,
-                      AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
-    public Account(AccountId id, String name, Money balance, AuditInfo createdInfo,
-                   AuditInfo updatedInfo, Tombstone tombstone) {
+public record Account(
+        AccountId id,
+        String name,
+        Money balance,
+        AuditInfo createdInfo,
+        AuditInfo updatedInfo,
+        Tombstone tombstone) {
+    public Account(
+            AccountId id,
+            String name,
+            Money balance,
+            AuditInfo createdInfo,
+            AuditInfo updatedInfo,
+            Tombstone tombstone) {
         validateAccountName(name);
         this.id = id;
         this.name = name.trim();
@@ -33,9 +42,13 @@ public record Account(AccountId id, String name, Money balance,
     }
 
     public Account(AccountId id, String name, @Nullable Currency currency, UserView createdBy) {
-        this(id, name, zero(currency == null ? DEFAULT : currency),
+        this(
+                id,
+                name,
+                zero(currency == null ? DEFAULT : currency),
                 AuditInfo.create(createdBy.id(), createdBy.groupId()),
-                AuditInfo.create(createdBy.id(), createdBy.groupId()), Tombstone.active());
+                AuditInfo.create(createdBy.id(), createdBy.groupId()),
+                Tombstone.active());
     }
 
     public Account(AccountId id, String name, Money balance, AuditInfo createBy) {
@@ -52,7 +65,8 @@ public record Account(AccountId id, String name, Money balance,
 
     public Account changeName(String newName) {
         validateAccountName(newName);
-        return new Account(id, newName, balance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
+        return new Account(
+                id, newName, balance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     public UserId createdBy() {
@@ -88,7 +102,8 @@ public record Account(AccountId id, String name, Money balance,
             throw new TransactionCurrencyMismatchException(amount.currency(), balance().currency());
         }
         Money newBalance = balance.add(amount);
-        return new Account(id, name, newBalance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
+        return new Account(
+                id, name, newBalance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     public Account delete() {

@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transfer.api;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,8 +17,6 @@ import pl.btsoftware.backend.transfer.application.CreateTransferCommand;
 import pl.btsoftware.backend.transfer.domain.Transfer;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/transfers")
 @RequiredArgsConstructor
@@ -26,18 +25,21 @@ class TransferController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    TransferView createTransfer(@RequestBody @Valid CreateTransferRequest request, @AuthenticationPrincipal Jwt jwt) {
+    TransferView createTransfer(
+            @RequestBody @Valid CreateTransferRequest request, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
 
-        var targetAmount = request.targetAmount() != null ? request.targetAmount() : request.sourceAmount();
+        var targetAmount =
+                request.targetAmount() != null ? request.targetAmount() : request.sourceAmount();
 
-        var command = new CreateTransferCommand(
-                new AccountId(request.sourceAccountId()),
-                new AccountId(request.targetAccountId()),
-                request.sourceAmount(),
-                targetAmount,
-                request.description(),
-                userId);
+        var command =
+                new CreateTransferCommand(
+                        new AccountId(request.sourceAccountId()),
+                        new AccountId(request.targetAccountId()),
+                        request.sourceAmount(),
+                        targetAmount,
+                        request.description(),
+                        userId);
 
         var transfer = transferModuleFacade.createTransfer(command);
         return toView(transfer);

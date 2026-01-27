@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.account.application;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.btsoftware.backend.account.domain.Account;
@@ -16,8 +17,6 @@ import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.util.List;
-
 @Service
 @AllArgsConstructor
 public class AccountService {
@@ -29,13 +28,17 @@ public class AccountService {
     public Account createAccount(CreateAccountCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
         var currency = command.currency() == null ? Currency.DEFAULT : command.currency();
-        accountRepository.findByNameAndCurrency(command.name(), currency, user.groupId()).ifPresent(account -> {
-            throw new AccountAlreadyExistsException();
-        });
+        accountRepository
+                .findByNameAndCurrency(command.name(), currency, user.groupId())
+                .ifPresent(
+                        account -> {
+                            throw new AccountAlreadyExistsException();
+                        });
 
         var account = command.toDomain(user);
         accountRepository.store(account);
-        auditModuleFacade.logAccountCreated(account.id(), account.name(), command.userId(), user.groupId());
+        auditModuleFacade.logAccountCreated(
+                account.id(), account.name(), command.userId(), user.groupId());
         return account;
     }
 
@@ -46,21 +49,26 @@ public class AccountService {
 
     public Account getById(AccountId id, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        return accountRepository.findById(id, user.groupId())
+        return accountRepository
+                .findById(id, user.groupId())
                 .orElseThrow(() -> new AccountNotFoundException(id));
     }
 
     public Account getById(AccountId id, GroupId groupId) {
-        return accountRepository.findById(id, groupId)
+        return accountRepository
+                .findById(id, groupId)
                 .orElseThrow(() -> new AccountNotFoundException(id));
     }
 
     public Account updateAccount(AccountId accountId, String newName, GroupId groupId) {
-        var account = accountRepository.findById(accountId, groupId)
-                .orElseThrow(() -> new AccountNotFoundException(accountId));
+        var account =
+                accountRepository
+                        .findById(accountId, groupId)
+                        .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var currency = account.balance().currency();
-        var existingAccount = accountRepository.findByNameAndCurrency(newName, currency, account.ownedBy());
+        var existingAccount =
+                accountRepository.findByNameAndCurrency(newName, currency, account.ownedBy());
         if (existingAccount.isPresent()) {
             throw new AccountAlreadyExistsException();
         }
@@ -68,14 +76,17 @@ public class AccountService {
         var oldName = account.name();
         var updatedAccount = account.changeName(newName);
         accountRepository.store(updatedAccount);
-        auditModuleFacade.logAccountUpdated(accountId, oldName, newName, updatedAccount.lastUpdatedBy(), groupId);
+        auditModuleFacade.logAccountUpdated(
+                accountId, oldName, newName, updatedAccount.lastUpdatedBy(), groupId);
         return updatedAccount;
     }
 
     public void deleteAccount(AccountId accountId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var account = accountRepository.findById(accountId, user.groupId())
-                .orElseThrow(() -> new AccountNotFoundException(accountId));
+        var account =
+                accountRepository
+                        .findById(accountId, user.groupId())
+                        .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var hasTransactions = transactionQueryFacade.hasTransactions(accountId, user.groupId());
         if (hasTransactions) {
@@ -88,21 +99,27 @@ public class AccountService {
 
     public void deposit(AccountId accountId, Money amount, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var account = accountRepository.findById(accountId, user.groupId())
-                .orElseThrow(() -> new AccountNotFoundException(accountId));
+        var account =
+                accountRepository
+                        .findById(accountId, user.groupId())
+                        .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var updatedAccount = account.deposit(amount);
         accountRepository.store(updatedAccount);
-        auditModuleFacade.logAccountDeposit(accountId, account.name(), userId, user.groupId(), amount);
+        auditModuleFacade.logAccountDeposit(
+                accountId, account.name(), userId, user.groupId(), amount);
     }
 
     public void withdraw(AccountId accountId, Money amount, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var account = accountRepository.findById(accountId, user.groupId())
-                .orElseThrow(() -> new AccountNotFoundException(accountId));
+        var account =
+                accountRepository
+                        .findById(accountId, user.groupId())
+                        .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         var updatedAccount = account.withdraw(amount);
         accountRepository.store(updatedAccount);
-        auditModuleFacade.logAccountWithdraw(accountId, account.name(), userId, user.groupId(), amount);
+        auditModuleFacade.logAccountWithdraw(
+                accountId, account.name(), userId, user.groupId(), amount);
     }
 }

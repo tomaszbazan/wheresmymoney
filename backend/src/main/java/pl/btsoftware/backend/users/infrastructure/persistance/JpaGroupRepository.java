@@ -1,12 +1,11 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.users.domain.Group;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.GroupRepository;
 import pl.btsoftware.backend.users.domain.UserId;
-
-import java.util.Optional;
 
 @Repository
 public class JpaGroupRepository implements GroupRepository {
@@ -25,14 +24,12 @@ public class JpaGroupRepository implements GroupRepository {
 
     @Override
     public Optional<Group> findById(GroupId groupId) {
-        return jpaRepository.findById(groupId.value())
-            .map(GroupEntity::toDomain);
+        return jpaRepository.findById(groupId.value()).map(GroupEntity::toDomain);
     }
 
     @Override
     public Optional<Group> findByName(String name) {
-        return jpaRepository.findByName(name)
-                .map(GroupEntity::toDomain);
+        return jpaRepository.findByName(name).map(GroupEntity::toDomain);
     }
 
     @Override
@@ -47,7 +44,6 @@ public class JpaGroupRepository implements GroupRepository {
 
     @Override
     public Optional<Group> findByUserId(UserId inviterId) {
-        return jpaRepository.findByMemberIdsContains(inviterId.value())
-                .map(GroupEntity::toDomain);
+        return jpaRepository.findByMemberIdsContains(inviterId.value()).map(GroupEntity::toDomain);
     }
 }

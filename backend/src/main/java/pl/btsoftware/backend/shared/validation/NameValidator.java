@@ -4,7 +4,8 @@ import java.util.regex.Pattern;
 
 public class NameValidator {
     // Allow: letters, digits, polish chars, space, -, _, ., @, #, !, ?
-    private static final Pattern VALID_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9ąĄćĆęĘłŁńŃóÓśŚźŹżŻ \\-_@#!?\\.]+$");
+    private static final Pattern VALID_NAME_PATTERN =
+            Pattern.compile("^[a-zA-Z0-9ąĄćĆęĘłŁńŃóÓśŚźŹżŻ \\-_@#!?\\.]+$");
 
     public static boolean isValid(String name) {
         if (name == null) {

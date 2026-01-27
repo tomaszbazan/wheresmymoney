@@ -1,6 +1,9 @@
 pre-commit:
   parallel: true
   commands:
+    backend-format:
+      glob: "backend/**/*.java"
+      run: cd backend && ./gradlew spotlessCheck
     backend-checkstyle:
       glob: "backend/**/*.java"
       run: cd backend && ./gradlew checkstyleMain checkstyleTest

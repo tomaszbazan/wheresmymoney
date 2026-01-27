@@ -7,7 +7,5 @@ import pl.btsoftware.backend.configuration.SystemTest;
 class BackendApplicationTests {
 
     @Test
-    void contextLoads() {
-    }
-
+    void contextLoads() {}
 }

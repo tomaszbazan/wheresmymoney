@@ -1,15 +1,14 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
-import pl.btsoftware.backend.users.domain.GroupId;
-import pl.btsoftware.backend.users.domain.User;
-import pl.btsoftware.backend.users.domain.UserId;
-import pl.btsoftware.backend.users.domain.UserRepository;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.User;
+import pl.btsoftware.backend.users.domain.UserId;
+import pl.btsoftware.backend.users.domain.UserRepository;
 
 public class InMemoryUserRepository implements UserRepository {
     private final Map<UserId, User> users = new HashMap<>();
@@ -29,7 +28,7 @@ public class InMemoryUserRepository implements UserRepository {
     public List<User> findByGroupId(GroupId groupId) {
         return users.values().stream()
                 .filter(user -> user.groupId().equals(groupId))
-            .collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     @Override

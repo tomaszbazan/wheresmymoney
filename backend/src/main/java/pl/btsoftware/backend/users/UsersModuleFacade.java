@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.users;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.btsoftware.backend.users.application.GroupService;
@@ -8,8 +9,6 @@ import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.application.UserService;
 import pl.btsoftware.backend.users.domain.*;
 import pl.btsoftware.backend.users.domain.error.UserNotFoundException;
-
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor

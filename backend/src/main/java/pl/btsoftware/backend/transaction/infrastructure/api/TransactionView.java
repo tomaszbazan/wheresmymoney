@@ -1,14 +1,13 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
-import pl.btsoftware.backend.category.domain.Category;
-import pl.btsoftware.backend.shared.CategoryId;
-import pl.btsoftware.backend.transaction.domain.Transaction;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.function.Function;
+import pl.btsoftware.backend.category.domain.Category;
+import pl.btsoftware.backend.shared.CategoryId;
+import pl.btsoftware.backend.transaction.domain.Transaction;
 
 public record TransactionView(
         UUID id,
@@ -19,9 +18,9 @@ public record TransactionView(
         CategoryView category,
         LocalDate transactionDate,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
-) {
-    public static TransactionView from(Transaction transaction, Function<CategoryId, Category> categoryMapper) {
+        OffsetDateTime updatedAt) {
+    public static TransactionView from(
+            Transaction transaction, Function<CategoryId, Category> categoryMapper) {
         var category = categoryMapper.apply(transaction.categoryId());
         return new TransactionView(
                 transaction.id().value(),
@@ -32,8 +31,7 @@ public record TransactionView(
                 CategoryView.from(category),
                 transaction.transactionDate(),
                 transaction.createdAt(),
-                transaction.lastUpdatedAt()
-        );
+                transaction.lastUpdatedAt());
     }
 
     record CategoryView(UUID id, String name) {

@@ -1,13 +1,12 @@
 package pl.btsoftware.backend.transaction.domain;
 
-import pl.btsoftware.backend.shared.AccountId;
-import pl.btsoftware.backend.shared.Money;
-import pl.btsoftware.backend.shared.TransactionType;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import pl.btsoftware.backend.shared.AccountId;
+import pl.btsoftware.backend.shared.Money;
+import pl.btsoftware.backend.shared.TransactionType;
 
 public class TransactionHashCalculator {
 
@@ -16,15 +15,15 @@ public class TransactionHashCalculator {
             Money amount,
             String description,
             LocalDate transactionDate,
-            TransactionType type
-    ) {
+            TransactionType type) {
         String normalizedDescription = description != null ? description.trim().toLowerCase() : "";
-        String concatenated = accountId.value().toString()
-                              + amount.value().toString()
-                              + amount.currency().name()
-                              + normalizedDescription
-                              + transactionDate.toString()
-                              + type.name();
+        String concatenated =
+                accountId.value().toString()
+                        + amount.value().toString()
+                        + amount.currency().name()
+                        + normalizedDescription
+                        + transactionDate.toString()
+                        + type.name();
 
         return new TransactionHash(sha256(concatenated));
     }

@@ -1,6 +1,8 @@
 package pl.btsoftware.backend.audit.infrastructure.persistence;
 
 import jakarta.persistence.*;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,17 +10,13 @@ import pl.btsoftware.backend.audit.domain.*;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 @Entity
 @Table(name = "audit_log")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 public class AuditLogEntity {
-    @Id
-    private UUID id;
+    @Id private UUID id;
 
     @Enumerated(EnumType.STRING)
     private AuditOperation operation;
@@ -51,8 +49,7 @@ public class AuditLogEntity {
                 auditLog.performedBy().value(),
                 auditLog.groupId().value(),
                 auditLog.performedAt(),
-                auditLog.changeDescription()
-        );
+                auditLog.changeDescription());
     }
 
     public AuditLog toDomain() {
@@ -64,7 +61,6 @@ public class AuditLogEntity {
                 UserId.of(performedBy),
                 new GroupId(groupId),
                 performedAt,
-                changeDescription
-        );
+                changeDescription);
     }
 }

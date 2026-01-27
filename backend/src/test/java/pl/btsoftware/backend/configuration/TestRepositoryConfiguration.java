@@ -16,5 +16,4 @@ public class TestRepositoryConfiguration {
     public AccountRepository accountRepository() {
         return new InMemoryAccountRepository();
     }
-
 }

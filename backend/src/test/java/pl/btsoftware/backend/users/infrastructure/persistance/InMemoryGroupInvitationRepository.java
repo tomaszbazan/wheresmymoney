@@ -1,15 +1,14 @@
 package pl.btsoftware.backend.users.infrastructure.persistance;
 
-import pl.btsoftware.backend.users.domain.GroupId;
-import pl.btsoftware.backend.users.domain.GroupInvitation;
-import pl.btsoftware.backend.users.domain.GroupInvitationId;
-import pl.btsoftware.backend.users.domain.GroupInvitationRepository;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import pl.btsoftware.backend.users.domain.GroupId;
+import pl.btsoftware.backend.users.domain.GroupInvitation;
+import pl.btsoftware.backend.users.domain.GroupInvitationId;
+import pl.btsoftware.backend.users.domain.GroupInvitationRepository;
 
 public class InMemoryGroupInvitationRepository implements GroupInvitationRepository {
     private final Map<GroupInvitationId, GroupInvitation> invitations = new HashMap<>();
@@ -55,10 +54,11 @@ public class InMemoryGroupInvitationRepository implements GroupInvitationReposit
 
     @Override
     public void deleteExpired() {
-        List<GroupInvitationId> expiredIds = invitations.values().stream()
-                .filter(GroupInvitation::isExpired)
-                .map(GroupInvitation::id)
-                .toList();
+        List<GroupInvitationId> expiredIds =
+                invitations.values().stream()
+                        .filter(GroupInvitation::isExpired)
+                        .map(GroupInvitation::id)
+                        .toList();
 
         expiredIds.forEach(invitations::remove);
     }

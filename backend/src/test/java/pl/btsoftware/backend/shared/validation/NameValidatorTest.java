@@ -1,10 +1,10 @@
 package pl.btsoftware.backend.shared.validation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class NameValidatorTest {
 
@@ -14,51 +14,53 @@ class NameValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "ValidName",
-            "Valid Name",
-            "Valid Name 123",
-            "Valid-Name",
-            "Valid_Name",
-            "Valid.Name",
-            "Valid@Name",
-            "Valid#Name",
-            "Valid!Name",
-            "Valid?Name",
-            "ąĄćĆęĘłŁńŃóÓśŚźŹżŻ",
-            "Konto Główne",
-            "Test-Account_123",
-            "Account@Email.com",
-            "Budget#2024"
-    })
+    @ValueSource(
+            strings = {
+                "ValidName",
+                "Valid Name",
+                "Valid Name 123",
+                "Valid-Name",
+                "Valid_Name",
+                "Valid.Name",
+                "Valid@Name",
+                "Valid#Name",
+                "Valid!Name",
+                "Valid?Name",
+                "ąĄćĆęĘłŁńŃóÓśŚźŹżŻ",
+                "Konto Główne",
+                "Test-Account_123",
+                "Account@Email.com",
+                "Budget#2024"
+            })
     void shouldReturnTrueForValidNames(String name) {
         assertThat(NameValidator.isValid(name)).isTrue();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            "Invalid\nName",
-            "Invalid\tName",
-            "Invalid\\Name",
-            "Invalid/Name",
-            "Invalid<Name",
-            "Invalid>Name",
-            "Invalid|Name",
-            "Invalid;Name",
-            "Invalid:Name",
-            "Invalid'Name",
-            "Invalid\"Name",
-            "Invalid*Name",
-            "Invalid&Name",
-            "Invalid%Name",
-            "Invalid$Name",
-            "Invalid+Name",
-            "Invalid=Name",
-            "Invalid[Name",
-            "Invalid]Name",
-            "Invalid{Name",
-            "Invalid}Name"
-    })
+    @ValueSource(
+            strings = {
+                "Invalid\nName",
+                "Invalid\tName",
+                "Invalid\\Name",
+                "Invalid/Name",
+                "Invalid<Name",
+                "Invalid>Name",
+                "Invalid|Name",
+                "Invalid;Name",
+                "Invalid:Name",
+                "Invalid'Name",
+                "Invalid\"Name",
+                "Invalid*Name",
+                "Invalid&Name",
+                "Invalid%Name",
+                "Invalid$Name",
+                "Invalid+Name",
+                "Invalid=Name",
+                "Invalid[Name",
+                "Invalid]Name",
+                "Invalid{Name",
+                "Invalid}Name"
+            })
     void shouldReturnFalseForInvalidNames(String name) {
         assertThat(NameValidator.isValid(name)).isFalse();
     }

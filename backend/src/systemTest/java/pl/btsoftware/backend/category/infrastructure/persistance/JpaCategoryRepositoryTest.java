@@ -1,5 +1,10 @@
 package pl.btsoftware.backend.category.infrastructure.persistance;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static pl.btsoftware.backend.shared.CategoryType.EXPENSE;
+import static pl.btsoftware.backend.shared.CategoryType.INCOME;
+
+import java.time.OffsetDateTime;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +20,10 @@ import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
-import java.time.OffsetDateTime;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static pl.btsoftware.backend.shared.CategoryType.EXPENSE;
-import static pl.btsoftware.backend.shared.CategoryType.INCOME;
-
 @SystemTest
 class JpaCategoryRepositoryTest {
 
-    @Autowired
-    private CategoryRepository repository;
+    @Autowired private CategoryRepository repository;
 
     private Category createTestCategory(CategoryType type, GroupId groupId, boolean isDeleted) {
         var userId = UserId.generate();
@@ -40,8 +38,7 @@ class JpaCategoryRepositoryTest {
                 null,
                 auditInfo,
                 auditInfo,
-                tombstone
-        );
+                tombstone);
     }
 
     @Nested
@@ -88,12 +85,9 @@ class JpaCategoryRepositoryTest {
             var groupId = GroupId.generate();
             var category = createTestCategory(EXPENSE, groupId, false);
             repository.store(category);
-            var updateCommand = new UpdateCategoryCommand(
-                    category.id(),
-                    "Updated Name",
-                    category.color(),
-                    null
-            );
+            var updateCommand =
+                    new UpdateCategoryCommand(
+                            category.id(), "Updated Name", category.color(), null);
 
             var updatedCategory = category.updateWith(updateCommand, category.createdBy());
 
@@ -257,7 +251,8 @@ class JpaCategoryRepositoryTest {
 
             // then
             assertThat(result).hasSize(2);
-            assertThat(result).extracting(Category::id)
+            assertThat(result)
+                    .extracting(Category::id)
                     .containsExactlyInAnyOrder(expenseCategory1.id(), expenseCategory2.id());
             assertThat(result).allMatch(category -> category.type() == EXPENSE);
             assertThat(result).allMatch(category -> !category.isDeleted());
@@ -280,7 +275,8 @@ class JpaCategoryRepositoryTest {
 
             // then
             assertThat(result).hasSize(2);
-            assertThat(result).extracting(Category::id)
+            assertThat(result)
+                    .extracting(Category::id)
                     .containsExactlyInAnyOrder(incomeCategory1.id(), incomeCategory2.id());
             assertThat(result).allMatch(category -> category.type() == INCOME);
             assertThat(result).allMatch(category -> !category.isDeleted());

@@ -1,13 +1,12 @@
 package pl.btsoftware.backend.shared.validation;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
+import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class NameValidationRulesTest {
 
@@ -17,8 +16,7 @@ class NameValidationRulesTest {
                 arguments("", ValidationError.EMPTY),
                 arguments("   ", ValidationError.EMPTY),
                 arguments("a".repeat(101), ValidationError.TOO_LONG),
-                arguments("Invalid\nName", ValidationError.INVALID_CHARACTERS)
-        );
+                arguments("Invalid\nName", ValidationError.INVALID_CHARACTERS));
     }
 
     private static Stream<Arguments> validNameTestCases() {
@@ -28,8 +26,7 @@ class NameValidationRulesTest {
                 arguments("Name with spaces"),
                 arguments("Name-with_symbols@#!?."),
                 arguments("PolishĄĆĘŁŃÓŚŹŻ"),
-                arguments("a".repeat(100))
-        );
+                arguments("a".repeat(100)));
     }
 
     @ParameterizedTest
@@ -39,12 +36,13 @@ class NameValidationRulesTest {
         var tooLongException = new TestTooLongException();
         var invalidCharsException = new TestInvalidCharactersException();
 
-        assertThatThrownBy(() -> NameValidationRules.validate(
-                invalidName,
-                () -> emptyException,
-                () -> tooLongException,
-                () -> invalidCharsException
-        ))
+        assertThatThrownBy(
+                        () ->
+                                NameValidationRules.validate(
+                                        invalidName,
+                                        () -> emptyException,
+                                        () -> tooLongException,
+                                        () -> invalidCharsException))
                 .isInstanceOf(expectedError.getExceptionClass());
     }
 
@@ -59,8 +57,7 @@ class NameValidationRulesTest {
                 validName,
                 () -> emptyException,
                 () -> tooLongException,
-                () -> invalidCharsException
-        );
+                () -> invalidCharsException);
 
         assertThat(validName).isNotNull();
     }
@@ -83,12 +80,14 @@ class NameValidationRulesTest {
         var tooLongException = new TestTooLongException();
         var invalidCharsException = new TestInvalidCharactersException();
 
-        assertThatCode(() -> NameValidationRules.validate(
-                emptyName,
-                null,
-                () -> tooLongException,
-                () -> invalidCharsException
-        )).doesNotThrowAnyException();
+        assertThatCode(
+                        () ->
+                                NameValidationRules.validate(
+                                        emptyName,
+                                        null,
+                                        () -> tooLongException,
+                                        () -> invalidCharsException))
+                .doesNotThrowAnyException();
     }
 
     @ParameterizedTest
@@ -97,12 +96,14 @@ class NameValidationRulesTest {
         var emptyException = new TestEmptyException();
         var invalidCharsException = new TestInvalidCharactersException();
 
-        assertThatCode(() -> NameValidationRules.validate(
-                tooLongName,
-                () -> emptyException,
-                null,
-                () -> invalidCharsException
-        )).doesNotThrowAnyException();
+        assertThatCode(
+                        () ->
+                                NameValidationRules.validate(
+                                        tooLongName,
+                                        () -> emptyException,
+                                        null,
+                                        () -> invalidCharsException))
+                .doesNotThrowAnyException();
     }
 
     @ParameterizedTest
@@ -111,23 +112,22 @@ class NameValidationRulesTest {
         var emptyException = new TestEmptyException();
         var tooLongException = new TestTooLongException();
 
-        assertThatCode(() -> NameValidationRules.validate(
-                nameWithInvalidChars,
-                () -> emptyException,
-                () -> tooLongException,
-                null
-        )).doesNotThrowAnyException();
+        assertThatCode(
+                        () ->
+                                NameValidationRules.validate(
+                                        nameWithInvalidChars,
+                                        () -> emptyException,
+                                        () -> tooLongException,
+                                        null))
+                .doesNotThrowAnyException();
     }
 
     @ParameterizedTest
     @MethodSource("invalidNameTestCases")
-    void shouldSkipAllValidationsWhenAllSuppliersAreNull(String invalidName, ValidationError expectedError) {
-        assertThatCode(() -> NameValidationRules.validate(
-                invalidName,
-                null,
-                null,
-                null
-        )).doesNotThrowAnyException();
+    void shouldSkipAllValidationsWhenAllSuppliersAreNull(
+            String invalidName, ValidationError expectedError) {
+        assertThatCode(() -> NameValidationRules.validate(invalidName, null, null, null))
+                .doesNotThrowAnyException();
     }
 
     private enum ValidationError {
@@ -146,12 +146,9 @@ class NameValidationRulesTest {
         }
     }
 
-    private static class TestEmptyException extends RuntimeException {
-    }
+    private static class TestEmptyException extends RuntimeException {}
 
-    private static class TestTooLongException extends RuntimeException {
-    }
+    private static class TestTooLongException extends RuntimeException {}
 
-    private static class TestInvalidCharactersException extends RuntimeException {
-    }
+    private static class TestInvalidCharactersException extends RuntimeException {}
 }

@@ -1,13 +1,12 @@
 package pl.btsoftware.backend.shared;
 
-import org.jetbrains.annotations.NotNull;
-import pl.btsoftware.backend.shared.error.MoneyCurrencyMismatchException;
+import static java.util.Objects.requireNonNull;
+import static pl.btsoftware.backend.shared.Currency.DEFAULT;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-
-import static java.util.Objects.requireNonNull;
-import static pl.btsoftware.backend.shared.Currency.DEFAULT;
+import org.jetbrains.annotations.NotNull;
+import pl.btsoftware.backend.shared.error.MoneyCurrencyMismatchException;
 
 public record Money(BigDecimal value, Currency currency) {
 
@@ -65,8 +64,7 @@ public record Money(BigDecimal value, Currency currency) {
         return new Money(value.negate(), currency);
     }
 
-    @NotNull
-    @Override
+    @NotNull @Override
     public String toString() {
         return value.toString() + " " + currency;
     }
