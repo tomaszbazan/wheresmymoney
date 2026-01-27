@@ -76,7 +76,9 @@ void main() {
         await tester.pumpWidget(MaterialApp(home: Scaffold(body: AccountsPage(accountService: accountService))));
         await tester.pumpAndSettle();
 
-        expect(find.text('Brak kont do wyświetlenia'), findsOneWidget);
+        expect(find.text('Brak kont'), findsOneWidget);
+        expect(find.text('Dodaj pierwsze konto, aby zacząć'), findsOneWidget);
+        expect(find.byIcon(Icons.account_balance_wallet_outlined), findsOneWidget);
       });
 
       testWidgets('should display loading indicator initially', (WidgetTester tester) async {
@@ -86,7 +88,7 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        expect(find.text('Brak kont do wyświetlenia'), findsOneWidget);
+        expect(find.text('Brak kont'), findsOneWidget);
       });
     });
 
@@ -140,7 +142,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Nieoczekiwany błąd: Exception: Network error'), findsOneWidget);
-        expect(find.text('Brak kont do wyświetlenia'), findsOneWidget);
+        expect(find.text('Brak kont'), findsOneWidget);
       });
     });
 

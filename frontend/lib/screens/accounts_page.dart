@@ -175,7 +175,18 @@ class _AccountsPageState extends State<AccountsPage> {
             Expanded(
               child:
                   accounts.isEmpty
-                      ? const Center(child: Text('Brak kont do wyświetlenia'))
+                      ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.account_balance_wallet_outlined, size: 64, color: Colors.grey[400]),
+                            const SizedBox(height: 16),
+                            Text('Brak kont', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.grey[600])),
+                            const SizedBox(height: 8),
+                            Text('Dodaj pierwsze konto, aby zacząć', style: TextStyle(color: Colors.grey[600])),
+                          ],
+                        ),
+                      )
                       : ListView.builder(
                         itemCount: accounts.length,
                         itemBuilder: (context, index) {
