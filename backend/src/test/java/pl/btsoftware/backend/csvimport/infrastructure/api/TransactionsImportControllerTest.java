@@ -43,7 +43,7 @@ public class TransactionsImportControllerTest {
                 new TransactionProposal(
                         new TransactionProposalId(UUID.randomUUID()),
                         LocalDate.of(2025, 12, 17),
-                        "Wpływy - inne / FRANCISZEK BELA",
+                        "Wpływy - inne: FRANCISZEK BELA",
                         new BigDecimal("1100.00"),
                         Currency.PLN,
                         TransactionType.INCOME,
@@ -53,7 +53,7 @@ public class TransactionsImportControllerTest {
                 new TransactionProposal(
                         new TransactionProposalId(UUID.randomUUID()),
                         LocalDate.of(2025, 12, 17),
-                        "Zdrowie i uroda / APTEKARIUS SPOLKA",
+                        "Zdrowie i uroda: APTEKARIUS SPOLKA",
                         new BigDecimal("-239.22"),
                         Currency.PLN,
                         TransactionType.EXPENSE,
@@ -84,12 +84,12 @@ public class TransactionsImportControllerTest {
                 .andExpect(jsonPath("$.proposals[0].categoryId").doesNotExist())
                 .andExpect(
                         jsonPath("$.proposals[0].description")
-                                .value("Wpływy - inne / FRANCISZEK BELA"))
+                                .value("Wpływy - inne: FRANCISZEK BELA"))
                 .andExpect(jsonPath("$.proposals[0].currency").value("PLN"))
                 .andExpect(jsonPath("$.proposals[1].categoryId").doesNotExist())
                 .andExpect(
                         jsonPath("$.proposals[1].description")
-                                .value("Zdrowie i uroda / APTEKARIUS SPOLKA"))
+                                .value("Zdrowie i uroda: APTEKARIUS SPOLKA"))
                 .andExpect(jsonPath("$.proposals[1].currency").value("PLN"));
     }
 

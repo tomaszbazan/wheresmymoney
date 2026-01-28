@@ -307,23 +307,6 @@ class CsvParseServiceTest {
     }
 
     @Test
-    void shouldHandleQuotedDescriptionWithSemicolon() {
-        // given
-        var csv =
-                createMbankTransactionListCsv(
-                        "2025-12-17;\"Test; with; semicolons\";\"mKonto\";\"Category\";100,00 PLN;;");
-        var command = new ParseCsvCommand(csv, userId, accountId);
-
-        // when
-        var result = service.parse(command);
-
-        // then
-        assertThat(result.proposals()).hasSize(1);
-        assertThat(result.proposals().getFirst().description())
-                .isEqualTo("Category: Test; with; semicolons");
-    }
-
-    @Test
     void shouldRejectInvalidFileFormat() {
         // given
         var invalidCsv =

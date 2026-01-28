@@ -21,7 +21,7 @@ class CsvParseResultTest {
                 new TransactionProposal(
                         new TransactionProposalId(UUID.randomUUID()),
                         LocalDate.of(2025, 12, 17),
-                        "Wpływy / Test",
+                        "Wpływy: Test",
                         new BigDecimal("100.00"),
                         Currency.PLN,
                         TransactionType.INCOME,
@@ -46,7 +46,7 @@ class CsvParseResultTest {
                 new TransactionProposal(
                         new TransactionProposalId(UUID.randomUUID()),
                         LocalDate.of(2025, 12, 17),
-                        "Wpływy / Test",
+                        "Wpływy: Test",
                         new BigDecimal("100.00"),
                         Currency.PLN,
                         TransactionType.INCOME,

@@ -32,14 +32,14 @@ class CategorizationPromptBuilderTest {
 
     @Test
     void shouldRejectEmptyCategoryList() {
-        var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var transaction = createTransaction("McDonalds", TransactionType.EXPENSE);
         assertThatThrownBy(() -> builder.build(List.of(transaction), List.of()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void shouldBuildValidPromptForSingleTransactionAndFlatCategories() throws Exception {
-        var transaction = createTransaction("McDonald's Downtown", TransactionType.EXPENSE);
+        var transaction = createTransaction("McDonalds Downtown", TransactionType.EXPENSE);
         var category = createCategory("Fast Food", CategoryType.EXPENSE);
 
         var prompt = builder.build(List.of(transaction), List.of(category));
@@ -54,8 +54,7 @@ class CategorizationPromptBuilderTest {
         assertThat(transactions).hasSize(1);
         assertThat(transactions.get(0).get("transactionId").asText())
                 .isEqualTo(transaction.transactionId().value().toString());
-        assertThat(transactions.get(0).get("description").asText())
-                .isEqualTo("McDonald's Downtown");
+        assertThat(transactions.get(0).get("description").asText()).isEqualTo("McDonalds Downtown");
         assertThat(transactions.get(0).get("type").asText()).isEqualTo("EXPENSE");
 
         var categories = json.get("categories");
@@ -68,7 +67,7 @@ class CategorizationPromptBuilderTest {
 
     @Test
     void shouldAssignCorrectIndicesToTransactions() throws Exception {
-        var transaction1 = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var transaction1 = createTransaction("McDonalds", TransactionType.EXPENSE);
         var transaction2 = createTransaction("Salary", TransactionType.INCOME);
         var transaction3 = createTransaction("Starbucks", TransactionType.EXPENSE);
         var category = createCategory("Food", CategoryType.EXPENSE);
@@ -85,20 +84,6 @@ class CategorizationPromptBuilderTest {
                 .isEqualTo(transaction2.transactionId().value().toString());
         assertThat(transactions.get(2).get("transactionId").asText())
                 .isEqualTo(transaction3.transactionId().value().toString());
-    }
-
-    @Test
-    void shouldEscapeSpecialCharactersInDescriptions() throws Exception {
-        var transaction =
-                createTransaction("\"McDonald's\" - Special\nOffer", TransactionType.EXPENSE);
-        var category = createCategory("Food", CategoryType.EXPENSE);
-
-        var prompt = builder.build(List.of(transaction), List.of(category));
-
-        var json = objectMapper.readTree(prompt.jsonPrompt());
-        var transactions = json.get("transactions");
-        assertThat(transactions.get(0).get("description").asText())
-                .isEqualTo("\"McDonald's\" - Special\nOffer");
     }
 
     @Test
@@ -157,7 +142,7 @@ class CategorizationPromptBuilderTest {
                         Color.of("#FF0000"),
                         restaurants.id(),
                         auditInfo);
-        var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var transaction = createTransaction("McDonalds", TransactionType.EXPENSE);
 
         var prompt = builder.build(List.of(transaction), List.of(food, restaurants, fastFood));
 

@@ -47,7 +47,6 @@ class NameValidatorTest {
                 "Invalid>Name",
                 "Invalid|Name",
                 "Invalid;Name",
-                "Invalid:Name",
                 "Invalid'Name",
                 "Invalid\"Name",
                 "Invalid*Name",
@@ -89,6 +88,6 @@ class NameValidatorTest {
 
     @Test
     void shouldReturnTrueForMixedValidCharacters() {
-        assertThat(NameValidator.isValid("Account-123_Test@Home.pl!?#")).isTrue();
+        assertThat(NameValidator.isValid("Account-123_Test@Home.pl!?#:,")).isTrue();
     }
 }

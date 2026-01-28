@@ -3,7 +3,7 @@ package pl.btsoftware.backend.shared.validation;
 import java.util.function.Supplier;
 
 public final class NameValidationRules {
-    private static final int MAX_NAME_LENGTH = 100;
+    public static final int MAX_NAME_LENGTH = 100;
 
     private NameValidationRules() {}
 

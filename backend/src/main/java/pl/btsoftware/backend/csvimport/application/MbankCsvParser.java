@@ -120,21 +120,19 @@ public class MbankCsvParser implements TransactionCsvParser {
 
         var cleanedDescription = cleanDescription(rawDescription);
         var descriptionWithCategory = category + ": " + cleanedDescription;
-        var description = truncateDescription(descriptionWithCategory);
 
         var currency = extractCurrency(amountString);
         var amount = parseAmount(amountString);
         var type = determineType(amount);
 
         return new TransactionProposal(
-                TransactionProposalId.generate(), date, description, amount, currency, type, null);
-    }
-
-    private String truncateDescription(String description) {
-        if (description.length() > TransactionProposal.MAX_DESCRIPTION_LENGTH) {
-            return description.substring(0, TransactionProposal.MAX_DESCRIPTION_LENGTH);
-        }
-        return description;
+                TransactionProposalId.generate(),
+                date,
+                descriptionWithCategory,
+                amount,
+                currency,
+                type,
+                null);
     }
 
     private String cleanDescription(String description) {

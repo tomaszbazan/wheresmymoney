@@ -49,7 +49,7 @@ class CategorySuggestionServiceTest {
     void shouldReturnSuggestionsForValidTransactions() {
         // given
         var foodCategory = createAndStoreCategory("Food", CategoryType.EXPENSE);
-        var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var transaction = createTransaction("McDonalds", TransactionType.EXPENSE);
 
         var geminiResponse =
                 String.format(
@@ -82,7 +82,7 @@ class CategorySuggestionServiceTest {
         // given
         var expenseCategory = createAndStoreCategory("Food", CategoryType.EXPENSE);
         createAndStoreCategory("Salary", CategoryType.INCOME);
-        var expenseTransaction = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var expenseTransaction = createTransaction("McDonalds", TransactionType.EXPENSE);
 
         var geminiResponse =
                 String.format(
@@ -111,7 +111,7 @@ class CategorySuggestionServiceTest {
     void shouldReturnNullSuggestionsWhenGeminiFails() {
         // given
         createAndStoreCategory("Food", CategoryType.EXPENSE);
-        var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var transaction = createTransaction("McDonalds", TransactionType.EXPENSE);
 
         when(geminiClient.generateContent(any()))
                 .thenReturn(CompletableFuture.failedFuture(new GeminiClientException("API Error")));
@@ -133,7 +133,7 @@ class CategorySuggestionServiceTest {
     @Test
     void shouldThrowExceptionWhenGroupIdIsNull() {
         // given
-        var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var transaction = createTransaction("McDonalds", TransactionType.EXPENSE);
 
         // when & then
         assertThatThrownBy(() -> service.suggestCategories(List.of(transaction), null))
@@ -145,7 +145,7 @@ class CategorySuggestionServiceTest {
         // given
         var expenseCategory = createAndStoreCategory("Food", CategoryType.EXPENSE);
         var incomeCategory = createAndStoreCategory("Salary", CategoryType.INCOME);
-        var expenseTransaction = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var expenseTransaction = createTransaction("McDonalds", TransactionType.EXPENSE);
         var incomeTransaction = createTransaction("Monthly salary", TransactionType.INCOME);
 
         var expenseResponse =
@@ -191,7 +191,7 @@ class CategorySuggestionServiceTest {
     @Test
     void shouldReturnEmptyListWhenNoCategoriesExist() {
         // given
-        var transaction = createTransaction("McDonald's", TransactionType.EXPENSE);
+        var transaction = createTransaction("McDonalds", TransactionType.EXPENSE);
 
         // when
         var result = service.suggestCategories(List.of(transaction), testGroupId);
