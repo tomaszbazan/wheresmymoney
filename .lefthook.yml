@@ -1,27 +1,26 @@
 pre-commit:
-  parallel: true
-  commands:
-    backend-format:
-      glob: "backend/**/*.java"
-      run: cd backend && ./gradlew spotlessCheck
-    backend-checkstyle:
-      glob: "backend/**/*.java"
-      run: cd backend && ./gradlew checkstyleMain checkstyleTest
-    backend-spotbugs:
-      glob: "backend/**/*.java"  
-      run: cd backend && ./gradlew spotbugsMain spotbugsTest
-    backend-unit-tests:
-      glob: "backend/**/*.java"
-      run: cd backend && ./gradlew test
-    backend-system-tests:
-      glob: "backend/**/*.java"
-      run: cd backend && ./gradlew systemTest
-    frontend-analyze:
-      glob: "frontend/**/*.dart"
-      run: cd frontend && flutter analyze
-    frontend-format:
-      glob: "frontend/**/*.dart"
-      run: cd frontend && dart format --set-exit-if-changed .
-    frontend-tests:
-      glob: "frontend/**/*.dart"
-      run: cd frontend && flutter test
+  parallel: false
+  jobs:
+    - group:
+        name: "Format backend"
+        glob: "backend/**/*.java"
+        jobs:
+          - run: cd backend && ./gradlew spotlessApply
+    - group:
+        name: "Verify backend"
+        parallel: true
+        glob: "backend/**/*.java"
+        jobs:
+          - run: cd backend && ./gradlew spotlessCheck
+          - run: cd backend && ./gradlew checkstyleMain checkstyleTest
+          - run: cd backend && ./gradlew spotbugsMain spotbugsTest
+          - run: cd backend && ./gradlew test
+          - run: cd backend && ./gradlew systemTest
+    - group:
+        name: "Verify frontend"
+        parallel: true
+        glob: "frontend/**/*.dart"
+        jobs:
+          - run: cd frontend && flutter analyze
+          - run: cd frontend && dart format --set-exit-if-changed .
+          - run: cd frontend && flutter test
