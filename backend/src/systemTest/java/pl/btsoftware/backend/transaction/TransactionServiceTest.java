@@ -26,15 +26,14 @@ import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.application.BillItemCommand;
 import pl.btsoftware.backend.transaction.application.BulkCreateTransactionCommand;
-import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
-import pl.btsoftware.backend.transaction.infrastructure.persistance.TransactionCommandFixture;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.transaction.domain.error.BillItemDescriptionTooLongException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
+import pl.btsoftware.backend.transaction.infrastructure.persistance.TransactionCommandFixture;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -445,8 +444,7 @@ public class TransactionServiceTest {
                         transaction.bill().items().getFirst().categoryId(),
                         transaction.amount(),
                         "Updated description");
-        var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), null, of(billItem));
+        var updateCommand = new UpdateTransactionCommand(transaction.id(), null, of(billItem));
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -477,17 +475,15 @@ public class TransactionServiceTest {
         var transaction = transactionService.createTransaction(createCommand);
 
         var billItem =
-                new BillItemCommand(
-                        newCategoryId,
-                        transaction.amount(),
-                        transaction.description());
+                new BillItemCommand(newCategoryId, transaction.amount(), transaction.description());
         var updateCommand = new UpdateTransactionCommand(transaction.id(), null, of(billItem));
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
 
         // Then
-        assertThat(updatedTransaction.bill().items().getFirst().categoryId()).isEqualTo(newCategoryId);
+        assertThat(updatedTransaction.bill().items().getFirst().categoryId())
+                .isEqualTo(newCategoryId);
         assertThat(updatedTransaction.description()).isEqualTo("Test transaction");
     }
 

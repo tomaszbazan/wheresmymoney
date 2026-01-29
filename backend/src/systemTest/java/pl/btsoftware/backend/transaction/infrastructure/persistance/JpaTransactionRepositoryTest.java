@@ -316,7 +316,8 @@ public class JpaTransactionRepositoryTest {
         var newCategoryId = CategoryId.generate();
         var newAmount = Money.of(new BigDecimal("150.00"), PLN);
         var newBillItem =
-                new BillItem(BillItemId.generate(), newCategoryId, newAmount, "Updated description");
+                new BillItem(
+                        BillItemId.generate(), newCategoryId, newAmount, "Updated description");
         var newBill = new Bill(BillId.generate(), List.of(newBillItem));
         var updatedTransaction =
                 originalTransaction

@@ -33,7 +33,13 @@ class TransactionTest {
 
         var transaction =
                 Transaction.create(
-                        accountId, amount, EXPENSE, bill, transactionDate, transactionHash, auditInfo);
+                        accountId,
+                        amount,
+                        EXPENSE,
+                        bill,
+                        transactionDate,
+                        transactionHash,
+                        auditInfo);
 
         assertThat(transaction.id()).isNotNull();
         assertThat(transaction.accountId()).isEqualTo(accountId);
@@ -58,7 +64,8 @@ class TransactionTest {
                         Money.of(BigDecimal.valueOf(100), PLN),
                         "Test description");
         var bill = new Bill(BillId.generate(), List.of(billItem));
-        var transaction = Instancio.of(Transaction.class).set(field(Transaction::bill), bill).create();
+        var transaction =
+                Instancio.of(Transaction.class).set(field(Transaction::bill), bill).create();
 
         assertThat(transaction.description()).isEqualTo("Test description");
     }
@@ -72,11 +79,11 @@ class TransactionTest {
                         Money.of(BigDecimal.valueOf(100), PLN),
                         null);
         var bill = new Bill(BillId.generate(), List.of(billItem));
-        var transaction = Instancio.of(Transaction.class).set(field(Transaction::bill), bill).create();
+        var transaction =
+                Instancio.of(Transaction.class).set(field(Transaction::bill), bill).create();
 
         assertThat(transaction.description()).isNull();
     }
-
 
     @Test
     void shouldReturnCreatedBy() {
@@ -179,7 +186,9 @@ class TransactionTest {
 
         var userId = UserId.generate();
         var transaction =
-                Instancio.of(Transaction.class).set(field(Transaction::bill), originalBill).create();
+                Instancio.of(Transaction.class)
+                        .set(field(Transaction::bill), originalBill)
+                        .create();
 
         var updatedTransaction = transaction.updateBill(newBill, userId);
 

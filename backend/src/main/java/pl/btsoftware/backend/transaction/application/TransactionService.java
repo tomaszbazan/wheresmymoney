@@ -58,10 +58,7 @@ public class TransactionService {
         }
 
         auditModuleFacade.logTransactionCreated(
-                transaction.id(),
-                transaction.description(),
-                command.userId(),
-                user.groupId());
+                transaction.id(), transaction.description(), command.userId(), user.groupId());
         return transaction;
     }
 
@@ -141,10 +138,7 @@ public class TransactionService {
 
         transactionRepository.store(updatedTransaction);
         auditModuleFacade.logTransactionUpdated(
-                command.transactionId(),
-                updatedTransaction.description(),
-                userId,
-                user.groupId());
+                command.transactionId(), updatedTransaction.description(), userId, user.groupId());
         return updatedTransaction;
     }
 

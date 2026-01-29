@@ -27,7 +27,6 @@ import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.application.BillItemCommand;
-import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
@@ -173,7 +172,9 @@ public class HappyPathSystemTest {
                         "Weekly shopping - updated");
         var command =
                 new UpdateTransactionCommand(
-                        transaction.id(), Money.of(new BigDecimal("200.00"), PLN), List.of(billItem));
+                        transaction.id(),
+                        Money.of(new BigDecimal("200.00"), PLN),
+                        List.of(billItem));
         var updated = transactionService.updateTransaction(command, userId);
         assertThat(updated.description()).isEqualTo("Weekly shopping - updated");
         assertThat(updated.amount().value()).isEqualByComparingTo(new BigDecimal("200.00"));
