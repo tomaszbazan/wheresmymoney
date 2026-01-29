@@ -67,11 +67,12 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     @Override
     public boolean existsByCategoryId(CategoryId categoryId, GroupId groupId) {
         return database.values().stream()
+                .filter(transaction -> transaction.ownedBy().equals(groupId))
+                .filter(transaction -> !transaction.tombstone().isDeleted())
                 .anyMatch(
                         transaction ->
-                                transaction.categoryId().equals(categoryId)
-                                        && transaction.ownedBy().equals(groupId)
-                                        && !transaction.tombstone().isDeleted());
+                                transaction.bill().items().stream()
+                                        .anyMatch(item -> item.categoryId().equals(categoryId)));
     }
 
     @Override

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.instancio.Select.field;
 
 import java.time.LocalDate;
+import java.util.List;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,8 +13,7 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
-import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionHash;
+import pl.btsoftware.backend.transaction.domain.*;
 import pl.btsoftware.backend.transaction.infrastructure.persistance.InMemoryTransactionRepository;
 import pl.btsoftware.backend.users.domain.GroupId;
 
@@ -46,13 +46,14 @@ class TransactionQueryFacadeTest {
         var auditInfo =
                 Instancio.of(AuditInfo.class).set(field(AuditInfo::fromGroup), groupId).create();
 
+        var billItem = new BillItem(BillItemId.generate(), categoryId, Money.zero(), "Test");
+        var bill = new Bill(BillId.generate(), List.of(billItem));
         var transaction =
                 Transaction.create(
                         accountId,
                         Money.zero(),
-                        "Test",
                         TransactionType.EXPENSE,
-                        categoryId,
+                        bill,
                         LocalDate.now(),
                         new TransactionHash("a".repeat(64)),
                         auditInfo);
@@ -72,13 +73,14 @@ class TransactionQueryFacadeTest {
         var auditInfo =
                 Instancio.of(AuditInfo.class).set(field(AuditInfo::fromGroup), groupId).create();
 
+        var billItem = new BillItem(BillItemId.generate(), categoryId1, Money.zero(), "Test");
+        var bill = new Bill(BillId.generate(), List.of(billItem));
         var transaction =
                 Transaction.create(
                         accountId,
                         Money.zero(),
-                        "Test",
                         TransactionType.EXPENSE,
-                        categoryId1,
+                        bill,
                         LocalDate.now(),
                         new TransactionHash("a".repeat(64)),
                         auditInfo);
@@ -107,13 +109,14 @@ class TransactionQueryFacadeTest {
         var auditInfo =
                 Instancio.of(AuditInfo.class).set(field(AuditInfo::fromGroup), groupId).create();
 
+        var billItem = new BillItem(BillItemId.generate(), categoryId, Money.zero(), "Test");
+        var bill = new Bill(BillId.generate(), List.of(billItem));
         var transaction =
                 Transaction.create(
                         accountId,
                         Money.zero(),
-                        "Test",
                         TransactionType.EXPENSE,
-                        categoryId,
+                        bill,
                         LocalDate.now(),
                         new TransactionHash("a".repeat(64)),
                         auditInfo);
@@ -133,13 +136,14 @@ class TransactionQueryFacadeTest {
         var auditInfo =
                 Instancio.of(AuditInfo.class).set(field(AuditInfo::fromGroup), groupId).create();
 
+        var billItem = new BillItem(BillItemId.generate(), categoryId, Money.zero(), "Test");
+        var bill = new Bill(BillId.generate(), List.of(billItem));
         var transaction =
                 Transaction.create(
                         accountId1,
                         Money.zero(),
-                        "Test",
                         TransactionType.EXPENSE,
-                        categoryId,
+                        bill,
                         LocalDate.now(),
                         new TransactionHash("a".repeat(64)),
                         auditInfo);
@@ -159,13 +163,14 @@ class TransactionQueryFacadeTest {
         var auditInfo =
                 Instancio.of(AuditInfo.class).set(field(AuditInfo::fromGroup), groupId1).create();
 
+        var billItem = new BillItem(BillItemId.generate(), categoryId, Money.zero(), "Test");
+        var bill = new Bill(BillId.generate(), List.of(billItem));
         var transaction =
                 Transaction.create(
                         accountId,
                         Money.zero(),
-                        "Test",
                         TransactionType.EXPENSE,
-                        categoryId,
+                        bill,
                         LocalDate.now(),
                         new TransactionHash("a".repeat(64)),
                         auditInfo);

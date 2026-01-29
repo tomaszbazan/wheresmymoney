@@ -7,6 +7,7 @@ import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,9 +19,7 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
-import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionHashCalculator;
-import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.*;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
@@ -50,8 +49,9 @@ public class JpaTransactionRepositoryTest {
         var transactionDate = LocalDate.now();
         var hash =
                 hashCalculator.calculateHash(accountId, amount, description, transactionDate, type);
-        return Transaction.create(
-                accountId, amount, description, type, categoryId, transactionDate, hash, auditInfo);
+        var billItem = new BillItem(BillItemId.generate(), categoryId, amount, description);
+        var bill = new Bill(BillId.generate(), List.of(billItem));
+        return Transaction.create(accountId, amount, type, bill, transactionDate, hash, auditInfo);
     }
 
     @Test
@@ -80,7 +80,8 @@ public class JpaTransactionRepositoryTest {
         assertThat(retrievedTransaction.get().amount()).isEqualTo(amount);
         assertThat(retrievedTransaction.get().description()).isEqualTo("Grocery shopping");
         assertThat(retrievedTransaction.get().type()).isEqualTo(EXPENSE);
-        assertThat(retrievedTransaction.get().categoryId()).isNotNull();
+        assertThat(retrievedTransaction.get().bill()).isNotNull();
+        assertThat(retrievedTransaction.get().bill().items()).hasSize(1);
         assertThat(retrievedTransaction.get().tombstone().isDeleted()).isFalse();
         assertThat(retrievedTransaction.get().createdBy()).isEqualTo(testUserId);
         assertThat(retrievedTransaction.get().ownedBy()).isEqualTo(testGroupId);
@@ -192,7 +193,7 @@ public class JpaTransactionRepositoryTest {
         // then
         assertThat(allTransactions).hasSize(2);
         assertThat(allTransactions)
-                .extracting("description")
+                .extracting(Transaction::description)
                 .containsExactlyInAnyOrder("Transaction 1", "Transaction 2");
         assertThat(allTransactions).allMatch(t -> !t.tombstone().isDeleted());
     }
@@ -240,7 +241,7 @@ public class JpaTransactionRepositoryTest {
         // then
         assertThat(accountTransactions).hasSize(2);
         assertThat(accountTransactions)
-                .extracting("description")
+                .extracting(Transaction::description)
                 .containsExactlyInAnyOrder("Target account tx 1", "Target account tx 2");
         assertThat(accountTransactions).allMatch(t -> t.accountId().equals(targetAccountId));
     }
@@ -313,11 +314,14 @@ public class JpaTransactionRepositoryTest {
 
         // when
         var newCategoryId = CategoryId.generate();
+        var newAmount = Money.of(new BigDecimal("150.00"), PLN);
+        var newBillItem =
+                new BillItem(BillItemId.generate(), newCategoryId, newAmount, "Updated description");
+        var newBill = new Bill(BillId.generate(), List.of(newBillItem));
         var updatedTransaction =
                 originalTransaction
-                        .updateAmount(Money.of(new BigDecimal("150.00"), PLN), testUserId)
-                        .updateDescription("Updated description", testUserId)
-                        .updateCategory(newCategoryId, testUserId);
+                        .updateAmount(newAmount, testUserId)
+                        .updateBill(newBill, testUserId);
         transactionRepository.store(updatedTransaction);
 
         // then
@@ -327,7 +331,8 @@ public class JpaTransactionRepositoryTest {
         assertThat(retrievedTransaction.get().amount().value())
                 .isEqualByComparingTo(new BigDecimal("150.00"));
         assertThat(retrievedTransaction.get().description()).isEqualTo("Updated description");
-        assertThat(retrievedTransaction.get().categoryId()).isEqualTo(newCategoryId);
+        assertThat(retrievedTransaction.get().bill().items().getFirst().categoryId())
+                .isEqualTo(newCategoryId);
         assertThat(retrievedTransaction.get().lastUpdatedAt())
                 .isAfter(retrievedTransaction.get().createdAt());
         assertThat(retrievedTransaction.get().lastUpdatedBy()).isEqualTo(testUserId);

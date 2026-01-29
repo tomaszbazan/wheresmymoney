@@ -21,24 +21,15 @@ public class JpaAccountRepository implements AccountRepository {
 
     @Override
     public void store(Account account) {
-        var entity = AccountEntity.fromDomain(account);
         var existingEntity = repository.findById(account.id().value());
         if (existingEntity.isPresent()) {
             var existing = existingEntity.get();
-            entity =
-                    new AccountEntity(
-                            entity.getId(),
-                            entity.getName(),
-                            entity.getBalance(),
-                            entity.getCurrency(),
-                            entity.getCreatedAt(),
-                            entity.getCreatedBy(),
-                            entity.getOwnedByGroup(),
-                            entity.getUpdatedAt(),
-                            entity.getUpdatedBy(),
-                            existing.getVersion());
+            existing.updateFrom(account);
+            repository.save(existing);
+        } else {
+            var newEntity = AccountEntity.fromDomain(account);
+            repository.save(newEntity);
         }
-        repository.save(entity);
     }
 
     @Override

@@ -7,6 +7,7 @@ import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -25,10 +26,12 @@ import pl.btsoftware.backend.category.application.UpdateCategoryCommand;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.transaction.application.BillItemCommand;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.infrastructure.persistance.TransactionCommandFixture;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
 import pl.btsoftware.backend.users.domain.User;
@@ -129,7 +132,7 @@ public class HappyPathSystemTest {
 
     private Transaction addIncomeTransaction(Account account, Category category, UserId userId) {
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         account.id(),
                         Money.of(new BigDecimal("5000.00"), PLN),
                         "Monthly salary",
@@ -147,7 +150,7 @@ public class HappyPathSystemTest {
 
     private Transaction addExpenseTransaction(Account account, Category category, UserId userId) {
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         account.id(),
                         Money.of(new BigDecimal("150.50"), PLN),
                         "Weekly shopping",
@@ -163,12 +166,14 @@ public class HappyPathSystemTest {
     }
 
     private void updateExpenseTransaction(Transaction transaction, UserId userId) {
+        var billItem =
+                new BillItemCommand(
+                        transaction.bill().items().getFirst().categoryId(),
+                        Money.of(new BigDecimal("200.00"), PLN),
+                        "Weekly shopping - updated");
         var command =
                 new UpdateTransactionCommand(
-                        transaction.id(),
-                        Money.of(new BigDecimal("200.00"), PLN),
-                        "Weekly shopping - updated",
-                        null);
+                        transaction.id(), Money.of(new BigDecimal("200.00"), PLN), List.of(billItem));
         var updated = transactionService.updateTransaction(command, userId);
         assertThat(updated.description()).isEqualTo("Weekly shopping - updated");
         assertThat(updated.amount().value()).isEqualByComparingTo(new BigDecimal("200.00"));

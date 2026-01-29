@@ -1,21 +1,16 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import pl.btsoftware.backend.shared.AccountId;
-import pl.btsoftware.backend.shared.CategoryId;
-import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.users.domain.UserId;
 
 public record CreateTransactionRequest(
-        UUID accountId,
-        Money amount,
-        String description,
-        LocalDate transactionDate,
-        String type,
-        UUID categoryId) {
+        UUID accountId, LocalDate transactionDate, String type, BillRequest bill) {
+
     public CreateTransactionCommand toCommand(UserId userId) {
         return toCommand(userId, AccountId.from(accountId));
     }
@@ -23,11 +18,20 @@ public record CreateTransactionRequest(
     public CreateTransactionCommand toCommand(UserId userId, AccountId accountId) {
         return new CreateTransactionCommand(
                 accountId,
-                amount,
-                description,
                 transactionDate,
                 TransactionType.valueOf(type.toUpperCase()),
-                new CategoryId(categoryId),
+                bill.toCommand(),
                 userId);
+    }
+
+    record BillRequest(List<BillItemRequest> billItems) {
+        public BillRequest {
+            billItems = List.copyOf(billItems);
+        }
+
+        public CreateTransactionCommand.BillCommand toCommand() {
+            return new CreateTransactionCommand.BillCommand(
+                    billItems.stream().map(BillItemRequest::toCommand).toList());
+        }
     }
 }

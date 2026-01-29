@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.btsoftware.backend.account.domain.Account;
@@ -16,7 +15,6 @@ import pl.btsoftware.backend.shared.Tombstone;
 
 @Entity
 @Table(name = "account")
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 public class AccountEntity {
@@ -53,7 +51,8 @@ public class AccountEntity {
             String createdBy,
             UUID ownedByGroup,
             OffsetDateTime updatedAt,
-            String updatedBy) {
+            String updatedBy,
+            Long version) {
         this.id = id;
         this.name = name;
         this.balance = balance;
@@ -63,6 +62,7 @@ public class AccountEntity {
         this.ownedByGroup = ownedByGroup;
         this.updatedAt = updatedAt;
         this.updatedBy = updatedBy;
+        this.version = version;
     }
 
     public static AccountEntity fromDomain(Account account) {
@@ -75,7 +75,8 @@ public class AccountEntity {
                 account.createdBy().value(),
                 account.ownedBy().value(),
                 account.lastUpdatedAt(),
-                account.lastUpdatedBy().value());
+                account.lastUpdatedBy().value(),
+                null);
     }
 
     public Account toDomain() {
@@ -89,5 +90,13 @@ public class AccountEntity {
                 createdAuditInfo,
                 updatedAuditInfo,
                 Tombstone.active());
+    }
+
+    public void updateFrom(Account account) {
+        this.name = account.name();
+        this.balance = account.balance().value();
+        this.currency = account.balance().currency();
+        this.updatedAt = account.lastUpdatedAt();
+        this.updatedBy = account.lastUpdatedBy().value();
     }
 }

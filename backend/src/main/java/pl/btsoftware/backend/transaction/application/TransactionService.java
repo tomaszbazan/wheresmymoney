@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.transaction.application;
 
+import static pl.btsoftware.backend.transaction.domain.BillId.generate;
+
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,7 @@ import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.transaction.domain.Bill;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionHash;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
@@ -35,7 +38,8 @@ public class TransactionService {
     public Transaction createTransaction(CreateTransactionCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
         var account = accountModuleFacade.getAccount(command.accountId(), user.groupId());
-        validateCurrencyMatch(command.amount().currency(), account.balance().currency());
+        var bill = command.billCommand().toDomain();
+        validateCurrencyMatch(bill.totalAmount().currency(), account.balance().currency());
         validateCategoriesExist(command.type(), user.groupId());
 
         var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value());
@@ -54,7 +58,10 @@ public class TransactionService {
         }
 
         auditModuleFacade.logTransactionCreated(
-                transaction.id(), transaction.description(), command.userId(), user.groupId());
+                transaction.id(),
+                transaction.description(),
+                command.userId(),
+                user.groupId());
         return transaction;
     }
 
@@ -126,18 +133,18 @@ public class TransactionService {
             updatedTransaction = updatedTransaction.updateAmount(command.amount(), userId);
         }
 
-        if (command.description() != null) {
-            updatedTransaction =
-                    updatedTransaction.updateDescription(command.description(), userId);
-        }
-
-        if (command.categoryId() != null) {
-            updatedTransaction = updatedTransaction.updateCategory(command.categoryId(), userId);
+        if (command.billItems() != null && !command.billItems().isEmpty()) {
+            var items = command.billItems().stream().map(BillItemCommand::toDomain).toList();
+            var newBill = new Bill(generate(), items);
+            updatedTransaction = updatedTransaction.updateBill(newBill, userId);
         }
 
         transactionRepository.store(updatedTransaction);
         auditModuleFacade.logTransactionUpdated(
-                command.transactionId(), updatedTransaction.description(), userId, user.groupId());
+                command.transactionId(),
+                updatedTransaction.description(),
+                userId,
+                user.groupId());
         return updatedTransaction;
     }
 
@@ -219,7 +226,8 @@ public class TransactionService {
     private void validateCurrencyForAllCommands(
             List<CreateTransactionCommand> commands, Currency accountCurrency) {
         for (var command : commands) {
-            validateCurrencyMatch(command.amount().currency(), accountCurrency);
+            var bill = command.billCommand().toDomain();
+            validateCurrencyMatch(bill.totalAmount().currency(), accountCurrency);
         }
     }
 }

@@ -24,14 +24,16 @@ import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.application.CreateCategoryCommand;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.*;
+import pl.btsoftware.backend.transaction.application.BillItemCommand;
 import pl.btsoftware.backend.transaction.application.BulkCreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.transaction.application.TransactionService;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
+import pl.btsoftware.backend.transaction.infrastructure.persistance.TransactionCommandFixture;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.error.BillItemDescriptionTooLongException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
-import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.application.RegisterUserCommand;
@@ -94,7 +96,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Salary payment",
@@ -112,7 +114,9 @@ public class TransactionServiceTest {
         assertThat(transaction.amount().value()).isEqualTo(new BigDecimal("100.00"));
         assertThat(transaction.type()).isEqualTo(INCOME);
         assertThat(transaction.description()).isEqualTo("Salary payment");
-        assertThat(transaction.categoryId()).isNotNull();
+        assertThat(transaction.bill()).isNotNull();
+        assertThat(transaction.bill().items()).hasSize(1);
+        assertThat(transaction.bill().items().getFirst().categoryId()).isNotNull();
         assertThat(transaction.amount().currency()).isEqualTo(PLN);
         assertThat(transaction.tombstone().isDeleted()).isFalse();
 
@@ -132,7 +136,7 @@ public class TransactionServiceTest {
                 accountId.id(), Money.of(new BigDecimal("200.00"), PLN), userId);
 
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("50.00"), PLN),
                         "Grocery shopping",
@@ -162,7 +166,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "",
@@ -187,7 +191,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         null,
@@ -213,7 +217,7 @@ public class TransactionServiceTest {
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var longDescription = "A".repeat(101);
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         longDescription,
@@ -224,8 +228,7 @@ public class TransactionServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(TransactionDescriptionTooLongException.class)
-                .hasMessage("Description cannot exceed 100 characters");
+                .isInstanceOf(BillItemDescriptionTooLongException.class);
     }
 
     @Test
@@ -236,7 +239,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), EUR),
                         "Payment",
@@ -260,7 +263,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Test transaction",
@@ -304,7 +307,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command1 =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Transaction 1",
@@ -313,7 +316,7 @@ public class TransactionServiceTest {
                         incomeCategoryId,
                         userId);
         var command2 =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("50.00"), PLN),
                         "Transaction 2",
@@ -350,7 +353,7 @@ public class TransactionServiceTest {
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
 
         var command1 =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         account1Id.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Transaction for account 1",
@@ -359,7 +362,7 @@ public class TransactionServiceTest {
                         incomeCategoryId,
                         userId);
         var command2 =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         account2Id.id(),
                         Money.of(new BigDecimal("50.00"), PLN),
                         "Transaction for account 2",
@@ -391,7 +394,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Original transaction",
@@ -403,7 +406,7 @@ public class TransactionServiceTest {
 
         var updateCommand =
                 new UpdateTransactionCommand(
-                        transaction.id(), Money.of(new BigDecimal("150.00"), PLN), null, null);
+                        transaction.id(), Money.of(new BigDecimal("150.00"), PLN), null);
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -411,7 +414,8 @@ public class TransactionServiceTest {
         // Then
         assertThat(updatedTransaction.amount().value()).isEqualTo(new BigDecimal("150.00"));
         assertThat(updatedTransaction.description()).isEqualTo("Original transaction");
-        assertThat(updatedTransaction.categoryId()).isNotNull();
+        assertThat(updatedTransaction.bill()).isNotNull();
+        assertThat(updatedTransaction.bill().items()).hasSize(1);
 
         var account = accountModuleFacade.getAccount(accountId.id(), userId);
         assertThat(account.balance().value()).isEqualTo(new BigDecimal("150.00"));
@@ -426,7 +430,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Original description",
@@ -436,8 +440,13 @@ public class TransactionServiceTest {
                         userId);
         var transaction = transactionService.createTransaction(createCommand);
 
+        var billItem =
+                new BillItemCommand(
+                        transaction.bill().items().getFirst().categoryId(),
+                        transaction.amount(),
+                        "Updated description");
         var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), null, "Updated description", null);
+                new UpdateTransactionCommand(transaction.id(), null, of(billItem));
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -457,7 +466,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Test transaction",
@@ -467,14 +476,18 @@ public class TransactionServiceTest {
                         userId);
         var transaction = transactionService.createTransaction(createCommand);
 
-        var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), null, null, newCategoryId);
+        var billItem =
+                new BillItemCommand(
+                        newCategoryId,
+                        transaction.amount(),
+                        transaction.description());
+        var updateCommand = new UpdateTransactionCommand(transaction.id(), null, of(billItem));
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
 
         // Then
-        assertThat(updatedTransaction.categoryId()).isNotNull();
+        assertThat(updatedTransaction.bill().items().getFirst().categoryId()).isEqualTo(newCategoryId);
         assertThat(updatedTransaction.description()).isEqualTo("Test transaction");
     }
 
@@ -487,7 +500,7 @@ public class TransactionServiceTest {
                 new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var updateCommand =
                 new UpdateTransactionCommand(
-                        nonExistentId, Money.of(new BigDecimal("100.00"), PLN), null, null);
+                        nonExistentId, Money.of(new BigDecimal("100.00"), PLN), null);
 
         // When & Then
         assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
@@ -504,7 +517,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Transaction to delete",
@@ -541,7 +554,7 @@ public class TransactionServiceTest {
                 accountId.id(), new Money(new BigDecimal("200.00"), PLN), userId);
 
         var createCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("50.00"), PLN),
                         "Expense to delete",
@@ -582,7 +595,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Transaction to delete twice",
@@ -612,7 +625,7 @@ public class TransactionServiceTest {
 
         // Existing transaction
         var existingCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId,
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Existing Transaction",
@@ -624,7 +637,7 @@ public class TransactionServiceTest {
 
         // New transactions (one duplicate, one new)
         var newCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId,
                         Money.of(new BigDecimal("200.00"), PLN),
                         "New Transaction",
@@ -664,7 +677,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var command =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Test transaction",
@@ -707,7 +720,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Original transaction",
@@ -717,8 +730,12 @@ public class TransactionServiceTest {
                         userId);
         var transaction = transactionService.createTransaction(createCommand);
 
-        var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), null, "Updated description", null);
+        var billItem =
+                new BillItemCommand(
+                        transaction.bill().items().getFirst().categoryId(),
+                        transaction.amount(),
+                        "Updated description");
+        var updateCommand = new UpdateTransactionCommand(transaction.id(), null, of(billItem));
 
         // When
         transactionService.updateTransaction(updateCommand, userId);
@@ -755,7 +772,7 @@ public class TransactionServiceTest {
                 accountModuleFacade.createAccount(
                         new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var createCommand =
-                new CreateTransactionCommand(
+                TransactionCommandFixture.createCommand(
                         accountId.id(),
                         Money.of(new BigDecimal("100.00"), PLN),
                         "Transaction to delete",

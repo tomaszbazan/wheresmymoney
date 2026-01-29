@@ -1,14 +1,20 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
-import java.util.UUID;
-import pl.btsoftware.backend.shared.CategoryId;
+import java.util.List;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 
-public record UpdateTransactionRequest(Money amount, String description, UUID categoryId) {
+public record UpdateTransactionRequest(Money amount, List<BillItemRequest> billItems) {
+    public UpdateTransactionRequest {
+        billItems = billItems != null ? List.copyOf(billItems) : null;
+    }
+
     public UpdateTransactionCommand toCommand(TransactionId transactionId) {
-        return new UpdateTransactionCommand(
-                transactionId, amount, description, CategoryId.of(categoryId));
+        var billItemCommands =
+                billItems != null
+                        ? billItems.stream().map(BillItemRequest::toCommand).toList()
+                        : null;
+        return new UpdateTransactionCommand(transactionId, amount, billItemCommands);
     }
 }

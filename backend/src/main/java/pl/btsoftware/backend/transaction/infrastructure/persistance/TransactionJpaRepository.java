@@ -23,8 +23,17 @@ public interface TransactionJpaRepository extends JpaRepository<TransactionEntit
     List<TransactionEntity> findByAccountIdAndCreatedByGroupAndIsDeletedFalse(
             UUID accountId, UUID createdByGroup);
 
+    @Query(
+            value =
+                    "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END "
+                            + "FROM transaction t "
+                            + "WHERE jsonb_path_exists(t.bill, '$.items[*] ? (@.categoryId == $categoryId)', "
+                            + "jsonb_build_object('categoryId', CAST(:categoryId AS text))) "
+                            + "AND t.created_by_group = :createdByGroup "
+                            + "AND t.is_deleted = false",
+            nativeQuery = true)
     boolean existsByCategoryIdAndCreatedByGroupAndIsDeletedFalse(
-            UUID categoryId, UUID createdByGroup);
+            @Param("categoryId") UUID categoryId, @Param("createdByGroup") UUID createdByGroup);
 
     boolean existsByAccountIdAndCreatedByGroupAndIsDeletedFalse(
             UUID categoryId, UUID createdByGroup);

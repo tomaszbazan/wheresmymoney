@@ -4,9 +4,6 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.shared.*;
-import pl.btsoftware.backend.shared.validation.NameValidationRules;
-import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionInvalidCharactersException;
-import pl.btsoftware.backend.transaction.domain.error.TransactionDescriptionTooLongException;
 import pl.btsoftware.backend.users.domain.GroupId;
 import pl.btsoftware.backend.users.domain.UserId;
 
@@ -15,8 +12,7 @@ public record Transaction(
         AccountId accountId,
         Money amount,
         TransactionType type,
-        String description,
-        CategoryId categoryId,
+        Bill bill,
         LocalDate transactionDate,
         TransactionHash transactionHash,
         AuditInfo createdInfo,
@@ -27,24 +23,17 @@ public record Transaction(
             AccountId accountId,
             Money amount,
             TransactionType type,
-            String description,
-            CategoryId categoryId,
+            Bill bill,
             LocalDate transactionDate,
             TransactionHash transactionHash,
             AuditInfo createdInfo,
             AuditInfo updatedInfo,
             Tombstone tombstone) {
-        NameValidationRules.validate(
-                description,
-                null,
-                TransactionDescriptionTooLongException::new,
-                TransactionDescriptionInvalidCharactersException::new);
         this.id = id;
         this.accountId = accountId;
         this.amount = amount;
         this.type = type;
-        this.description = description != null ? description.trim() : null;
-        this.categoryId = categoryId;
+        this.bill = bill;
         this.transactionDate = transactionDate;
         this.transactionHash = transactionHash;
         this.createdInfo = createdInfo;
@@ -55,9 +44,8 @@ public record Transaction(
     public static Transaction create(
             AccountId accountId,
             Money amount,
-            String description,
             TransactionType type,
-            CategoryId categoryId,
+            Bill bill,
             LocalDate transactionDate,
             TransactionHash transactionHash,
             AuditInfo createdInfo) {
@@ -66,8 +54,7 @@ public record Transaction(
                 accountId,
                 amount,
                 type,
-                description,
-                categoryId,
+                bill,
                 transactionDate,
                 transactionHash,
                 createdInfo,
@@ -101,8 +88,7 @@ public record Transaction(
                 accountId,
                 newAmount,
                 type,
-                description,
-                categoryId,
+                bill,
                 transactionDate,
                 transactionHash,
                 createdInfo,
@@ -111,30 +97,13 @@ public record Transaction(
                 tombstone);
     }
 
-    public Transaction updateDescription(String newDescription, UserId updatedBy) {
+    public Transaction updateBill(Bill newBill, UserId updatedBy) {
         return new Transaction(
                 id,
                 accountId,
                 amount,
                 type,
-                newDescription,
-                categoryId,
-                transactionDate,
-                transactionHash,
-                createdInfo,
-                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when())
-                        .updateTimestamp(),
-                tombstone);
-    }
-
-    public Transaction updateCategory(CategoryId newCategoryId, UserId updatedBy) {
-        return new Transaction(
-                id,
-                accountId,
-                amount,
-                type,
-                description,
-                newCategoryId,
+                newBill,
                 transactionDate,
                 transactionHash,
                 createdInfo,
@@ -149,8 +118,7 @@ public record Transaction(
                 accountId,
                 amount,
                 type,
-                description,
-                categoryId,
+                bill,
                 transactionDate,
                 transactionHash,
                 createdInfo,
@@ -160,5 +128,16 @@ public record Transaction(
 
     public boolean isDeleted() {
         return tombstone.isDeleted();
+    }
+
+    public String description() {
+        if (bill.items().size() == 1) {
+            return bill.items().getFirst().description();
+        }
+        return bill.items().stream()
+                .map(item -> item.description() != null ? item.description() : "")
+                .filter(desc -> !desc.isEmpty())
+                .findFirst()
+                .orElse(null);
     }
 }

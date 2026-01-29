@@ -16,8 +16,8 @@ public class TransactionHashCalculator {
             String description,
             LocalDate transactionDate,
             TransactionType type) {
-        String normalizedDescription = description != null ? description.trim().toLowerCase() : "";
-        String concatenated =
+        var normalizedDescription = description != null ? description.trim().toLowerCase() : "";
+        var concatenated =
                 accountId.value().toString()
                         + amount.value().toString()
                         + amount.currency().name()
