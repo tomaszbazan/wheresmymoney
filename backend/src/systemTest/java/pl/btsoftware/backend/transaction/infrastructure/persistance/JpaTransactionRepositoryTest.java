@@ -199,54 +199,6 @@ public class JpaTransactionRepositoryTest {
     }
 
     @Test
-    void shouldFindTransactionsByAccountId() {
-        // given
-        var targetAccountId = AccountId.generate();
-        var otherAccountId = AccountId.generate();
-
-        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
-        var transaction1 =
-                createTransaction(
-                        targetAccountId,
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Target account tx 1",
-                        INCOME,
-                        CategoryId.generate(),
-                        auditInfo);
-        var transaction2 =
-                createTransaction(
-                        otherAccountId,
-                        Money.of(new BigDecimal("50.00"), PLN),
-                        "Other account tx",
-                        EXPENSE,
-                        CategoryId.generate(),
-                        auditInfo);
-        var transaction3 =
-                createTransaction(
-                        targetAccountId,
-                        Money.of(new BigDecimal("25.00"), PLN),
-                        "Target account tx 2",
-                        EXPENSE,
-                        CategoryId.generate(),
-                        auditInfo);
-
-        transactionRepository.store(transaction1);
-        transactionRepository.store(transaction2);
-        transactionRepository.store(transaction3);
-
-        // when
-        var accountTransactions =
-                transactionRepository.findByAccountId(targetAccountId, testGroupId);
-
-        // then
-        assertThat(accountTransactions).hasSize(2);
-        assertThat(accountTransactions)
-                .extracting(Transaction::description)
-                .containsExactlyInAnyOrder("Target account tx 1", "Target account tx 2");
-        assertThat(accountTransactions).allMatch(t -> t.accountId().equals(targetAccountId));
-    }
-
-    @Test
     void shouldNotIncludeDeletedTransactionsInAccountQuery() {
         // given
         var accountId = AccountId.generate();
@@ -276,24 +228,13 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(toDeleteTransaction.delete());
 
         // when
-        var accountTransactions = transactionRepository.findByAccountId(accountId, testGroupId);
+        var accountTransactions =
+                transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).stream().toList();
 
         // then
         assertThat(accountTransactions).hasSize(1);
         assertThat(accountTransactions.getFirst().description()).isEqualTo("Active transaction");
         assertThat(accountTransactions.getFirst().tombstone().isDeleted()).isFalse();
-    }
-
-    @Test
-    void shouldReturnEmptyListWhenNoTransactionsForAccount() {
-        // given
-        var nonExistentAccountId = AccountId.generate();
-
-        // when
-        var transactions = transactionRepository.findByAccountId(nonExistentAccountId, testGroupId);
-
-        // then
-        assertThat(transactions).isEmpty();
     }
 
     @Test
@@ -383,7 +324,8 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(usdTransaction);
         transactionRepository.store(gbpTransaction);
 
-        var accountTransactions = transactionRepository.findByAccountId(accountId, testGroupId);
+        var accountTransactions =
+                transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).stream().toList();
 
         // then
         assertThat(accountTransactions).hasSize(4);
@@ -418,7 +360,8 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(incomeTransaction);
         transactionRepository.store(expenseTransaction);
 
-        var accountTransactions = transactionRepository.findByAccountId(accountId, testGroupId);
+        var accountTransactions =
+                transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).stream().toList();
 
         // then
         assertThat(accountTransactions).hasSize(2);

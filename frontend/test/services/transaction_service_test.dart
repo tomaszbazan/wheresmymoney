@@ -89,40 +89,6 @@ void main() {
       expect(() => transactionService.getTransactions(page: 0, size: 20), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
     });
 
-    test('getTransactionsByAccountId sends GET to correct endpoint', () async {
-      final mockClient = MockClient((request) async {
-        expect(request.method, 'GET');
-        expect(request.url.path, '/api/accounts/acc-123/transactions');
-        expect(request.headers['Authorization'], 'Bearer fake-jwt-token');
-
-        return http.Response(
-          jsonEncode({
-            'transactions': [
-              {
-                'id': 'trans-1',
-                'accountId': 'acc-123',
-                'amount': 50.0,
-                'type': 'EXPENSE',
-                'description': 'Groceries',
-                'category': 'cat-2',
-                'createdAt': '2024-01-01T00:00:00Z',
-                'updatedAt': '2024-01-01T00:00:00Z',
-                'transactionDate': '2024-01-01',
-              },
-            ],
-          }),
-          200,
-        );
-      });
-
-      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
-
-      final transactions = await transactionService.getTransactionsByAccountId('acc-123');
-
-      expect(transactions, hasLength(1));
-      expect(transactions.first.accountId, 'acc-123');
-    });
-
     test('createTransaction sends POST with correct body format', () async {
       final mockClient = MockClient((request) async {
         expect(request.method, 'POST');

@@ -248,9 +248,9 @@ void main() {
 
         await service.saveAll('account-1', mockService);
 
-        final transactions = await mockService.getTransactionsByAccountId('account-1');
+        final transactions = await mockService.getTransactions(page: 0, size: 10);
 
-        expect(transactions.length, 1);
+        expect(transactions.totalElements, 1);
         expect(service.proposals.length, 0);
       });
 

@@ -70,20 +70,6 @@ public class TransactionController {
                 categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
     }
 
-    @GetMapping("/accounts/{accountId}/transactions") // TODO: Consider renaming
-    public TransactionsView getAccountTransactions(
-            @PathVariable UUID accountId, @AuthenticationPrincipal Jwt jwt) {
-        var userId = new UserId(jwt.getSubject());
-        log.info(
-                "Received request to get transactions for account with id: {} by user: {}",
-                accountId,
-                userId);
-        var transactions = transactionModuleFacade.getTransactionsByAccountId(accountId, userId);
-        return TransactionsView.from(
-                transactions,
-                categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
-    }
-
     @PutMapping("/transactions/{id}")
     public TransactionView updateTransaction(
             @PathVariable UUID id,

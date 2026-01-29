@@ -368,70 +368,6 @@ class TransactionServiceTest {
     }
 
     @Test
-    void shouldGetTransactionsByAccountId() {
-        // Given
-        var userId1 = UserId.generate();
-        var userId2 = UserId.generate();
-        var createAccountCommand1 = new CreateAccountCommand("Test Account 1", PLN, userId1);
-        var account1 = accountModuleFacade.createAccount(createAccountCommand1);
-        var createAccountCommand2 = new CreateAccountCommand("Test Account 2", PLN, userId2);
-        var account2 = accountModuleFacade.createAccount(createAccountCommand2);
-
-        var categoryId1 = CategoryId.generate();
-        var categoryId2 = CategoryId.generate();
-        var categoryId3 = CategoryId.generate();
-
-        var billItem1 =
-                new BillItemCommand(
-                        categoryId1, Money.of(new BigDecimal("1000.00"), PLN), "Salary");
-        var billCommand1 = new CreateTransactionCommand.BillCommand(List.of(billItem1));
-        var command1 =
-                new CreateTransactionCommand(
-                        account1.id(),
-                        LocalDate.of(2024, 1, 15),
-                        TransactionType.INCOME,
-                        billCommand1,
-                        userId1);
-
-        var billItem2 =
-                new BillItemCommand(
-                        categoryId2, Money.of(new BigDecimal("250.50"), PLN), "Groceries");
-        var billCommand2 = new CreateTransactionCommand.BillCommand(List.of(billItem2));
-        var command2 =
-                new CreateTransactionCommand(
-                        account2.id(),
-                        LocalDate.of(2024, 1, 16),
-                        TransactionType.EXPENSE,
-                        billCommand2,
-                        userId2);
-
-        var billItem3 =
-                new BillItemCommand(categoryId3, Money.of(new BigDecimal("100.00"), PLN), "Coffee");
-        var billCommand3 = new CreateTransactionCommand.BillCommand(List.of(billItem3));
-        var command3 =
-                new CreateTransactionCommand(
-                        account1.id(),
-                        LocalDate.of(2024, 1, 17),
-                        TransactionType.EXPENSE,
-                        billCommand3,
-                        userId1);
-
-        transactionService.createTransaction(command1);
-        transactionService.createTransaction(command2);
-        transactionService.createTransaction(command3);
-
-        // When
-        var account1Transactions =
-                transactionService.getTransactionsByAccountId(account1.id(), testGroupId);
-
-        // Then
-        assertThat(account1Transactions).hasSize(2);
-        assertThat(account1Transactions.stream().map(Transaction::description).toList())
-                .containsExactlyInAnyOrder("Salary", "Coffee");
-        assertThat(account1Transactions).allMatch(t -> t.accountId().equals(account1.id()));
-    }
-
-    @Test
     void shouldUpdateTransactionAmount() {
         // Given
         var userId = UserId.generate();
@@ -620,8 +556,6 @@ class TransactionServiceTest {
 
         // Verify transaction not in normal queries
         assertThat(transactionService.getAllTransactions(testGroupId, Pageable.ofSize(20)))
-                .isEmpty();
-        assertThat(transactionService.getTransactionsByAccountId(account.id(), testGroupId))
                 .isEmpty();
     }
 

@@ -339,52 +339,6 @@ public class TransactionServiceTest {
     }
 
     @Test
-    void shouldRetrieveTransactionsByAccountId() {
-        // Given
-        var userId = createTestUser();
-        var incomeCategoryId = createIncomeCategory(userId);
-        var expenseCategoryId = createExpenseCategory(userId);
-        var account1Id =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var account2Id =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-
-        var command1 =
-                TransactionCommandFixture.createCommand(
-                        account1Id.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Transaction for account 1",
-                        LocalDate.now(),
-                        INCOME,
-                        incomeCategoryId,
-                        userId);
-        var command2 =
-                TransactionCommandFixture.createCommand(
-                        account2Id.id(),
-                        Money.of(new BigDecimal("50.00"), PLN),
-                        "Transaction for account 2",
-                        LocalDate.now(),
-                        TransactionType.EXPENSE,
-                        expenseCategoryId,
-                        userId);
-
-        transactionService.createTransaction(command1);
-        transactionService.createTransaction(command2);
-
-        // When
-        var user = usersModuleFacade.findUserOrThrow(userId);
-        var account1Transactions =
-                transactionService.getTransactionsByAccountId(account1Id.id(), user.groupId());
-
-        // Then
-        assertThat(account1Transactions).hasSize(1);
-        assertThat(account1Transactions.getFirst().description())
-                .isEqualTo("Transaction for account 1");
-    }
-
-    @Test
     void shouldUpdateTransactionAmountAndAdjustAccountBalance() {
         // Given
         var userId = createTestUser();
@@ -656,7 +610,7 @@ public class TransactionServiceTest {
 
         var user = usersModuleFacade.findUserOrThrow(userId);
         var allTransactions =
-                transactionService.getTransactionsByAccountId(accountId, user.groupId());
+                transactionService.getAllTransactions(user.groupId(), Pageable.ofSize(20));
         assertThat(allTransactions).hasSize(2); // 1 existing + 1 new
 
         var account = accountModuleFacade.getAccount(accountId, userId);

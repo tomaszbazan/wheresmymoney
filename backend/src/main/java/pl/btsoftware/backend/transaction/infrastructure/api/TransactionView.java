@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.shared.CategoryId;
+import pl.btsoftware.backend.transaction.domain.Bill;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 
 public record TransactionView(
@@ -15,28 +16,34 @@ public record TransactionView(
         UUID accountId,
         BigDecimal amount,
         String type,
-        List<BillItemView> billItems,
+        BillView bill,
         LocalDate transactionDate,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt) {
-    public TransactionView {
-        billItems = List.copyOf(billItems);
-    }
 
     public static TransactionView from(
             Transaction transaction, Function<CategoryId, Category> categoryMapper) {
-        var billItemViews =
-                transaction.bill().items().stream()
-                        .map(item -> BillItemView.from(item, categoryMapper))
-                        .toList();
         return new TransactionView(
                 transaction.id().value(),
                 transaction.accountId().value(),
                 transaction.amount().value(),
                 transaction.type().name(),
-                billItemViews,
+                BillView.from(transaction.bill(), categoryMapper),
                 transaction.transactionDate(),
                 transaction.createdAt(),
                 transaction.lastUpdatedAt());
+    }
+
+    public record BillView(List<BillItemView> items) {
+        public BillView {
+            items = List.copyOf(items);
+        }
+
+        public static BillView from(Bill bill, Function<CategoryId, Category> categoryMapper) {
+            return new BillView(
+                    bill.items().stream()
+                            .map(item -> BillItemView.from(item, categoryMapper))
+                            .toList());
+        }
     }
 }

@@ -18,8 +18,6 @@ public interface TransactionRepository {
 
     Page<Transaction> findAll(GroupId groupId, Pageable pageable);
 
-    List<Transaction> findByAccountId(AccountId accountId, GroupId groupId);
-
     boolean existsByCategoryId(CategoryId categoryId, GroupId groupId);
 
     boolean existsByAccountId(AccountId accountId, GroupId groupId);

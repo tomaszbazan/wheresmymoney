@@ -50,16 +50,6 @@ public class JpaTransactionRepository implements TransactionRepository {
     }
 
     @Override
-    public List<Transaction> findByAccountId(AccountId accountId, GroupId groupId) {
-        return repository
-                .findByAccountIdAndCreatedByGroupAndIsDeletedFalse(
-                        accountId.value(), groupId.value())
-                .stream()
-                .map(TransactionEntity::toDomain)
-                .toList();
-    }
-
-    @Override
     public boolean existsByCategoryId(CategoryId categoryId, GroupId groupId) {
         return repository.existsByCategoryIdAndCreatedByGroupAndIsDeletedFalse(
                 categoryId.value(), groupId.value());

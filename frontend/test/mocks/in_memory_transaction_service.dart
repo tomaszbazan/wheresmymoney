@@ -26,15 +26,6 @@ class InMemoryTransactionService implements TransactionService {
   }
 
   @override
-  Future<List<Transaction>> getTransactionsByAccountId(String accountId) async {
-    if (_apiError != null) {
-      throw _apiError!;
-    }
-
-    return _transactions.values.where((transaction) => transaction.accountId == accountId).toList();
-  }
-
-  @override
   Future<Transaction> createTransaction({
     required String accountId,
     required double amount,

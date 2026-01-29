@@ -62,29 +62,6 @@ public class TransactionService {
         return transaction;
     }
 
-    private void validateCurrencyMatch(Currency transactionCurrency, Currency accountCurrency) {
-        if (!transactionCurrency.equals(accountCurrency)) {
-            throw new TransactionCurrencyMismatchException(transactionCurrency, accountCurrency);
-        }
-    }
-
-    private void validateCategoriesExist(TransactionType type, GroupId groupId) {
-        var categoryType =
-                type == TransactionType.INCOME ? CategoryType.INCOME : CategoryType.EXPENSE;
-        if (!categoryQueryFacade.hasCategories(categoryType, groupId)) {
-            throw new NoCategoriesAvailableException(categoryType);
-        }
-    }
-
-    private void validateNotDuplicate(AccountId accountId, TransactionHash hash, GroupId groupId) {
-        transactionRepository
-                .findByAccountIdAndHash(accountId, hash, groupId)
-                .ifPresent(
-                        duplicate -> {
-                            throw new DuplicateTransactionException(hash);
-                        });
-    }
-
     public Transaction getTransactionById(TransactionId transactionId, GroupId groupId) {
         return transactionRepository
                 .findById(transactionId, groupId)
@@ -93,10 +70,6 @@ public class TransactionService {
 
     public Page<Transaction> getAllTransactions(GroupId groupId, Pageable pageable) {
         return transactionRepository.findAll(groupId, pageable);
-    }
-
-    public List<Transaction> getTransactionsByAccountId(AccountId accountId, GroupId groupId) {
-        return transactionRepository.findByAccountId(accountId, groupId);
     }
 
     @Transactional
@@ -223,5 +196,28 @@ public class TransactionService {
             var bill = command.billCommand().toDomain();
             validateCurrencyMatch(bill.totalAmount().currency(), accountCurrency);
         }
+    }
+
+    private void validateCurrencyMatch(Currency transactionCurrency, Currency accountCurrency) {
+        if (!transactionCurrency.equals(accountCurrency)) {
+            throw new TransactionCurrencyMismatchException(transactionCurrency, accountCurrency);
+        }
+    }
+
+    private void validateCategoriesExist(TransactionType type, GroupId groupId) {
+        var categoryType =
+                type == TransactionType.INCOME ? CategoryType.INCOME : CategoryType.EXPENSE;
+        if (!categoryQueryFacade.hasCategories(categoryType, groupId)) {
+            throw new NoCategoriesAvailableException(categoryType);
+        }
+    }
+
+    private void validateNotDuplicate(AccountId accountId, TransactionHash hash, GroupId groupId) {
+        transactionRepository
+                .findByAccountIdAndHash(accountId, hash, groupId)
+                .ifPresent(
+                        duplicate -> {
+                            throw new DuplicateTransactionException(hash);
+                        });
     }
 }

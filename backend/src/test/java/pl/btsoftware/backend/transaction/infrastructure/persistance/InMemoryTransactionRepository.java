@@ -56,15 +56,6 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     }
 
     @Override
-    public List<Transaction> findByAccountId(AccountId accountId, GroupId groupId) {
-        return database.values().stream()
-                .filter(transaction -> transaction.accountId().equals(accountId))
-                .filter(transaction -> transaction.ownedBy().equals(groupId))
-                .filter(transaction -> !transaction.tombstone().isDeleted())
-                .toList();
-    }
-
-    @Override
     public boolean existsByCategoryId(CategoryId categoryId, GroupId groupId) {
         return database.values().stream()
                 .filter(transaction -> transaction.ownedBy().equals(groupId))

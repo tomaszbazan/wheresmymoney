@@ -10,8 +10,6 @@ import 'http_client.dart';
 abstract class TransactionService {
   Future<TransactionPage> getTransactions({required int page, required int size});
 
-  Future<List<Transaction>> getTransactionsByAccountId(String accountId);
-
   Future<Transaction> createTransaction({
     required String accountId,
     required double amount,
@@ -36,11 +34,6 @@ class RestTransactionService implements TransactionService {
   @override
   Future<TransactionPage> getTransactions({required int page, required int size}) async {
     return await _apiClient.get<TransactionPage>('/transactions?page=$page&size=$size', TransactionPage.fromJson);
-  }
-
-  @override
-  Future<List<Transaction>> getTransactionsByAccountId(String accountId) async {
-    return await _apiClient.getList<Transaction>('/accounts/$accountId/transactions', 'transactions', Transaction.fromJson);
   }
 
   @override
