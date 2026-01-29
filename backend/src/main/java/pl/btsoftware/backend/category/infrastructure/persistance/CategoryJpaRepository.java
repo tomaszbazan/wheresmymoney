@@ -2,6 +2,7 @@ package pl.btsoftware.backend.category.infrastructure.persistance;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,7 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, UUI
 
     List<CategoryEntity> findByTypeAndCreatedByGroupAndIsDeletedFalse(
             CategoryType type, UUID createdByGroup);
+
+    List<CategoryEntity> findByIdInAndCreatedByGroupAndIsDeletedFalse(
+            Set<UUID> ids, UUID createdByGroup);
 }

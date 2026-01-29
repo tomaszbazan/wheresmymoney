@@ -3,6 +3,7 @@ package pl.btsoftware.backend.category.infrastructure.persistance;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import pl.btsoftware.backend.category.domain.Category;
@@ -39,6 +40,17 @@ public class InMemoryCategoryRepository implements CategoryRepository {
                 .filter(
                         category ->
                                 category.type().equals(type)
+                                        && category.ownedBy().equals(groupId)
+                                        && !category.isDeleted())
+                .toList();
+    }
+
+    @Override
+    public List<Category> findAllByIds(Set<CategoryId> ids, GroupId groupId) {
+        return database.values().stream()
+                .filter(
+                        category ->
+                                ids.contains(category.id())
                                         && category.ownedBy().equals(groupId)
                                         && !category.isDeleted())
                 .toList();

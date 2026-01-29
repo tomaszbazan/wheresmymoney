@@ -10,7 +10,6 @@ import pl.btsoftware.backend.users.domain.UserId;
 public record Transaction(
         TransactionId id,
         AccountId accountId,
-        Money amount,
         TransactionType type,
         Bill bill,
         LocalDate transactionDate,
@@ -21,7 +20,6 @@ public record Transaction(
     public Transaction(
             TransactionId id,
             AccountId accountId,
-            Money amount,
             TransactionType type,
             Bill bill,
             LocalDate transactionDate,
@@ -31,7 +29,6 @@ public record Transaction(
             Tombstone tombstone) {
         this.id = id;
         this.accountId = accountId;
-        this.amount = amount;
         this.type = type;
         this.bill = bill;
         this.transactionDate = transactionDate;
@@ -43,7 +40,6 @@ public record Transaction(
 
     public static Transaction create(
             AccountId accountId,
-            Money amount,
             TransactionType type,
             Bill bill,
             LocalDate transactionDate,
@@ -52,7 +48,6 @@ public record Transaction(
         return new Transaction(
                 TransactionId.generate(),
                 accountId,
-                amount,
                 type,
                 bill,
                 transactionDate,
@@ -82,26 +77,10 @@ public record Transaction(
         return updatedInfo.when();
     }
 
-    public Transaction updateAmount(Money newAmount, UserId updatedBy) {
-        return new Transaction(
-                id,
-                accountId,
-                newAmount,
-                type,
-                bill,
-                transactionDate,
-                transactionHash,
-                createdInfo,
-                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when())
-                        .updateTimestamp(),
-                tombstone);
-    }
-
     public Transaction updateBill(Bill newBill, UserId updatedBy) {
         return new Transaction(
                 id,
                 accountId,
-                amount,
                 type,
                 newBill,
                 transactionDate,
@@ -116,7 +95,6 @@ public record Transaction(
         return new Transaction(
                 id,
                 accountId,
-                amount,
                 type,
                 bill,
                 transactionDate,
@@ -139,5 +117,9 @@ public record Transaction(
                 .filter(desc -> !desc.isEmpty())
                 .findFirst()
                 .orElse(null);
+    }
+
+    public Money amount() {
+        return bill.totalAmount();
     }
 }

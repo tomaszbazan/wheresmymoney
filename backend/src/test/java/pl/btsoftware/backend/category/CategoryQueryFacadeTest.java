@@ -2,105 +2,113 @@ package pl.btsoftware.backend.category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.instancio.Select.field;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
+import java.util.Set;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import pl.btsoftware.backend.audit.AuditModuleFacade;
-import pl.btsoftware.backend.category.application.CategoryService;
-import pl.btsoftware.backend.category.application.CreateCategoryCommand;
+import pl.btsoftware.backend.account.domain.AuditInfo;
+import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.category.infrastructure.persistance.InMemoryCategoryRepository;
-import pl.btsoftware.backend.shared.CategoryType;
-import pl.btsoftware.backend.transaction.TransactionQueryFacade;
-import pl.btsoftware.backend.users.UsersModuleFacade;
+import pl.btsoftware.backend.shared.CategoryId;
+import pl.btsoftware.backend.shared.Tombstone;
 import pl.btsoftware.backend.users.domain.GroupId;
-import pl.btsoftware.backend.users.domain.User;
 
 class CategoryQueryFacadeTest {
 
     private CategoryQueryFacade categoryQueryFacade;
     private InMemoryCategoryRepository categoryRepository;
-    private CategoryService categoryService;
-    private UsersModuleFacade usersModuleFacade;
 
     @BeforeEach
     void setUp() {
         categoryRepository = new InMemoryCategoryRepository();
-        var transactionQueryFacade = mock(TransactionQueryFacade.class);
-        usersModuleFacade = mock(UsersModuleFacade.class);
-        var auditModuleFacade = mock(AuditModuleFacade.class);
-        categoryService =
-                new CategoryService(
-                        categoryRepository,
-                        usersModuleFacade,
-                        transactionQueryFacade,
-                        auditModuleFacade);
         categoryQueryFacade = new CategoryQueryFacade(categoryRepository);
     }
 
-    @Test
-    void shouldReturnFalseWhenNoCategoriesExist() {
-        var groupId = GroupId.generate();
+    @Nested
+    class AllCategoriesExists {
 
-        var hasCategories = categoryQueryFacade.hasCategories(CategoryType.EXPENSE, groupId);
+        @Test
+        void shouldReturnFalseWhenNoCategoriesExist() {
+            // given
+            var groupId = GroupId.generate();
+            var categoryId = CategoryId.generate();
 
-        assertThat(hasCategories).isFalse();
-    }
+            // when
+            var allExist = categoryQueryFacade.allCategoriesExists(Set.of(categoryId), groupId);
 
-    @Test
-    void shouldReturnTrueWhenCategoriesExist() {
-        var groupId = GroupId.generate();
-        var user = Instancio.of(User.class).set(field(User::groupId), groupId).create();
-        when(usersModuleFacade.findUserOrThrow(user.id())).thenReturn(user);
+            // then
+            assertThat(allExist).isFalse();
+        }
 
-        var command =
-                Instancio.of(CreateCategoryCommand.class)
-                        .set(field(CreateCategoryCommand::userId), user.id())
-                        .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
-                        .create();
-        categoryService.createCategory(command);
+        @Test
+        void shouldReturnTrueWhenAllCategoriesExist() {
+            // given
+            var groupId = GroupId.generate();
+            var category1 =
+                    Instancio.of(Category.class)
+                            .set(field(AuditInfo::fromGroup), groupId)
+                            .set(field(Category::tombstone), Tombstone.active())
+                            .set(field(Category::name), "Test Category")
+                            .create();
+            categoryRepository.store(category1);
 
-        var hasCategories = categoryQueryFacade.hasCategories(CategoryType.EXPENSE, groupId);
+            var category2 =
+                    Instancio.of(Category.class)
+                            .set(field(AuditInfo::fromGroup), groupId)
+                            .set(field(Category::tombstone), Tombstone.active())
+                            .set(field(Category::name), "Test Category")
+                            .create();
+            categoryRepository.store(category2);
 
-        assertThat(hasCategories).isTrue();
-    }
+            // when
+            var allExist =
+                    categoryQueryFacade.allCategoriesExists(
+                            Set.of(category1.id(), category2.id()), groupId);
 
-    @Test
-    void shouldReturnFalseForDifferentCategoryType() {
-        var groupId = GroupId.generate();
-        var user = Instancio.of(User.class).set(field(User::groupId), groupId).create();
-        when(usersModuleFacade.findUserOrThrow(user.id())).thenReturn(user);
+            // then
+            assertThat(allExist).isTrue();
+        }
 
-        var command =
-                Instancio.of(CreateCategoryCommand.class)
-                        .set(field(CreateCategoryCommand::userId), user.id())
-                        .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
-                        .create();
-        categoryService.createCategory(command);
+        @Test
+        void shouldReturnFalseWhenCategoriesAreDeleted() {
+            // given
+            var groupId = GroupId.generate();
+            var category =
+                    Instancio.of(Category.class)
+                            .set(field(AuditInfo::fromGroup), groupId)
+                            .set(field(Category::tombstone), Tombstone.deleted())
+                            .set(field(Category::name), "Test Category")
+                            .create();
+            categoryRepository.store(category);
 
-        var hasCategories = categoryQueryFacade.hasCategories(CategoryType.INCOME, groupId);
+            // when
+            var allExist = categoryQueryFacade.allCategoriesExists(Set.of(category.id()), groupId);
 
-        assertThat(hasCategories).isFalse();
-    }
+            // then
+            assertThat(allExist).isFalse();
+        }
 
-    @Test
-    void shouldReturnFalseForDifferentGroup() {
-        var groupId1 = GroupId.generate();
-        var groupId2 = GroupId.generate();
-        var user = Instancio.of(User.class).set(field(User::groupId), groupId1).create();
-        when(usersModuleFacade.findUserOrThrow(user.id())).thenReturn(user);
+        @Test
+        void shouldReturnFalseWhenCategoryExistsForDifferentGroup() {
+            // given
+            var groupId1 = GroupId.generate();
+            var groupId2 = GroupId.generate();
 
-        var command =
-                Instancio.of(CreateCategoryCommand.class)
-                        .set(field(CreateCategoryCommand::userId), user.id())
-                        .set(field(CreateCategoryCommand::type), CategoryType.EXPENSE)
-                        .create();
-        categoryService.createCategory(command);
+            var category =
+                    Instancio.of(Category.class)
+                            .set(field(AuditInfo::fromGroup), groupId1)
+                            .set(field(Category::tombstone), Tombstone.active())
+                            .set(field(Category::name), "Test Category")
+                            .create();
+            categoryRepository.store(category);
 
-        var hasCategories = categoryQueryFacade.hasCategories(CategoryType.EXPENSE, groupId2);
+            // when
+            var allExist = categoryQueryFacade.allCategoriesExists(Set.of(category.id()), groupId2);
 
-        assertThat(hasCategories).isFalse();
+            // then
+            assertThat(allExist).isFalse();
+        }
     }
 }

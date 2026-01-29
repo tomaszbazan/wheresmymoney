@@ -34,8 +34,15 @@ void main() {
                 'accountId': 'acc-1',
                 'amount': 100.0,
                 'type': 'INCOME',
-                'description': 'Salary',
-                'category': 'cat-1',
+                'bill': {
+                  'items': [
+                    {
+                      'category': {'id': 'cat-1', 'name': 'Salary'},
+                      'amount': 100.0,
+                      'description': 'Salary',
+                    },
+                  ],
+                },
                 'createdAt': '2024-01-01T00:00:00Z',
                 'updatedAt': '2024-01-01T00:00:00Z',
                 'transactionDate': '2024-01-01',
@@ -97,12 +104,13 @@ void main() {
 
         final body = jsonDecode(request.body) as Map<String, dynamic>;
         expect(body['accountId'], 'acc-1');
-        expect(body['amount']['value'], 100.0);
-        expect(body['amount']['currency'], 'PLN');
-        expect(body['description'], 'Test transaction');
         expect(body['type'], 'INCOME');
-        expect(body['categoryId'], 'cat-1');
         expect(body['transactionDate'], isNotNull);
+        expect(body['bill']['billItems'], hasLength(1));
+        expect(body['bill']['billItems'][0]['categoryId'], 'cat-1');
+        expect(body['bill']['billItems'][0]['amount']['value'], 100.0);
+        expect(body['bill']['billItems'][0]['amount']['currency'], 'PLN');
+        expect(body['bill']['billItems'][0]['description'], 'Test transaction');
 
         return http.Response(
           jsonEncode({
@@ -110,8 +118,15 @@ void main() {
             'accountId': 'acc-1',
             'amount': 100.0,
             'type': 'INCOME',
-            'description': 'Test transaction',
-            'category': 'cat-1',
+            'bill': {
+              'items': [
+                {
+                  'category': {'id': 'cat-1', 'name': 'Category'},
+                  'amount': 100.0,
+                  'description': 'Test transaction',
+                },
+              ],
+            },
             'createdAt': '2024-01-01T00:00:00Z',
             'updatedAt': '2024-01-01T00:00:00Z',
             'transactionDate': '2024-01-01',
@@ -124,11 +139,11 @@ void main() {
 
       final transaction = await transactionService.createTransaction(
         accountId: 'acc-1',
-        amount: 100.0,
-        description: 'Test transaction',
         transactionDate: DateTime(2024, 1, 1),
         type: TransactionType.income,
-        categoryId: 'cat-1',
+        billItems: [
+          {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test transaction'},
+        ],
         currency: 'pln',
       );
 
@@ -140,7 +155,7 @@ void main() {
       final mockClient = MockClient((request) async {
         final body = jsonDecode(request.body) as Map<String, dynamic>;
         expect(body['type'], 'EXPENSE');
-        expect(body['amount']['currency'], 'USD');
+        expect(body['bill']['billItems'][0]['amount']['currency'], 'USD');
 
         return http.Response(
           jsonEncode({
@@ -148,8 +163,15 @@ void main() {
             'accountId': 'acc-1',
             'amount': 50.0,
             'type': 'EXPENSE',
-            'description': 'Coffee',
-            'category': 'cat-1',
+            'bill': {
+              'items': [
+                {
+                  'category': {'id': 'cat-1', 'name': 'Category'},
+                  'amount': 50.0,
+                  'description': 'Coffee',
+                },
+              ],
+            },
             'createdAt': '2024-01-01T00:00:00Z',
             'updatedAt': '2024-01-01T00:00:00Z',
             'transactionDate': '2024-01-01',
@@ -162,11 +184,11 @@ void main() {
 
       await transactionService.createTransaction(
         accountId: 'acc-1',
-        amount: 50.0,
-        description: 'Coffee',
         transactionDate: DateTime(2024, 1, 1),
         type: TransactionType.expense,
-        categoryId: 'cat-1',
+        billItems: [
+          {'categoryId': 'cat-1', 'amount': 50.0, 'description': 'Coffee'},
+        ],
         currency: 'usd',
       );
     });
@@ -181,11 +203,11 @@ void main() {
       expect(
         () => transactionService.createTransaction(
           accountId: 'acc-1',
-          amount: 100.0,
-          description: 'Test',
           transactionDate: DateTime.now(),
           type: TransactionType.income,
-          categoryId: 'cat-1',
+          billItems: [
+            {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test'},
+          ],
           currency: 'pln',
         ),
         throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 422)),
@@ -199,10 +221,11 @@ void main() {
         expect(request.headers['Authorization'], 'Bearer fake-jwt-token');
 
         final body = jsonDecode(request.body) as Map<String, dynamic>;
-        expect(body['amount']['value'], 150.0);
-        expect(body['amount']['currency'], 'EUR');
-        expect(body['description'], 'Updated description');
-        expect(body['categoryId'], 'cat-2');
+        expect(body['bill']['billItems'], hasLength(1));
+        expect(body['bill']['billItems'][0]['amount']['value'], 150.0);
+        expect(body['bill']['billItems'][0]['amount']['currency'], 'EUR');
+        expect(body['bill']['billItems'][0]['description'], 'Updated description');
+        expect(body['bill']['billItems'][0]['categoryId'], 'cat-2');
 
         return http.Response(
           jsonEncode({
@@ -210,8 +233,15 @@ void main() {
             'accountId': 'acc-1',
             'amount': 150.0,
             'type': 'INCOME',
-            'description': 'Updated description',
-            'category': 'cat-2',
+            'bill': {
+              'items': [
+                {
+                  'category': {'id': 'cat-2', 'name': 'Category'},
+                  'amount': 150.0,
+                  'description': 'Updated description',
+                },
+              ],
+            },
             'createdAt': '2024-01-01T00:00:00Z',
             'updatedAt': '2024-01-02T00:00:00Z',
             'transactionDate': '2024-01-01',
@@ -222,7 +252,13 @@ void main() {
 
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
-      final transaction = await transactionService.updateTransaction(id: 'trans-123', amount: 150.0, description: 'Updated description', categoryId: 'cat-2', currency: 'eur');
+      final transaction = await transactionService.updateTransaction(
+        id: 'trans-123',
+        billItems: [
+          {'categoryId': 'cat-2', 'amount': 150.0, 'description': 'Updated description'},
+        ],
+        currency: 'eur',
+      );
 
       expect(transaction.id, 'trans-123');
       expect(transaction.description, 'Updated description');
@@ -231,7 +267,7 @@ void main() {
     test('updateTransaction converts currency to uppercase', () async {
       final mockClient = MockClient((request) async {
         final body = jsonDecode(request.body) as Map<String, dynamic>;
-        expect(body['amount']['currency'], 'GBP');
+        expect(body['bill']['billItems'][0]['amount']['currency'], 'GBP');
 
         return http.Response(
           jsonEncode({
@@ -239,8 +275,15 @@ void main() {
             'accountId': 'acc-1',
             'amount': 100.0,
             'type': 'INCOME',
-            'description': 'Test',
-            'category': 'cat-1',
+            'bill': {
+              'items': [
+                {
+                  'category': {'id': 'cat-1', 'name': 'Category'},
+                  'amount': 100.0,
+                  'description': 'Test',
+                },
+              ],
+            },
             'createdAt': '2024-01-01T00:00:00Z',
             'updatedAt': '2024-01-01T00:00:00Z',
             'transactionDate': '2024-01-01',
@@ -251,7 +294,13 @@ void main() {
 
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
-      await transactionService.updateTransaction(id: 'trans-id', amount: 100.0, description: 'Test', categoryId: 'cat-1', currency: 'gbp');
+      await transactionService.updateTransaction(
+        id: 'trans-id',
+        billItems: [
+          {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test'},
+        ],
+        currency: 'gbp',
+      );
     });
 
     test('updateTransaction throws HttpException on error', () async {
@@ -262,7 +311,13 @@ void main() {
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(
-        () => transactionService.updateTransaction(id: 'non-existent', amount: 100.0, description: 'Test', categoryId: 'cat-1', currency: 'pln'),
+        () => transactionService.updateTransaction(
+          id: 'non-existent',
+          billItems: [
+            {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test'},
+          ],
+          currency: 'pln',
+        ),
         throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 404)),
       );
     });

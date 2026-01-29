@@ -174,7 +174,6 @@ class TransactionQueryFacadeTest {
         var transaction =
                 Transaction.create(
                         accountId,
-                        Money.zero(),
                         TransactionType.EXPENSE,
                         bill,
                         LocalDate.now(),

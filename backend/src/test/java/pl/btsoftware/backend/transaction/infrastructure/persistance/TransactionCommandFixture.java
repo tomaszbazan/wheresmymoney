@@ -6,6 +6,7 @@ import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
+import pl.btsoftware.backend.transaction.application.BillCommand;
 import pl.btsoftware.backend.transaction.application.BillItemCommand;
 import pl.btsoftware.backend.transaction.application.CreateTransactionCommand;
 import pl.btsoftware.backend.users.domain.UserId;
@@ -20,7 +21,7 @@ public final class TransactionCommandFixture {
             CategoryId categoryId,
             UserId userId) {
         var billItem = new BillItemCommand(categoryId, amount, description);
-        var billCommand = new CreateTransactionCommand.BillCommand(List.of(billItem));
+        var billCommand = new BillCommand(List.of(billItem));
         return new CreateTransactionCommand(accountId, transactionDate, type, billCommand, userId);
     }
 }

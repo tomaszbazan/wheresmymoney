@@ -14,13 +14,16 @@ class BillItemTest {
 
     @Test
     void shouldCreateBillItemWithAllFields() {
+        // given
         var billItemId = BillItemId.generate();
         var categoryId = CategoryId.generate();
-        var amount = Money.of(BigDecimal.valueOf(10.50));
+        var amount = Money.of(new BigDecimal("10.50"));
         var description = "Coca Cola 2L";
 
+        // when
         var billItem = new BillItem(billItemId, categoryId, amount, description);
 
+        // then
         assertThat(billItem.id()).isEqualTo(billItemId);
         assertThat(billItem.categoryId()).isEqualTo(categoryId);
         assertThat(billItem.amount()).isEqualTo(amount);
@@ -29,12 +32,15 @@ class BillItemTest {
 
     @Test
     void shouldCreateBillItemWithNullDescription() {
+        // given
         var billItemId = BillItemId.generate();
         var categoryId = CategoryId.generate();
-        var amount = Money.of(BigDecimal.valueOf(5.00));
+        var amount = Money.of(new BigDecimal("5.00"));
 
+        // when
         var billItem = new BillItem(billItemId, categoryId, amount, null);
 
+        // then
         assertThat(billItem.id()).isEqualTo(billItemId);
         assertThat(billItem.categoryId()).isEqualTo(categoryId);
         assertThat(billItem.amount()).isEqualTo(amount);
@@ -43,39 +49,41 @@ class BillItemTest {
 
     @Test
     void shouldTrimDescription() {
-        var billItem =
-                new BillItem(
-                        BillItemId.generate(),
-                        CategoryId.generate(),
-                        Money.of(BigDecimal.valueOf(10.00)),
-                        "  Trimmed  ");
+        // given
+        var description = "  Trimmed  ";
 
+        // when
+        var billItem = billItemWithDescription(description);
+
+        // then
         assertThat(billItem.description()).isEqualTo("Trimmed");
     }
 
     @Test
     void shouldFailWhenDescriptionTooLong() {
+        // given
         var longDescription = "a".repeat(256);
 
-        assertThatThrownBy(
-                        () ->
-                                new BillItem(
-                                        BillItemId.generate(),
-                                        CategoryId.generate(),
-                                        Money.of(BigDecimal.valueOf(10.00)),
-                                        longDescription))
+        // when // then
+        assertThatThrownBy(() -> billItemWithDescription(longDescription))
                 .isInstanceOf(BillItemDescriptionTooLongException.class);
     }
 
     @Test
     void shouldFailWhenDescriptionContainsInvalidCharacters() {
-        assertThatThrownBy(
-                        () ->
-                                new BillItem(
-                                        BillItemId.generate(),
-                                        CategoryId.generate(),
-                                        Money.of(BigDecimal.valueOf(10.00)),
-                                        "Invalid\u0000chars"))
+        // given
+        var description = "Invalid\u0000chars";
+
+        // when // then
+        assertThatThrownBy(() -> billItemWithDescription(description))
                 .isInstanceOf(BillItemDescriptionInvalidCharactersException.class);
+    }
+
+    private BillItem billItemWithDescription(String description) {
+        return new BillItem(
+                BillItemId.generate(),
+                CategoryId.generate(),
+                Money.of(new BigDecimal("10.00")),
+                description);
     }
 }

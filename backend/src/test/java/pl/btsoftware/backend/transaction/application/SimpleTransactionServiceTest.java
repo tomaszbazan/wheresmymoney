@@ -19,7 +19,6 @@ import pl.btsoftware.backend.account.infrastructure.persistance.InMemoryAccountR
 import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.CategoryQueryFacade;
 import pl.btsoftware.backend.shared.CategoryId;
-import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.transaction.TransactionQueryFacade;
@@ -45,8 +44,7 @@ class SimpleTransactionServiceTest {
         var mockUser =
                 User.create(new UserId("user-123"), "test@example.com", "Test User", testGroupId);
         when(usersModuleFacade.findUserOrThrow(any(UserId.class))).thenReturn(mockUser);
-        when(categoryQueryFacade.hasCategories(any(CategoryType.class), any(GroupId.class)))
-                .thenReturn(true);
+        when(categoryQueryFacade.allCategoriesExists(any(), any(GroupId.class))).thenReturn(true);
 
         var auditModuleFacade = Mockito.mock(AuditModuleFacade.class);
         var accountService =

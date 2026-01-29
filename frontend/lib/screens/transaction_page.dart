@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/account.dart';
 import '../models/category_type.dart';
-import '../models/transaction.dart';
+import '../models/transaction/transaction.dart';
 import '../models/transaction_type.dart';
 import '../services/account_service.dart';
 import '../services/category_service.dart';
@@ -10,24 +10,29 @@ import '../services/csv_import_service.dart';
 import '../services/transaction_service.dart';
 import '../utils/error_handler.dart';
 import '../widgets/csv_upload_dialog.dart';
+import '../widgets/no_accounts_dialog.dart';
 import '../widgets/no_categories_dialog.dart';
 import '../widgets/paginated_transaction_list.dart';
 import '../widgets/transaction_form.dart';
 
 class TransactionsPage extends StatefulWidget {
   final TransactionType type;
+  final TransactionService? transactionService;
+  final AccountService? accountService;
+  final CategoryService? categoryService;
+  final CsvImportService? csvImportService;
 
-  const TransactionsPage({super.key, required this.type});
+  const TransactionsPage({super.key, required this.type, this.transactionService, this.accountService, this.categoryService, this.csvImportService});
 
   @override
   State<TransactionsPage> createState() => _TransactionsPageState();
 }
 
 class _TransactionsPageState extends State<TransactionsPage> {
-  final RestTransactionService _transactionService = RestTransactionService();
-  final RestAccountService _accountService = RestAccountService();
-  final RestCategoryService _categoryService = RestCategoryService();
-  final CsvImportService _csvImportService = CsvImportService();
+  late final TransactionService _transactionService;
+  late final AccountService _accountService;
+  late final CategoryService _categoryService;
+  late final CsvImportService _csvImportService;
 
   List<Account> _accounts = [];
   bool _isLoading = false;
@@ -36,6 +41,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   void initState() {
     super.initState();
+    _transactionService = widget.transactionService ?? RestTransactionService();
+    _accountService = widget.accountService ?? RestAccountService();
+    _categoryService = widget.categoryService ?? RestCategoryService();
+    _csvImportService = widget.csvImportService ?? CsvImportService();
+
     _loadAccounts();
   }
 
@@ -75,6 +85,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
     if (!hasCategories && mounted) {
       showDialog<void>(context: context, builder: (context) => NoCategoriesDialog(type: widget.type));
+      return;
+    }
+
+    if (_accounts.isEmpty && mounted) {
+      showDialog<void>(context: context, builder: (context) => const NoAccountsDialog());
       return;
     }
 

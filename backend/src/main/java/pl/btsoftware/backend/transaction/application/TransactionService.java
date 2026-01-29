@@ -1,10 +1,10 @@
 package pl.btsoftware.backend.transaction.application;
 
-import static pl.btsoftware.backend.transaction.domain.BillId.generate;
-
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,13 +12,10 @@ import pl.btsoftware.backend.account.AccountModuleFacade;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.audit.AuditModuleFacade;
 import pl.btsoftware.backend.category.CategoryQueryFacade;
-import pl.btsoftware.backend.category.domain.error.NoCategoriesAvailableException;
+import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.shared.*;
-import pl.btsoftware.backend.transaction.domain.Bill;
 import pl.btsoftware.backend.transaction.domain.Transaction;
-import pl.btsoftware.backend.transaction.domain.TransactionHash;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
-import pl.btsoftware.backend.transaction.domain.error.DuplicateTransactionException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
@@ -38,17 +35,16 @@ public class TransactionService {
     public Transaction createTransaction(CreateTransactionCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
         var account = accountModuleFacade.getAccount(command.accountId(), user.groupId());
-        var bill = command.billCommand().toDomain();
-        validateCurrencyMatch(bill.totalAmount().currency(), account.balance().currency());
-        validateCategoriesExist(command.type(), user.groupId());
 
-        var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value());
+        var auditInfo = AuditInfo.create(command.userId(), user.groupId());
         var transaction = command.toDomain(auditInfo);
 
-        validateNotDuplicate(
-                transaction.accountId(), transaction.transactionHash(), user.groupId());
+        validateCurrencyMatch(transaction.amount().currency(), account.balance().currency());
+
+        validateCategoriesExist(transaction.bill().categories(), user.groupId());
 
         transactionRepository.store(transaction);
+
         if (transaction.type() == TransactionType.INCOME) {
             accountModuleFacade.deposit(
                     command.accountId(), transaction.amount(), command.userId());
@@ -75,41 +71,29 @@ public class TransactionService {
     @Transactional
     public Transaction updateTransaction(UpdateTransactionCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var transaction =
-                transactionRepository
-                        .findById(command.transactionId(), user.groupId())
-                        .orElseThrow(
-                                () -> new TransactionNotFoundException(command.transactionId()));
+        var oldTransaction = getTransactionById(command.transactionId(), user.groupId());
 
-        validateCategoriesExist(transaction.type(), user.groupId());
+        var bill = command.bill().toDomain();
 
-        var updatedTransaction = transaction;
+        var categoryIds = bill.categories();
+        validateCategoriesExist(categoryIds, user.groupId());
 
-        if (command.amount() != null) {
-            // Revert old transaction manually
-            if (transaction.type() == TransactionType.INCOME) {
-                accountModuleFacade.withdraw(transaction.accountId(), transaction.amount(), userId);
-            } else {
-                accountModuleFacade.deposit(transaction.accountId(), transaction.amount(), userId);
-            }
-
-            // Apply new transaction
-            if (transaction.type() == TransactionType.INCOME) {
-                accountModuleFacade.deposit(transaction.accountId(), command.amount(), userId);
-            } else {
-                accountModuleFacade.withdraw(transaction.accountId(), command.amount(), userId);
-            }
-
-            updatedTransaction = updatedTransaction.updateAmount(command.amount(), userId);
-        }
-
-        if (command.billItems() != null && !command.billItems().isEmpty()) {
-            var items = command.billItems().stream().map(BillItemCommand::toDomain).toList();
-            var newBill = new Bill(generate(), items);
-            updatedTransaction = updatedTransaction.updateBill(newBill, userId);
-        }
-
+        var updatedTransaction = oldTransaction.updateBill(bill, userId);
         transactionRepository.store(updatedTransaction);
+
+        // Revert old oldTransaction manually
+        if (oldTransaction.type() == TransactionType.INCOME) {
+            accountModuleFacade.withdraw(
+                    oldTransaction.accountId(), oldTransaction.amount(), userId);
+            accountModuleFacade.deposit(
+                    oldTransaction.accountId(), updatedTransaction.amount(), userId);
+        } else {
+            accountModuleFacade.deposit(
+                    oldTransaction.accountId(), oldTransaction.amount(), userId);
+            accountModuleFacade.withdraw(
+                    oldTransaction.accountId(), updatedTransaction.amount(), userId);
+        }
+
         auditModuleFacade.logTransactionUpdated(
                 command.transactionId(), updatedTransaction.description(), userId, user.groupId());
         return updatedTransaction;
@@ -157,8 +141,14 @@ public class TransactionService {
                 transactions.stream()
                         .map(
                                 createTransactionCommand -> {
-                                    validateCategoriesExist(
-                                            createTransactionCommand.type(), user.groupId());
+                                    var categoryIds =
+                                            createTransactionCommand
+                                                    .billCommand()
+                                                    .billItems()
+                                                    .stream()
+                                                    .map(BillItemCommand::categoryId)
+                                                    .collect(Collectors.toSet());
+                                    validateCategoriesExist(categoryIds, user.groupId());
                                     return createTransactionCommand.toDomain(auditInfo);
                                 })
                         .toList();
@@ -204,20 +194,9 @@ public class TransactionService {
         }
     }
 
-    private void validateCategoriesExist(TransactionType type, GroupId groupId) {
-        var categoryType =
-                type == TransactionType.INCOME ? CategoryType.INCOME : CategoryType.EXPENSE;
-        if (!categoryQueryFacade.hasCategories(categoryType, groupId)) {
-            throw new NoCategoriesAvailableException(categoryType);
+    private void validateCategoriesExist(Set<CategoryId> categoryIds, GroupId groupId) {
+        if (!categoryQueryFacade.allCategoriesExists(categoryIds, groupId)) {
+            throw new CategoryNotFoundException();
         }
-    }
-
-    private void validateNotDuplicate(AccountId accountId, TransactionHash hash, GroupId groupId) {
-        transactionRepository
-                .findByAccountIdAndHash(accountId, hash, groupId)
-                .ifPresent(
-                        duplicate -> {
-                            throw new DuplicateTransactionException(hash);
-                        });
     }
 }

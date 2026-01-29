@@ -12,8 +12,15 @@ void main() {
             'accountId': '123e4567-e89b-12d3-a456-426614174001',
             'amount': 100.50,
             'type': 'INCOME',
-            'description': 'Test transaction',
-            'category': {'id': '123e4567-e89b-12d3-a456-426614174002', 'name': 'Salary'},
+            'bill': {
+              'items': [
+                {
+                  'category': {'id': '123e4567-e89b-12d3-a456-426614174002', 'name': 'Salary'},
+                  'amount': 100.50,
+                  'description': 'Test transaction',
+                },
+              ],
+            },
             'transactionDate': '2024-01-15',
             'createdAt': '2024-01-15T10:00:00Z',
             'updatedAt': '2024-01-15T10:00:00Z',

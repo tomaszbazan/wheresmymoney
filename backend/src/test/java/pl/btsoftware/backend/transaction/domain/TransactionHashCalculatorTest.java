@@ -10,9 +10,7 @@ import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.shared.TransactionType;
 
-class TransactionHashCalculatorTest {
-
-    private final TransactionHashCalculator calculator = new TransactionHashCalculator();
+class TransactionHashTransactionHashCalculatorTest {
 
     @Test
     void shouldCalculateSameHashForIdenticalInputs() {
@@ -24,8 +22,10 @@ class TransactionHashCalculatorTest {
         var type = TransactionType.EXPENSE;
 
         // when
-        var hash1 = calculator.calculateHash(accountId, amount, description, date, type);
-        var hash2 = calculator.calculateHash(accountId, amount, description, date, type);
+        var hash1 =
+                TransactionHashCalculator.calculateHash(accountId, amount, description, date, type);
+        var hash2 =
+                TransactionHashCalculator.calculateHash(accountId, amount, description, date, type);
 
         // then
         assertThat(hash1).isEqualTo(hash2);
@@ -40,8 +40,12 @@ class TransactionHashCalculatorTest {
         var type = TransactionType.EXPENSE;
 
         // when
-        var hash1 = calculator.calculateHash(accountId, amount, "Test Transaction", date, type);
-        var hash2 = calculator.calculateHash(accountId, amount, "test transaction", date, type);
+        var hash1 =
+                TransactionHashCalculator.calculateHash(
+                        accountId, amount, "Test Transaction", date, type);
+        var hash2 =
+                TransactionHashCalculator.calculateHash(
+                        accountId, amount, "test transaction", date, type);
 
         // then
         assertThat(hash1).isEqualTo(hash2);
@@ -56,8 +60,12 @@ class TransactionHashCalculatorTest {
         var type = TransactionType.EXPENSE;
 
         // when
-        var hash1 = calculator.calculateHash(accountId, amount, "  Test transaction  ", date, type);
-        var hash2 = calculator.calculateHash(accountId, amount, "Test transaction", date, type);
+        var hash1 =
+                TransactionHashCalculator.calculateHash(
+                        accountId, amount, "  Test transaction  ", date, type);
+        var hash2 =
+                TransactionHashCalculator.calculateHash(
+                        accountId, amount, "Test transaction", date, type);
 
         // then
         assertThat(hash1).isEqualTo(hash2);
@@ -73,14 +81,14 @@ class TransactionHashCalculatorTest {
 
         // when
         var hash1 =
-                calculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountId,
                         Money.of(new BigDecimal("100.50"), Currency.PLN),
                         description,
                         date,
                         type);
         var hash2 =
-                calculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountId,
                         Money.of(new BigDecimal("200.50"), Currency.PLN),
                         description,
@@ -101,14 +109,14 @@ class TransactionHashCalculatorTest {
 
         // when
         var hash1 =
-                calculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountId,
                         Money.of(new BigDecimal("100.50"), Currency.PLN),
                         description,
                         date,
                         type);
         var hash2 =
-                calculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountId,
                         Money.of(new BigDecimal("100.50"), Currency.EUR),
                         description,
@@ -129,10 +137,10 @@ class TransactionHashCalculatorTest {
 
         // when
         var hash1 =
-                calculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountId, amount, description, LocalDate.of(2024, 1, 15), type);
         var hash2 =
-                calculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountId, amount, description, LocalDate.of(2024, 1, 16), type);
 
         // then
@@ -150,8 +158,12 @@ class TransactionHashCalculatorTest {
         var type = TransactionType.EXPENSE;
 
         // when
-        var hash1 = calculator.calculateHash(accountId1, amount, description, date, type);
-        var hash2 = calculator.calculateHash(accountId2, amount, description, date, type);
+        var hash1 =
+                TransactionHashCalculator.calculateHash(
+                        accountId1, amount, description, date, type);
+        var hash2 =
+                TransactionHashCalculator.calculateHash(
+                        accountId2, amount, description, date, type);
 
         // then
         assertThat(hash1).isNotEqualTo(hash2);
@@ -167,10 +179,10 @@ class TransactionHashCalculatorTest {
 
         // when
         var hash1 =
-                calculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountId, amount, description, date, TransactionType.EXPENSE);
         var hash2 =
-                calculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountId, amount, description, date, TransactionType.INCOME);
 
         // then
@@ -186,8 +198,12 @@ class TransactionHashCalculatorTest {
         var type = TransactionType.EXPENSE;
 
         // when
-        var hash1 = calculator.calculateHash(accountId, amount, "Transaction A", date, type);
-        var hash2 = calculator.calculateHash(accountId, amount, "Transaction B", date, type);
+        var hash1 =
+                TransactionHashCalculator.calculateHash(
+                        accountId, amount, "Transaction A", date, type);
+        var hash2 =
+                TransactionHashCalculator.calculateHash(
+                        accountId, amount, "Transaction B", date, type);
 
         // then
         assertThat(hash1).isNotEqualTo(hash2);
@@ -203,7 +219,8 @@ class TransactionHashCalculatorTest {
         var type = TransactionType.EXPENSE;
 
         // when
-        var hash = calculator.calculateHash(accountId, amount, description, date, type);
+        var hash =
+                TransactionHashCalculator.calculateHash(accountId, amount, description, date, type);
 
         // then
         assertThat(hash.value()).hasSize(64);

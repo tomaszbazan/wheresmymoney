@@ -9,6 +9,7 @@ import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,7 @@ import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.category.application.CreateCategoryCommand;
 import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.*;
-import pl.btsoftware.backend.transaction.application.BillItemCommand;
-import pl.btsoftware.backend.transaction.application.BulkCreateTransactionCommand;
-import pl.btsoftware.backend.transaction.application.TransactionService;
-import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
+import pl.btsoftware.backend.transaction.application.*;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.transaction.domain.error.BillItemDescriptionTooLongException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
@@ -359,7 +357,13 @@ public class TransactionServiceTest {
 
         var updateCommand =
                 new UpdateTransactionCommand(
-                        transaction.id(), Money.of(new BigDecimal("150.00"), PLN), null);
+                        transaction.id(),
+                        new BillCommand(
+                                List.of(
+                                        new BillItemCommand(
+                                                categoryId,
+                                                Money.of(new BigDecimal("150.00"), PLN),
+                                                "Original transaction"))));
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -398,7 +402,8 @@ public class TransactionServiceTest {
                         transaction.bill().items().getFirst().categoryId(),
                         transaction.amount(),
                         "Updated description");
-        var updateCommand = new UpdateTransactionCommand(transaction.id(), null, of(billItem));
+        var updateCommand =
+                new UpdateTransactionCommand(transaction.id(), new BillCommand(of(billItem)));
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -430,7 +435,8 @@ public class TransactionServiceTest {
 
         var billItem =
                 new BillItemCommand(newCategoryId, transaction.amount(), transaction.description());
-        var updateCommand = new UpdateTransactionCommand(transaction.id(), null, of(billItem));
+        var updateCommand =
+                new UpdateTransactionCommand(transaction.id(), new BillCommand(of(billItem)));
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -450,7 +456,13 @@ public class TransactionServiceTest {
                 new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var updateCommand =
                 new UpdateTransactionCommand(
-                        nonExistentId, Money.of(new BigDecimal("100.00"), PLN), null);
+                        nonExistentId,
+                        new BillCommand(
+                                List.of(
+                                        new BillItemCommand(
+                                                CategoryId.generate(),
+                                                Money.of(new BigDecimal("100.00"), PLN),
+                                                "test"))));
 
         // When & Then
         assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
@@ -685,7 +697,8 @@ public class TransactionServiceTest {
                         transaction.bill().items().getFirst().categoryId(),
                         transaction.amount(),
                         "Updated description");
-        var updateCommand = new UpdateTransactionCommand(transaction.id(), null, of(billItem));
+        var updateCommand =
+                new UpdateTransactionCommand(transaction.id(), new BillCommand(of(billItem)));
 
         // When
         transactionService.updateTransaction(updateCommand, userId);

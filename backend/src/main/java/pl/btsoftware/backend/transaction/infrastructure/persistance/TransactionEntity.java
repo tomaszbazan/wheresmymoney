@@ -98,7 +98,6 @@ public class TransactionEntity {
             return new Transaction(
                     TransactionId.of(id),
                     AccountId.from(accountId),
-                    billDomain.totalAmount(),
                     type,
                     billDomain,
                     transactionDate,

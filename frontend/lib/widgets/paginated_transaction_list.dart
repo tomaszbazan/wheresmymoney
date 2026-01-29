@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/models/transaction_type.dart';
 
 import '../models/account.dart';
-import '../models/transaction.dart';
+import '../models/transaction/transaction.dart';
 import '../services/transaction_service.dart';
 import '../utils/error_handler.dart';
 

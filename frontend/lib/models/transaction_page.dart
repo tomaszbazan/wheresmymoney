@@ -1,4 +1,4 @@
-import 'package:frontend/models/transaction.dart';
+import 'package:frontend/models/transaction/transaction.dart';
 
 class TransactionPage {
   final List<Transaction> transactions;

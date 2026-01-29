@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.transaction.infrastructure.persistance;
 
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static pl.btsoftware.backend.shared.Currency.*;
 import static pl.btsoftware.backend.shared.TransactionType.EXPENSE;
@@ -8,7 +9,6 @@ import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +27,7 @@ import pl.btsoftware.backend.users.domain.UserId;
 public class JpaTransactionRepositoryTest {
 
     private final UserId testUserId = new UserId("test-user");
-    private final GroupId testGroupId = new GroupId(UUID.randomUUID());
-    private final TransactionHashCalculator hashCalculator = new TransactionHashCalculator();
+    private final GroupId testGroupId = new GroupId(randomUUID());
 
     @Autowired private TransactionRepository transactionRepository;
 
@@ -48,10 +47,11 @@ public class JpaTransactionRepositoryTest {
             AuditInfo auditInfo) {
         var transactionDate = LocalDate.now();
         var hash =
-                hashCalculator.calculateHash(accountId, amount, description, transactionDate, type);
+                TransactionHashCalculator.calculateHash(
+                        accountId, amount, description, transactionDate, type);
         var billItem = new BillItem(BillItemId.generate(), categoryId, amount, description);
         var bill = new Bill(BillId.generate(), List.of(billItem));
-        return Transaction.create(accountId, amount, type, bill, transactionDate, hash, auditInfo);
+        return Transaction.create(accountId, type, bill, transactionDate, hash, auditInfo);
     }
 
     @Test
@@ -260,10 +260,7 @@ public class JpaTransactionRepositoryTest {
                 new BillItem(
                         BillItemId.generate(), newCategoryId, newAmount, "Updated description");
         var newBill = new Bill(BillId.generate(), List.of(newBillItem));
-        var updatedTransaction =
-                originalTransaction
-                        .updateAmount(newAmount, testUserId)
-                        .updateBill(newBill, testUserId);
+        var updatedTransaction = originalTransaction.updateBill(newBill, testUserId);
         transactionRepository.store(updatedTransaction);
 
         // then

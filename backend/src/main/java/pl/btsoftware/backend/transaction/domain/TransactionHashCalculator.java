@@ -10,7 +10,7 @@ import pl.btsoftware.backend.shared.TransactionType;
 
 public class TransactionHashCalculator {
 
-    public TransactionHash calculateHash(
+    public static TransactionHash calculateHash(
             AccountId accountId,
             Money amount,
             String description,
@@ -28,7 +28,7 @@ public class TransactionHashCalculator {
         return new TransactionHash(sha256(concatenated));
     }
 
-    private String sha256(String input) {
+    private static String sha256(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
@@ -38,7 +38,7 @@ public class TransactionHashCalculator {
         }
     }
 
-    private String bytesToHex(byte[] hash) {
+    private static String bytesToHex(byte[] hash) {
         StringBuilder hexString = new StringBuilder(2 * hash.length);
         for (byte b : hash) {
             String hex = Integer.toHexString(0xff & b);

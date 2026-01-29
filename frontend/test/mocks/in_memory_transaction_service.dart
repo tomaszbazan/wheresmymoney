@@ -1,5 +1,7 @@
 import 'package:frontend/models/bulk_create_response.dart';
-import 'package:frontend/models/transaction.dart';
+import 'package:frontend/models/transaction/transaction.dart';
+import 'package:frontend/models/transaction/bill_item.dart';
+import 'package:frontend/models/transaction/bill_item_category.dart';
 import 'package:frontend/models/transaction_page.dart';
 import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/services/transaction_service.dart';
@@ -28,11 +30,9 @@ class InMemoryTransactionService implements TransactionService {
   @override
   Future<Transaction> createTransaction({
     required String accountId,
-    required double amount,
-    required String description,
     required DateTime transactionDate,
     required TransactionType type,
-    required String categoryId,
+    required List<Map<String, dynamic>> billItems,
     required String currency,
   }) async {
     if (_apiError != null) {
@@ -40,24 +40,31 @@ class InMemoryTransactionService implements TransactionService {
     }
 
     final id = const Uuid().v4();
+    double totalAmount = 0;
+
+    final items =
+        billItems.map((item) {
+          final amount = (item['amount'] as num).toDouble();
+          totalAmount += amount;
+          return BillItem(category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'), amount: amount, description: item['description'] as String);
+        }).toList();
+
     final transaction = Transaction(
       id: id,
       accountId: accountId,
-      amount: amount,
-      description: description,
+      amount: totalAmount,
       createdAt: transactionDate,
       updatedAt: transactionDate,
       transactionDate: transactionDate,
       type: type,
-      categoryId: categoryId,
-      categoryName: null,
+      billItems: items,
     );
     _transactions[id] = transaction;
     return transaction;
   }
 
   @override
-  Future<Transaction> updateTransaction({required String id, required double amount, required String description, required String categoryId, required String currency}) async {
+  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, required String currency}) async {
     if (_apiError != null) {
       throw _apiError!;
     }
@@ -67,17 +74,23 @@ class InMemoryTransactionService implements TransactionService {
       throw Exception('Transaction not found');
     }
 
+    double totalAmount = 0;
+    final items =
+        billItems.map((item) {
+          final amount = (item['amount'] as num).toDouble();
+          totalAmount += amount;
+          return BillItem(category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'), amount: amount, description: item['description'] as String);
+        }).toList();
+
     final updatedTransaction = Transaction(
       id: id,
       accountId: existingTransaction.accountId,
-      amount: amount,
-      description: description,
+      amount: totalAmount,
       createdAt: existingTransaction.createdAt,
       updatedAt: DateTime.now(),
       transactionDate: existingTransaction.transactionDate,
       type: existingTransaction.type,
-      categoryId: categoryId,
-      categoryName: null,
+      billItems: items,
     );
     _transactions[id] = updatedTransaction;
     return updatedTransaction;
@@ -108,13 +121,17 @@ class InMemoryTransactionService implements TransactionService {
         id: id,
         accountId: accountId,
         amount: (txData['amount']['value'] as num).toDouble(),
-        description: txData['description'] as String,
         createdAt: DateTime.parse(dateStr),
         updatedAt: DateTime.parse(dateStr),
         transactionDate: DateTime.parse(dateStr),
         type: TransactionType.values.firstWhere((t) => t.name.toUpperCase() == txData['type']),
-        categoryId: txData['categoryId'] as String,
-        categoryName: null,
+        billItems: [
+          BillItem(
+            category: BillItemCategory(id: txData['categoryId'] as String, name: 'Category'),
+            amount: (txData['amount']['value'] as num).toDouble(),
+            description: txData['description'] as String,
+          ),
+        ],
       );
       _transactions[id] = transaction;
       savedIds.add(id);

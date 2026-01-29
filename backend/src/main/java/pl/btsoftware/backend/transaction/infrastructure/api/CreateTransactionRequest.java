@@ -1,7 +1,6 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 import pl.btsoftware.backend.shared.AccountId;
 import pl.btsoftware.backend.shared.TransactionType;
@@ -22,16 +21,5 @@ public record CreateTransactionRequest(
                 TransactionType.valueOf(type.toUpperCase()),
                 bill.toCommand(),
                 userId);
-    }
-
-    record BillRequest(List<BillItemRequest> billItems) {
-        public BillRequest {
-            billItems = List.copyOf(billItems);
-        }
-
-        public CreateTransactionCommand.BillCommand toCommand() {
-            return new CreateTransactionCommand.BillCommand(
-                    billItems.stream().map(BillItemRequest::toCommand).toList());
-        }
     }
 }

@@ -2,6 +2,8 @@ package pl.btsoftware.backend.category.infrastructure.persistance;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -42,6 +44,16 @@ public class JpaCategoryRepository implements CategoryRepository {
     public List<Category> findByType(CategoryType type, GroupId groupId) {
         return repository
                 .findByTypeAndCreatedByGroupAndIsDeletedFalse(type, groupId.value())
+                .stream()
+                .map(CategoryEntity::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Category> findAllByIds(Set<CategoryId> ids, GroupId groupId) {
+        var uuids = ids.stream().map(CategoryId::value).collect(Collectors.toSet());
+        return repository
+                .findByIdInAndCreatedByGroupAndIsDeletedFalse(uuids, groupId.value())
                 .stream()
                 .map(CategoryEntity::toDomain)
                 .toList();

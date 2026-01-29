@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
-import 'package:frontend/models/transaction.dart';
+import 'package:frontend/models/transaction/transaction.dart';
 import 'package:frontend/models/transaction_type.dart';
+import 'package:frontend/models/transaction/bill_item.dart';
+import 'package:frontend/models/transaction/bill_item_category.dart';
 import 'package:frontend/widgets/transaction_list.dart';
 
 void main() {
@@ -23,36 +25,30 @@ void main() {
           accountId: '1',
           amount: 100.0,
           type: TransactionType.income,
-          description: 'PLN Transaction',
-          categoryId: 'salary-id',
-          categoryName: 'Salary',
           createdAt: DateTime(2024, 1, 1),
           updatedAt: DateTime(2024, 1, 1),
           transactionDate: DateTime(2024, 1, 15),
+          billItems: [BillItem(category: BillItemCategory(id: 'salary-id', name: 'Salary'), amount: 100.0, description: 'PLN Transaction')],
         ),
         Transaction(
           id: 't2',
           accountId: '2',
           amount: -50.0,
           type: TransactionType.expense,
-          description: 'USD Transaction',
-          categoryId: 'food-id',
-          categoryName: 'Food',
           createdAt: DateTime(2024, 1, 2),
           updatedAt: DateTime(2024, 1, 2),
           transactionDate: DateTime(2024, 1, 20),
+          billItems: [BillItem(category: BillItemCategory(id: 'food-id', name: 'Food'), amount: -50.0, description: 'USD Transaction')],
         ),
         Transaction(
           id: 't3',
           accountId: '3',
           amount: 75.0,
           type: TransactionType.income,
-          description: 'EUR Transaction',
-          categoryId: 'freelance-id',
-          categoryName: 'Freelance',
           createdAt: DateTime(2024, 1, 3),
           updatedAt: DateTime(2024, 1, 3),
           transactionDate: DateTime(2024, 1, 25),
+          billItems: [BillItem(category: BillItemCategory(id: 'freelance-id', name: 'Freelance'), amount: 75.0, description: 'EUR Transaction')],
         ),
       ];
     });
@@ -73,12 +69,10 @@ void main() {
         accountId: '4',
         amount: 200.0,
         type: TransactionType.income,
-        description: 'No Currency Transaction',
-        categoryId: 'bonus-id',
-        categoryName: 'Bonus',
         createdAt: DateTime(2024, 1, 4),
         updatedAt: DateTime(2024, 1, 4),
         transactionDate: DateTime(2024, 1, 30),
+        billItems: [BillItem(category: BillItemCategory(id: 'bonus-id', name: 'Bonus'), amount: 200.0, description: 'No Currency Transaction')],
       );
 
       await tester.pumpWidget(
@@ -94,12 +88,10 @@ void main() {
         accountId: 'unknown-account-id',
         amount: 150.0,
         type: TransactionType.income,
-        description: 'Orphan Transaction',
-        categoryId: 'unknown-id',
-        categoryName: 'Unknown',
         createdAt: DateTime(2024, 1, 5),
         updatedAt: DateTime(2024, 1, 5),
         transactionDate: DateTime(2024, 2, 1),
+        billItems: [BillItem(category: BillItemCategory(id: 'unknown-id', name: 'Unknown'), amount: 150.0, description: 'Orphan Transaction')],
       );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [orphanTransaction], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));
@@ -120,12 +112,10 @@ void main() {
         accountId: '1',
         amount: 100.0,
         type: TransactionType.income,
-        description: 'Date Test',
-        categoryId: 'test-id',
-        categoryName: 'Test',
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
         transactionDate: DateTime(2024, 3, 15),
+        billItems: [BillItem(category: BillItemCategory(id: 'test-id', name: 'Test'), amount: 100.0, description: 'Date Test')],
       );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [transaction], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));

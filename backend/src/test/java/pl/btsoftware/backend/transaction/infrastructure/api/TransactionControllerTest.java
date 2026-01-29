@@ -88,6 +88,7 @@ public class TransactionControllerTest {
                         new BigDecimal("100.50"),
                         "Test transaction",
                         TransactionType.INCOME);
+        var billItem = transaction.bill().items().getFirst();
 
         when(transactionModuleFacade.getTransactionById(transactionId, userId))
                 .thenReturn(transaction);
@@ -104,38 +105,12 @@ public class TransactionControllerTest {
                 .andExpect(jsonPath("$.amount").value(100.50))
                 .andExpect(jsonPath("$.type").value("INCOME"))
                 .andExpect(jsonPath("$.bill.items", hasSize(1)))
-                .andExpect(
-                        jsonPath("$.bill.items[0].id")
-                                .value(
-                                        transaction
-                                                .bill()
-                                                .items()
-                                                .getFirst()
-                                                .id()
-                                                .value()
-                                                .toString()))
-                .andExpect(
-                        jsonPath("$.bill.items[0].categoryId")
-                                .value(
-                                        transaction
-                                                .bill()
-                                                .items()
-                                                .getFirst()
-                                                .categoryId()
-                                                .value()
-                                                .toString()))
+                .andExpect(jsonPath("$.bill.items[0].id").value(billItem.id().value().toString()))
                 .andExpect(jsonPath("$.bill.items[0].description").value("Test transaction"))
                 .andExpect(jsonPath("$.bill.items[0].amount").value(100.50))
                 .andExpect(
                         jsonPath("$.bill.items[0].category.id")
-                                .value(
-                                        transaction
-                                                .bill()
-                                                .items()
-                                                .getFirst()
-                                                .categoryId()
-                                                .value()
-                                                .toString()))
+                                .value(billItem.categoryId().value().toString()))
                 .andExpect(jsonPath("$.bill.items[0].category.name").value("Sample Category"))
                 .andExpect(
                         jsonPath("$.transactionDate")
@@ -246,9 +221,7 @@ public class TransactionControllerTest {
                         randomUUID(),
                         Money.of(new BigDecimal("150.00"), PLN),
                         "Updated transaction");
-        var updateRequest =
-                new UpdateTransactionRequest(
-                        Money.of(new BigDecimal("150.00"), PLN), List.of(billItemRequest));
+        var updateRequest = new UpdateTransactionRequest(new BillRequest(List.of(billItemRequest)));
         String json = objectMapper.writeValueAsString(updateRequest);
 
         // when & then
@@ -277,9 +250,7 @@ public class TransactionControllerTest {
 
         var billItemRequest =
                 new BillItemRequest(randomUUID(), Money.of(new BigDecimal("100.00"), PLN), "Test");
-        var updateRequest =
-                new UpdateTransactionRequest(
-                        Money.of(new BigDecimal("100.00"), PLN), List.of(billItemRequest));
+        var updateRequest = new UpdateTransactionRequest(new BillRequest(List.of(billItemRequest)));
 
         // when & then
         mockMvc.perform(
@@ -303,13 +274,14 @@ public class TransactionControllerTest {
                         new BigDecimal("100.50"),
                         "Test transaction",
                         TransactionType.INCOME);
+        var billItem = transaction.bill().items().getFirst();
 
         when(transactionModuleFacade.createTransaction(any())).thenReturn(transaction);
 
         var billItemRequest =
                 new BillItemRequest(
                         randomUUID(), Money.of(new BigDecimal("100.50"), PLN), "Test transaction");
-        var billRequest = new CreateTransactionRequest.BillRequest(List.of(billItemRequest));
+        var billRequest = new BillRequest(List.of(billItemRequest));
         var createRequest = new CreateTransactionRequest(accountId, now(), "INCOME", billRequest);
 
         // when & then
@@ -325,38 +297,12 @@ public class TransactionControllerTest {
                 .andExpect(jsonPath("$.amount").value(100.50))
                 .andExpect(jsonPath("$.type").value("INCOME"))
                 .andExpect(jsonPath("$.bill.items", hasSize(1)))
-                .andExpect(
-                        jsonPath("$.bill.items[0].id")
-                                .value(
-                                        transaction
-                                                .bill()
-                                                .items()
-                                                .getFirst()
-                                                .id()
-                                                .value()
-                                                .toString()))
-                .andExpect(
-                        jsonPath("$.bill.items[0].categoryId")
-                                .value(
-                                        transaction
-                                                .bill()
-                                                .items()
-                                                .getFirst()
-                                                .categoryId()
-                                                .value()
-                                                .toString()))
+                .andExpect(jsonPath("$.bill.items[0].id").value(billItem.id().value().toString()))
                 .andExpect(jsonPath("$.bill.items[0].description").value("Test transaction"))
                 .andExpect(jsonPath("$.bill.items[0].amount").value(100.50))
                 .andExpect(
                         jsonPath("$.bill.items[0].category.id")
-                                .value(
-                                        transaction
-                                                .bill()
-                                                .items()
-                                                .getFirst()
-                                                .categoryId()
-                                                .value()
-                                                .toString()))
+                                .value(billItem.categoryId().value().toString()))
                 .andExpect(jsonPath("$.bill.items[0].category.name").value("Sample Category"));
     }
 
@@ -402,19 +348,17 @@ public class TransactionControllerTest {
         var accountIdObj = new AccountId(accountId);
         var money = Money.of(amount, PLN);
         var transactionDate = now();
-        var hashCalculator = new TransactionHashCalculator();
 
         var billItem = new BillItem(generate(), CategoryId.generate(), money, description);
         var bill = new Bill(BillId.generate(), List.of(billItem));
 
         var hash =
-                hashCalculator.calculateHash(
+                TransactionHashCalculator.calculateHash(
                         accountIdObj, money, description, transactionDate, type);
 
         return new Transaction(
                 new TransactionId(transactionId),
                 accountIdObj,
-                money,
                 type,
                 bill,
                 transactionDate,
