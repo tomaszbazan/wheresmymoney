@@ -1,5 +1,6 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,8 @@ public class TransactionController {
 
     @PostMapping("/transactions")
     public TransactionView createTransaction(
-            @RequestBody CreateTransactionRequest request, @AuthenticationPrincipal Jwt jwt) {
+            @RequestBody @Valid CreateTransactionRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info(
                 "Received request to create transaction for account: {} by user: {}",
@@ -73,7 +75,7 @@ public class TransactionController {
     @PutMapping("/transactions/{id}")
     public TransactionView updateTransaction(
             @PathVariable UUID id,
-            @RequestBody UpdateTransactionRequest request,
+            @RequestBody @Valid UpdateTransactionRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received request to update transaction with id: {} by user: {}", id, userId);
@@ -94,7 +96,8 @@ public class TransactionController {
 
     @PostMapping("/transactions/bulk")
     public BulkCreateTransactionResponse bulkCreateTransactions(
-            @RequestBody BulkCreateTransactionRequest request, @AuthenticationPrincipal Jwt jwt) {
+            @RequestBody @Valid BulkCreateTransactionRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info(
                 "Received request to bulk create {} transactions for account: {} by user: {}",

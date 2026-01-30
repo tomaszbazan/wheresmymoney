@@ -172,7 +172,11 @@ public class HappyPathSystemTest {
                         Money.of(new BigDecimal("200.00"), PLN),
                         "Weekly shopping - updated");
         var command =
-                new UpdateTransactionCommand(transaction.id(), new BillCommand(List.of(billItem)));
+                new UpdateTransactionCommand(
+                        transaction.id(),
+                        new BillCommand(List.of(billItem)),
+                        transaction.accountId(),
+                        transaction.transactionDate());
         var updated = transactionService.updateTransaction(command, userId);
         assertThat(updated.description()).isEqualTo("Weekly shopping - updated");
         assertThat(updated.amount().value()).isEqualByComparingTo(new BigDecimal("200.00"));

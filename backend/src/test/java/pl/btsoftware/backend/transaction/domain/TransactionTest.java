@@ -255,7 +255,7 @@ class TransactionTest {
                             .create();
 
             // when
-            var updatedTransaction = transaction.updateBill(newBill, userId);
+            var updatedTransaction = transaction.updateBill(newBill, null, null, userId);
 
             // then
             assertThat(updatedTransaction.bill()).isEqualTo(newBill);

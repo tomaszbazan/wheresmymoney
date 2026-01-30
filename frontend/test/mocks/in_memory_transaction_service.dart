@@ -64,7 +64,13 @@ class InMemoryTransactionService implements TransactionService {
   }
 
   @override
-  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, required String currency}) async {
+  Future<Transaction> updateTransaction({
+    required String id,
+    required List<Map<String, dynamic>> billItems,
+    required String currency,
+    String? accountId,
+    DateTime? transactionDate,
+  }) async {
     if (_apiError != null) {
       throw _apiError!;
     }
@@ -84,11 +90,11 @@ class InMemoryTransactionService implements TransactionService {
 
     final updatedTransaction = Transaction(
       id: id,
-      accountId: existingTransaction.accountId,
+      accountId: accountId ?? existingTransaction.accountId,
       amount: totalAmount,
       createdAt: existingTransaction.createdAt,
       updatedAt: DateTime.now(),
-      transactionDate: existingTransaction.transactionDate,
+      transactionDate: transactionDate ?? existingTransaction.transactionDate,
       type: existingTransaction.type,
       billItems: items,
     );

@@ -390,7 +390,11 @@ class TransactionServiceTest {
         var newAmount = Money.of(new BigDecimal("750.00"), PLN);
         var billItems = List.of(new BillItemCommand(categoryId, newAmount, "Initial transaction"));
         var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), new BillCommand(billItems));
+                new UpdateTransactionCommand(
+                        transaction.id(),
+                        new BillCommand(billItems),
+                        account.id(),
+                        createCommand.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -432,7 +436,11 @@ class TransactionServiceTest {
         var billItems =
                 List.of(new BillItemCommand(categoryId, Money.of(amount, PLN), newDescription));
         var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), new BillCommand(billItems));
+                new UpdateTransactionCommand(
+                        transaction.id(),
+                        new BillCommand(billItems),
+                        account.id(),
+                        transaction.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -475,7 +483,11 @@ class TransactionServiceTest {
                         new BillItemCommand(
                                 newCategoryId, Money.of(amount, PLN), "Test transaction"));
         var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), new BillCommand(billItems));
+                new UpdateTransactionCommand(
+                        transaction.id(),
+                        new BillCommand(billItems),
+                        account.id(),
+                        createCommand.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -504,7 +516,11 @@ class TransactionServiceTest {
                                 Money.of(new BigDecimal("100.00"), PLN),
                                 "Updated description"));
         var updateCommand =
-                new UpdateTransactionCommand(nonExistentTransactionId, new BillCommand(billItems));
+                new UpdateTransactionCommand(
+                        nonExistentTransactionId,
+                        new BillCommand(billItems),
+                        AccountId.generate(),
+                        LocalDate.now());
 
         // When & Then
         assertThatThrownBy(
@@ -514,6 +530,91 @@ class TransactionServiceTest {
                 .isInstanceOf(TransactionNotFoundException.class)
                 .hasMessageContaining(
                         "Transaction not found with id: " + nonExistentTransactionId.value());
+    }
+
+    @Test
+    void shouldUpdateTransactionAccount() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand1 = new CreateAccountCommand("Account 1", PLN, userId);
+        var account1 = accountModuleFacade.createAccount(createAccountCommand1);
+        var createAccountCommand2 = new CreateAccountCommand("Account 2", PLN, userId);
+        var account2 = accountModuleFacade.createAccount(createAccountCommand2);
+        var amount = new BigDecimal("100.00");
+        var categoryId = CategoryId.generate();
+
+        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction");
+        var billCommand = new BillCommand(List.of(billItem));
+        var createCommand =
+                new CreateTransactionCommand(
+                        account1.id(),
+                        LocalDate.of(2024, 1, 15),
+                        TransactionType.EXPENSE,
+                        billCommand,
+                        userId);
+        var transaction = transactionService.createTransaction(createCommand);
+
+        var billItems =
+                List.of(new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction"));
+        var updateCommand =
+                new UpdateTransactionCommand(
+                        transaction.id(),
+                        new BillCommand(billItems),
+                        account2.id(),
+                        transaction.transactionDate());
+
+        // When
+        var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
+
+        // Then
+        assertThat(updatedTransaction.id()).isEqualTo(transaction.id());
+        assertThat(updatedTransaction.accountId()).isEqualTo(account2.id());
+        assertThat(updatedTransaction.amount().value()).isEqualTo(amount);
+
+        // Verify account1 balance reversed (+100.00)
+        var updatedAccount1 = accountModuleFacade.getAccount(account1.id(), userId);
+        assertThat(updatedAccount1.balance().value()).isEqualTo(new BigDecimal("0.00"));
+
+        // Verify account2 balance updated (-100.00)
+        var updatedAccount2 = accountModuleFacade.getAccount(account2.id(), userId);
+        assertThat(updatedAccount2.balance().value()).isEqualTo(new BigDecimal("-100.00"));
+    }
+
+    @Test
+    void shouldUpdateTransactionDate() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var amount = new BigDecimal("100.00");
+        var categoryId = CategoryId.generate();
+        var originalDate = LocalDate.of(2024, 1, 15);
+
+        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction");
+        var billCommand = new BillCommand(List.of(billItem));
+        var createCommand =
+                new CreateTransactionCommand(
+                        account.id(), originalDate, TransactionType.EXPENSE, billCommand, userId);
+        var transaction = transactionService.createTransaction(createCommand);
+
+        var newDate = LocalDate.of(2024, 2, 20);
+        var billItems =
+                List.of(new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction"));
+        var updateCommand =
+                new UpdateTransactionCommand(
+                        transaction.id(), new BillCommand(billItems), account.id(), newDate);
+
+        // When
+        var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
+
+        // Then
+        assertThat(updatedTransaction.id()).isEqualTo(transaction.id());
+        assertThat(updatedTransaction.transactionDate()).isEqualTo(newDate);
+        assertThat(updatedTransaction.amount().value()).isEqualTo(amount);
+
+        // Verify account balance unchanged
+        var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
+        assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("-100.00"));
     }
 
     @Test
@@ -892,7 +993,8 @@ class TransactionServiceTest {
                                 Money.of(new BigDecimal("2000.00"), PLN),
                                 "Updated description"));
         var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), new BillCommand(billItems));
+                new UpdateTransactionCommand(
+                        transaction.id(), new BillCommand(billItems), account.id(), date);
         assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
                 .isInstanceOf(
                         pl.btsoftware.backend.category.domain.error.CategoryNotFoundException

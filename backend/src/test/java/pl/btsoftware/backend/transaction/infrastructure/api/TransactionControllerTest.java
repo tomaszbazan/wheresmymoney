@@ -221,7 +221,9 @@ public class TransactionControllerTest {
                         randomUUID(),
                         Money.of(new BigDecimal("150.00"), PLN),
                         "Updated transaction");
-        var updateRequest = new UpdateTransactionRequest(new BillRequest(List.of(billItemRequest)));
+        var updateRequest =
+                new UpdateTransactionRequest(
+                        new BillRequest(List.of(billItemRequest)), accountId.toString(), now());
         String json = objectMapper.writeValueAsString(updateRequest);
 
         // when & then
@@ -243,6 +245,7 @@ public class TransactionControllerTest {
     void shouldReturnNotFoundWhenUpdatingNonExistentTransaction() throws Exception {
         // given
         var nonExistentId = randomUUID();
+        var accountId = randomUUID();
 
         when(transactionModuleFacade.updateTransaction(
                         any(UpdateTransactionCommand.class), any(UserId.class)))
@@ -250,7 +253,9 @@ public class TransactionControllerTest {
 
         var billItemRequest =
                 new BillItemRequest(randomUUID(), Money.of(new BigDecimal("100.00"), PLN), "Test");
-        var updateRequest = new UpdateTransactionRequest(new BillRequest(List.of(billItemRequest)));
+        var updateRequest =
+                new UpdateTransactionRequest(
+                        new BillRequest(List.of(billItemRequest)), accountId.toString(), now());
 
         // when & then
         mockMvc.perform(

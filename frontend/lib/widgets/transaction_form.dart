@@ -150,7 +150,13 @@ class _TransactionFormState extends State<TransactionForm> {
           ];
         }
 
-        transaction = await _transactionService.updateTransaction(id: widget.transaction!.id, billItems: itemsPayload, currency: _selectedCurrency);
+        transaction = await _transactionService.updateTransaction(
+          id: widget.transaction!.id,
+          billItems: itemsPayload,
+          currency: _selectedCurrency,
+          accountId: _selectedAccountId,
+          transactionDate: _selectedDate,
+        );
       } else {
         List<Map<String, dynamic>> itemsPayload;
 
@@ -230,6 +236,28 @@ class _TransactionFormState extends State<TransactionForm> {
               ],
 
               if (!isEditing) ...[
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedAccountId,
+                  decoration: const InputDecoration(labelText: 'Konto', border: OutlineInputBorder()),
+                  items:
+                      widget.accounts.map((account) {
+                        return DropdownMenuItem(value: account.id, child: Text('${account.name} (${account.currency})'));
+                      }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedAccountId = value;
+                      _updateCurrencyFromAccount();
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Wybierz konto';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+              ] else ...[
                 DropdownButtonFormField<String>(
                   initialValue: _selectedAccountId,
                   decoration: const InputDecoration(labelText: 'Konto', border: OutlineInputBorder()),
@@ -342,7 +370,8 @@ class _TransactionFormState extends State<TransactionForm> {
               ],
               const SizedBox(height: 16),
 
-              if (!isEditing) ...[DateSelector(selectedDate: _selectedDate, onDateChanged: (date) => setState(() => _selectedDate = date)), const SizedBox(height: 16)],
+              DateSelector(selectedDate: _selectedDate, onDateChanged: (date) => setState(() => _selectedDate = date)),
+              const SizedBox(height: 16),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,

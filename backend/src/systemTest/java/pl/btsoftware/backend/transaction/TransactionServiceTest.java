@@ -363,7 +363,9 @@ public class TransactionServiceTest {
                                         new BillItemCommand(
                                                 categoryId,
                                                 Money.of(new BigDecimal("150.00"), PLN),
-                                                "Original transaction"))));
+                                                "Original transaction"))),
+                        createCommand.accountId(),
+                        createCommand.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -403,7 +405,11 @@ public class TransactionServiceTest {
                         transaction.amount(),
                         "Updated description");
         var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), new BillCommand(of(billItem)));
+                new UpdateTransactionCommand(
+                        transaction.id(),
+                        new BillCommand(of(billItem)),
+                        createCommand.accountId(),
+                        createCommand.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -436,7 +442,11 @@ public class TransactionServiceTest {
         var billItem =
                 new BillItemCommand(newCategoryId, transaction.amount(), transaction.description());
         var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), new BillCommand(of(billItem)));
+                new UpdateTransactionCommand(
+                        transaction.id(),
+                        new BillCommand(of(billItem)),
+                        createCommand.accountId(),
+                        createCommand.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -462,7 +472,9 @@ public class TransactionServiceTest {
                                         new BillItemCommand(
                                                 CategoryId.generate(),
                                                 Money.of(new BigDecimal("100.00"), PLN),
-                                                "test"))));
+                                                "test"))),
+                        null,
+                        null);
 
         // When & Then
         assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
@@ -698,7 +710,11 @@ public class TransactionServiceTest {
                         transaction.amount(),
                         "Updated description");
         var updateCommand =
-                new UpdateTransactionCommand(transaction.id(), new BillCommand(of(billItem)));
+                new UpdateTransactionCommand(
+                        transaction.id(),
+                        new BillCommand(of(billItem)),
+                        createCommand.accountId(),
+                        createCommand.transactionDate());
 
         // When
         transactionService.updateTransaction(updateCommand, userId);

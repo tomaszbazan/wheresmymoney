@@ -1,5 +1,7 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 import pl.btsoftware.backend.shared.AccountId;
@@ -7,7 +9,7 @@ import pl.btsoftware.backend.transaction.application.BulkCreateTransactionComman
 import pl.btsoftware.backend.users.domain.UserId;
 
 public record BulkCreateTransactionRequest(
-        UUID accountId, List<CreateTransactionRequest> transactions) {
+        @NotNull UUID accountId, @NotEmpty List<CreateTransactionRequest> transactions) {
     public BulkCreateTransactionRequest {
         transactions = List.copyOf(transactions);
     }

@@ -20,7 +20,13 @@ abstract class TransactionService {
 
   Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<Map<String, dynamic>> transactions});
 
-  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, required String currency});
+  Future<Transaction> updateTransaction({
+    required String id,
+    required List<Map<String, dynamic>> billItems,
+    required String currency,
+    String? accountId,
+    DateTime? transactionDate,
+  });
 
   Future<void> deleteTransaction(String transactionId);
 }
@@ -64,7 +70,13 @@ class RestTransactionService implements TransactionService {
   }
 
   @override
-  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, required String currency}) async {
+  Future<Transaction> updateTransaction({
+    required String id,
+    required List<Map<String, dynamic>> billItems,
+    required String currency,
+    String? accountId,
+    DateTime? transactionDate,
+  }) async {
     final Map<String, dynamic> transactionData = {
       'bill': {
         'billItems':
@@ -78,6 +90,8 @@ class RestTransactionService implements TransactionService {
                 )
                 .toList(),
       },
+      if (accountId != null) 'accountId': accountId,
+      if (transactionDate != null) 'transactionDate': transactionDate.toUtc().toIso8601String(),
     };
 
     return await _apiClient.put<Transaction>('/transactions/$id', transactionData, Transaction.fromJson);

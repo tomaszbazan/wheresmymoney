@@ -260,7 +260,7 @@ public class JpaTransactionRepositoryTest {
                 new BillItem(
                         BillItemId.generate(), newCategoryId, newAmount, "Updated description");
         var newBill = new Bill(BillId.generate(), List.of(newBillItem));
-        var updatedTransaction = originalTransaction.updateBill(newBill, testUserId);
+        var updatedTransaction = originalTransaction.updateBill(newBill, null, null, testUserId);
         transactionRepository.store(updatedTransaction);
 
         // then
