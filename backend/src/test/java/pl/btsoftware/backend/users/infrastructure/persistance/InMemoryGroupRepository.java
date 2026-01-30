@@ -24,7 +24,9 @@ public class InMemoryGroupRepository implements GroupRepository {
 
     @Override
     public Optional<Group> findByName(String name) {
-        return groups.values().stream().filter(group -> group.name().equals(name)).findFirst();
+        return groups.values().stream()
+                .filter(group -> group.name().equals(name))
+                .findFirst();
     }
 
     @Override

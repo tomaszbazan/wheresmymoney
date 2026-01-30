@@ -35,22 +35,19 @@ public class InMemoryTransactionRepository implements TransactionRepository {
 
     @Override
     public Page<Transaction> findAll(GroupId groupId, Pageable pageable) {
-        var filteredTransactions =
-                database.values().stream()
-                        .filter(transaction -> transaction.ownedBy().equals(groupId))
-                        .filter(transaction -> !transaction.tombstone().isDeleted())
-                        .sorted(
-                                Comparator.comparing(Transaction::transactionDate)
-                                        .thenComparing(t -> t.createdInfo().when())
-                                        .reversed())
-                        .toList();
+        var filteredTransactions = database.values().stream()
+                .filter(transaction -> transaction.ownedBy().equals(groupId))
+                .filter(transaction -> !transaction.tombstone().isDeleted())
+                .sorted(Comparator.comparing(Transaction::transactionDate)
+                        .thenComparing(t -> t.createdInfo().when())
+                        .reversed())
+                .toList();
 
         var totalElements = filteredTransactions.size();
         var start = (int) pageable.getOffset();
         var end = Math.min(start + pageable.getPageSize(), totalElements);
 
-        List<Transaction> pageContent =
-                (start >= totalElements) ? List.of() : filteredTransactions.subList(start, end);
+        List<Transaction> pageContent = (start >= totalElements) ? List.of() : filteredTransactions.subList(start, end);
 
         return new PageImpl<>(pageContent, pageable, totalElements);
     }
@@ -60,25 +57,20 @@ public class InMemoryTransactionRepository implements TransactionRepository {
         return database.values().stream()
                 .filter(transaction -> transaction.ownedBy().equals(groupId))
                 .filter(transaction -> !transaction.tombstone().isDeleted())
-                .anyMatch(
-                        transaction ->
-                                transaction.bill().items().stream()
-                                        .anyMatch(item -> item.categoryId().equals(categoryId)));
+                .anyMatch(transaction -> transaction.bill().items().stream()
+                        .anyMatch(item -> item.categoryId().equals(categoryId)));
     }
 
     @Override
     public boolean existsByAccountId(AccountId accountId, GroupId groupId) {
         return database.values().stream()
-                .anyMatch(
-                        transaction ->
-                                transaction.accountId().equals(accountId)
-                                        && transaction.ownedBy().equals(groupId)
-                                        && !transaction.tombstone().isDeleted());
+                .anyMatch(transaction -> transaction.accountId().equals(accountId)
+                        && transaction.ownedBy().equals(groupId)
+                        && !transaction.tombstone().isDeleted());
     }
 
     @Override
-    public Optional<Transaction> findByAccountIdAndHash(
-            AccountId accountId, TransactionHash hash, GroupId groupId) {
+    public Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId) {
         return database.values().stream()
                 .filter(transaction -> transaction.accountId().equals(accountId))
                 .filter(transaction -> transaction.transactionHash().equals(hash))

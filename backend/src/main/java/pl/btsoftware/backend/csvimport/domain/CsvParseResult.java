@@ -5,11 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 
 public record CsvParseResult(
-        List<TransactionProposal> proposals,
-        List<ParseError> errors,
-        int totalRows,
-        int successCount,
-        int errorCount) {
+        List<TransactionProposal> proposals, List<ParseError> errors, int totalRows, int successCount, int errorCount) {
     public CsvParseResult {
         requireNonNull(proposals, "Proposals list cannot be null");
         requireNonNull(errors, "Errors list cannot be null");

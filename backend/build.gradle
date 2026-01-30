@@ -33,7 +33,7 @@ spotless {
 
         cleanthat()
 
-        googleJavaFormat().aosp()
+        palantirJavaFormat()
 
         formatAnnotations()
     }

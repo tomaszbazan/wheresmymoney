@@ -171,14 +171,13 @@ class TransactionQueryFacadeTest {
     private void storeTransaction(AccountId accountId, CategoryId categoryId, GroupId groupId) {
         var bill = createBill(categoryId);
         var auditInfo = createAuditInfo(groupId);
-        var transaction =
-                Transaction.create(
-                        accountId,
-                        TransactionType.EXPENSE,
-                        bill,
-                        LocalDate.now(),
-                        new TransactionHash("a".repeat(64)),
-                        auditInfo);
+        var transaction = Transaction.create(
+                accountId,
+                TransactionType.EXPENSE,
+                bill,
+                LocalDate.now(),
+                new TransactionHash("a".repeat(64)),
+                auditInfo);
         transactionRepository.store(transaction);
     }
 
@@ -188,6 +187,8 @@ class TransactionQueryFacadeTest {
     }
 
     private AuditInfo createAuditInfo(GroupId groupId) {
-        return Instancio.of(AuditInfo.class).set(field(AuditInfo::fromGroup), groupId).create();
+        return Instancio.of(AuditInfo.class)
+                .set(field(AuditInfo::fromGroup), groupId)
+                .create();
     }
 }

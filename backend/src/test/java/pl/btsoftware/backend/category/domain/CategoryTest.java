@@ -23,11 +23,7 @@ class CategoryTest {
 
         // when
         var category =
-                Category.create(
-                        name,
-                        CategoryType.EXPENSE,
-                        Color.of("#FFFFFF"),
-                        Instancio.create(AuditInfo.class));
+                Category.create(name, CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class));
 
         // then
         assertThat(category.name()).isEqualTo(name);
@@ -35,49 +31,29 @@ class CategoryTest {
 
     @Test
     void shouldThrowExceptionWhenNameIsNull() {
-        assertThatThrownBy(
-                        () ->
-                                Category.create(
-                                        null,
-                                        CategoryType.EXPENSE,
-                                        Color.of("#FFFFFF"),
-                                        Instancio.create(AuditInfo.class)))
+        assertThatThrownBy(() -> Category.create(
+                        null, CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class)))
                 .isInstanceOf(CategoryNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenNameIsEmpty() {
-        assertThatThrownBy(
-                        () ->
-                                Category.create(
-                                        "",
-                                        CategoryType.EXPENSE,
-                                        Color.of("#FFFFFF"),
-                                        Instancio.create(AuditInfo.class)))
+        assertThatThrownBy(() -> Category.create(
+                        "", CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class)))
                 .isInstanceOf(CategoryNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenNameIsBlank() {
-        assertThatThrownBy(
-                        () ->
-                                Category.create(
-                                        "   ",
-                                        CategoryType.EXPENSE,
-                                        Color.of("#FFFFFF"),
-                                        Instancio.create(AuditInfo.class)))
+        assertThatThrownBy(() -> Category.create(
+                        "   ", CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class)))
                 .isInstanceOf(CategoryNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenNameIsTooLong() {
-        assertThatThrownBy(
-                        () ->
-                                Category.create(
-                                        "a".repeat(101),
-                                        CategoryType.EXPENSE,
-                                        Color.of("#FFFFFF"),
-                                        Instancio.create(AuditInfo.class)))
+        assertThatThrownBy(() -> Category.create(
+                        "a".repeat(101), CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class)))
                 .isInstanceOf(CategoryNameTooLongException.class);
     }
 
@@ -87,25 +63,16 @@ class CategoryTest {
         var invalidName = "Invalid<Name>";
 
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                Category.create(
-                                        invalidName,
-                                        CategoryType.EXPENSE,
-                                        Color.of("#FFFFFF"),
-                                        Instancio.create(AuditInfo.class)))
+        assertThatThrownBy(() -> Category.create(
+                        invalidName, CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class)))
                 .isInstanceOf(CategoryNameInvalidCharactersException.class);
     }
 
     @Test
     void shouldUpdateCategoryNameSuccessfully() {
         // given
-        var category =
-                Category.create(
-                        "Original Name",
-                        CategoryType.EXPENSE,
-                        Color.of("#FFFFFF"),
-                        Instancio.create(AuditInfo.class));
+        var category = Category.create(
+                "Original Name", CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class));
         var command = new UpdateCategoryCommand(category.id(), "Updated Name", null, null);
         var updatedBy = UserId.generate();
 
@@ -119,12 +86,8 @@ class CategoryTest {
     @Test
     void shouldNotUpdateCategoryNameWhenNameIsNull() {
         // given
-        var category =
-                Category.create(
-                        "Original Name",
-                        CategoryType.EXPENSE,
-                        Color.of("#FFFFFF"),
-                        Instancio.create(AuditInfo.class));
+        var category = Category.create(
+                "Original Name", CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class));
         var command = new UpdateCategoryCommand(category.id(), null, null, null);
         var updatedBy = UserId.generate();
 
@@ -138,12 +101,8 @@ class CategoryTest {
     @Test
     void shouldThrowExceptionWhenUpdatingWithEmptyName() {
         // given
-        var category =
-                Category.create(
-                        "Original Name",
-                        CategoryType.EXPENSE,
-                        Color.of("#FFFFFF"),
-                        Instancio.create(AuditInfo.class));
+        var category = Category.create(
+                "Original Name", CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class));
         var command = new UpdateCategoryCommand(category.id(), "", null, null);
         var updatedBy = UserId.generate();
 
@@ -155,12 +114,8 @@ class CategoryTest {
     @Test
     void shouldThrowExceptionWhenUpdatingWithBlankName() {
         // given
-        var category =
-                Category.create(
-                        "Original Name",
-                        CategoryType.EXPENSE,
-                        Color.of("#FFFFFF"),
-                        Instancio.create(AuditInfo.class));
+        var category = Category.create(
+                "Original Name", CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class));
         var command = new UpdateCategoryCommand(category.id(), "   ", null, null);
         var updatedBy = UserId.generate();
 
@@ -172,12 +127,8 @@ class CategoryTest {
     @Test
     void shouldThrowExceptionWhenUpdatingWithTooLongName() {
         // given
-        var category =
-                Category.create(
-                        "Original Name",
-                        CategoryType.EXPENSE,
-                        Color.of("#FFFFFF"),
-                        Instancio.create(AuditInfo.class));
+        var category = Category.create(
+                "Original Name", CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class));
         var command = new UpdateCategoryCommand(category.id(), "a".repeat(101), null, null);
         var updatedBy = UserId.generate();
 
@@ -189,12 +140,8 @@ class CategoryTest {
     @Test
     void shouldThrowExceptionWhenUpdatingWithInvalidCharacters() {
         // given
-        var category =
-                Category.create(
-                        "Original Name",
-                        CategoryType.EXPENSE,
-                        Color.of("#FFFFFF"),
-                        Instancio.create(AuditInfo.class));
+        var category = Category.create(
+                "Original Name", CategoryType.EXPENSE, Color.of("#FFFFFF"), Instancio.create(AuditInfo.class));
         var command = new UpdateCategoryCommand(category.id(), "Invalid<Name>", null, null);
         var updatedBy = UserId.generate();
 

@@ -26,30 +26,29 @@ public class TransferService {
     public Transfer createTransfer(CreateTransferCommand command) {
         var user = usersModuleFacade.findUserOrThrow(command.userId());
 
-        var sourceAccount =
-                accountModuleFacade.getAccount(command.sourceAccountId(), user.groupId());
-        var targetAccount =
-                accountModuleFacade.getAccount(command.targetAccountId(), user.groupId());
+        var sourceAccount = accountModuleFacade.getAccount(command.sourceAccountId(), user.groupId());
+        var targetAccount = accountModuleFacade.getAccount(command.targetAccountId(), user.groupId());
 
         if (sourceAccount.id().equals(targetAccount.id())) {
             throw new TransferToSameAccountException();
         }
 
-        var sourceAmount = Money.of(command.sourceAmount(), sourceAccount.balance().currency());
-        var targetAmount = Money.of(command.targetAmount(), targetAccount.balance().currency());
+        var sourceAmount =
+                Money.of(command.sourceAmount(), sourceAccount.balance().currency());
+        var targetAmount =
+                Money.of(command.targetAmount(), targetAccount.balance().currency());
         var exchangeRate = calculateExchangeRate(sourceAmount, targetAmount);
 
         var auditInfo = AuditInfo.create(command.userId(), user.groupId());
 
-        var transfer =
-                Transfer.create(
-                        command.sourceAccountId(),
-                        command.targetAccountId(),
-                        sourceAmount,
-                        targetAmount,
-                        exchangeRate,
-                        command.description(),
-                        auditInfo);
+        var transfer = Transfer.create(
+                command.sourceAccountId(),
+                command.targetAccountId(),
+                sourceAmount,
+                targetAmount,
+                exchangeRate,
+                command.description(),
+                auditInfo);
 
         transferRepository.store(transfer);
 
@@ -64,8 +63,7 @@ public class TransferService {
         var user = usersModuleFacade.findUserOrThrow(userId);
         return transferRepository
                 .findById(id, user.groupId())
-                .orElseThrow(
-                        pl.btsoftware.backend.transfer.domain.error.TransferNotFoundException::new);
+                .orElseThrow(pl.btsoftware.backend.transfer.domain.error.TransferNotFoundException::new);
     }
 
     public List<Transfer> getTransfers(UserId userId) {

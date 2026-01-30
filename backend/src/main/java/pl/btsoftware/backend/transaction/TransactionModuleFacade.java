@@ -37,8 +37,7 @@ public class TransactionModuleFacade {
         transactionService.deleteTransaction(TransactionId.of(transactionId), userId);
     }
 
-    public BulkCreateResult bulkCreateTransactions(
-            BulkCreateTransactionCommand command, UserId userId) {
+    public BulkCreateResult bulkCreateTransactions(BulkCreateTransactionCommand command, UserId userId) {
         return transactionService.bulkCreateTransactions(command, userId);
     }
 }

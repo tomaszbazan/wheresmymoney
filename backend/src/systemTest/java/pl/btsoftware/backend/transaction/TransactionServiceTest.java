@@ -39,17 +39,23 @@ import pl.btsoftware.backend.users.domain.UserId;
 @SystemTest
 public class TransactionServiceTest {
 
-    @Autowired private TransactionService transactionService;
+    @Autowired
+    private TransactionService transactionService;
 
-    @Autowired private TransactionRepository transactionRepository;
+    @Autowired
+    private TransactionRepository transactionRepository;
 
-    @Autowired private AccountModuleFacade accountModuleFacade;
+    @Autowired
+    private AccountModuleFacade accountModuleFacade;
 
-    @Autowired private UsersModuleFacade usersModuleFacade;
+    @Autowired
+    private UsersModuleFacade usersModuleFacade;
 
-    @Autowired private CategoryModuleFacade categoryModuleFacade;
+    @Autowired
+    private CategoryModuleFacade categoryModuleFacade;
 
-    @Autowired private pl.btsoftware.backend.audit.domain.AuditLogRepository auditLogRepository;
+    @Autowired
+    private pl.btsoftware.backend.audit.domain.AuditLogRepository auditLogRepository;
 
     private String uniqueAccountName() {
         return "Account-" + UUID.randomUUID().toString().substring(0, 8);
@@ -57,29 +63,24 @@ public class TransactionServiceTest {
 
     private UserId createTestUser() {
         var timestamp = System.currentTimeMillis();
-        var command =
-                new RegisterUserCommand(
-                        "test-auth-id-" + timestamp,
-                        "test" + timestamp + "@example.com",
-                        "Test User",
-                        "Test Group " + timestamp,
-                        null);
+        var command = new RegisterUserCommand(
+                "test-auth-id-" + timestamp,
+                "test" + timestamp + "@example.com",
+                "Test User",
+                "Test Group " + timestamp,
+                null);
         var user = usersModuleFacade.registerUser(command);
         return user.id();
     }
 
     private CategoryId createIncomeCategory(UserId userId) {
-        var command =
-                new CreateCategoryCommand(
-                        "Test Income", CategoryType.INCOME, Color.of("#4CAF50"), userId);
+        var command = new CreateCategoryCommand("Test Income", CategoryType.INCOME, Color.of("#4CAF50"), userId);
         var category = categoryModuleFacade.createCategory(command);
         return category.id();
     }
 
     private CategoryId createExpenseCategory(UserId userId) {
-        var command =
-                new CreateCategoryCommand(
-                        "Test Expense", CategoryType.EXPENSE, Color.of("#FF5722"), userId);
+        var command = new CreateCategoryCommand("Test Expense", CategoryType.EXPENSE, Color.of("#FF5722"), userId);
         var category = categoryModuleFacade.createCategory(command);
         return category.id();
     }
@@ -89,18 +90,15 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var command =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Salary payment",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var command = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Salary payment",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
 
         // When
         var transaction = transactionService.createTransaction(command);
@@ -126,21 +124,17 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createExpenseCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        accountModuleFacade.deposit(
-                accountId.id(), Money.of(new BigDecimal("200.00"), PLN), userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        accountModuleFacade.deposit(accountId.id(), Money.of(new BigDecimal("200.00"), PLN), userId);
 
-        var command =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("50.00"), PLN),
-                        "Grocery shopping",
-                        LocalDate.now(),
-                        TransactionType.EXPENSE,
-                        categoryId,
-                        userId);
+        var command = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("50.00"), PLN),
+                "Grocery shopping",
+                LocalDate.now(),
+                TransactionType.EXPENSE,
+                categoryId,
+                userId);
 
         // When
         var transaction = transactionService.createTransaction(command);
@@ -159,18 +153,15 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var command =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var command = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
 
         // When
         var transaction = transactionService.createTransaction(command);
@@ -184,18 +175,15 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var command =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        null,
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var command = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                null,
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
 
         // When
         var transaction = transactionService.createTransaction(command);
@@ -209,19 +197,16 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var longDescription = "A".repeat(101);
-        var command =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        longDescription,
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var command = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                longDescription,
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
 
         // When & Then
         assertThatThrownBy(() -> transactionService.createTransaction(command))
@@ -232,18 +217,15 @@ public class TransactionServiceTest {
     void shouldThrowExceptionWhenCurrenciesDontMatch() {
         // Given
         var userId = createTestUser();
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var command =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), EUR),
-                        "Payment",
-                        LocalDate.now(),
-                        INCOME,
-                        CategoryId.generate(),
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var command = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), EUR),
+                "Payment",
+                LocalDate.now(),
+                INCOME,
+                CategoryId.generate(),
+                userId);
 
         // When & Then
         assertThatThrownBy(() -> transactionService.createTransaction(command))
@@ -256,24 +238,20 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var command =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Test transaction",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var command = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Test transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         var createdTransaction = transactionService.createTransaction(command);
 
         // When
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var retrievedTransaction =
-                transactionService.getTransactionById(createdTransaction.id(), user.groupId());
+        var retrievedTransaction = transactionService.getTransactionById(createdTransaction.id(), user.groupId());
 
         // Then
         assertThat(retrievedTransaction.id()).isEqualTo(createdTransaction.id());
@@ -288,8 +266,7 @@ public class TransactionServiceTest {
         // When & Then
         var userId = createTestUser();
         var user = usersModuleFacade.findUserOrThrow(userId);
-        assertThatThrownBy(
-                        () -> transactionService.getTransactionById(nonExistentId, user.groupId()))
+        assertThatThrownBy(() -> transactionService.getTransactionById(nonExistentId, user.groupId()))
                 .isInstanceOf(TransactionNotFoundException.class)
                 .hasMessage("Transaction not found with id: " + nonExistentId.value());
     }
@@ -300,35 +277,30 @@ public class TransactionServiceTest {
         var userId = createTestUser();
         var incomeCategoryId = createIncomeCategory(userId);
         var expenseCategoryId = createExpenseCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var command1 =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Transaction 1",
-                        LocalDate.now(),
-                        INCOME,
-                        incomeCategoryId,
-                        userId);
-        var command2 =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("50.00"), PLN),
-                        "Transaction 2",
-                        LocalDate.now(),
-                        TransactionType.EXPENSE,
-                        expenseCategoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var command1 = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Transaction 1",
+                LocalDate.now(),
+                INCOME,
+                incomeCategoryId,
+                userId);
+        var command2 = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("50.00"), PLN),
+                "Transaction 2",
+                LocalDate.now(),
+                TransactionType.EXPENSE,
+                expenseCategoryId,
+                userId);
 
         var transaction1 = transactionService.createTransaction(command1);
         var transaction2 = transactionService.createTransaction(command2);
 
         // When
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var allTransactions =
-                transactionService.getAllTransactions(user.groupId(), Pageable.ofSize(20));
+        var allTransactions = transactionService.getAllTransactions(user.groupId(), Pageable.ofSize(20));
 
         // Then
         assertThat(allTransactions).hasSizeGreaterThanOrEqualTo(2);
@@ -341,31 +313,23 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var createCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Original transaction",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var createCommand = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Original transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         var transaction = transactionService.createTransaction(createCommand);
 
-        var updateCommand =
-                new UpdateTransactionCommand(
-                        transaction.id(),
-                        new BillCommand(
-                                List.of(
-                                        new BillItemCommand(
-                                                categoryId,
-                                                Money.of(new BigDecimal("150.00"), PLN),
-                                                "Original transaction"))),
-                        createCommand.accountId(),
-                        createCommand.transactionDate());
+        var updateCommand = new UpdateTransactionCommand(
+                transaction.id(),
+                new BillCommand(List.of(new BillItemCommand(
+                        categoryId, Money.of(new BigDecimal("150.00"), PLN), "Original transaction"))),
+                createCommand.accountId(),
+                createCommand.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -385,31 +349,24 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var createCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Original description",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var createCommand = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Original description",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         var transaction = transactionService.createTransaction(createCommand);
 
-        var billItem =
-                new BillItemCommand(
-                        transaction.bill().items().getFirst().categoryId(),
-                        transaction.amount(),
-                        "Updated description");
-        var updateCommand =
-                new UpdateTransactionCommand(
-                        transaction.id(),
-                        new BillCommand(of(billItem)),
-                        createCommand.accountId(),
-                        createCommand.transactionDate());
+        var billItem = new BillItemCommand(
+                transaction.bill().items().getFirst().categoryId(), transaction.amount(), "Updated description");
+        var updateCommand = new UpdateTransactionCommand(
+                transaction.id(),
+                new BillCommand(of(billItem)),
+                createCommand.accountId(),
+                createCommand.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
@@ -425,35 +382,29 @@ public class TransactionServiceTest {
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
         var newCategoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var createCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Test transaction",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var createCommand = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Test transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         var transaction = transactionService.createTransaction(createCommand);
 
-        var billItem =
-                new BillItemCommand(newCategoryId, transaction.amount(), transaction.description());
-        var updateCommand =
-                new UpdateTransactionCommand(
-                        transaction.id(),
-                        new BillCommand(of(billItem)),
-                        createCommand.accountId(),
-                        createCommand.transactionDate());
+        var billItem = new BillItemCommand(newCategoryId, transaction.amount(), transaction.description());
+        var updateCommand = new UpdateTransactionCommand(
+                transaction.id(),
+                new BillCommand(of(billItem)),
+                createCommand.accountId(),
+                createCommand.transactionDate());
 
         // When
         var updatedTransaction = transactionService.updateTransaction(updateCommand, userId);
 
         // Then
-        assertThat(updatedTransaction.bill().items().getFirst().categoryId())
-                .isEqualTo(newCategoryId);
+        assertThat(updatedTransaction.bill().items().getFirst().categoryId()).isEqualTo(newCategoryId);
         assertThat(updatedTransaction.description()).isEqualTo("Test transaction");
     }
 
@@ -462,19 +413,13 @@ public class TransactionServiceTest {
         // Given
         var nonExistentId = TransactionId.generate();
         var userId = createTestUser();
-        accountModuleFacade.createAccount(
-                new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var updateCommand =
-                new UpdateTransactionCommand(
-                        nonExistentId,
-                        new BillCommand(
-                                List.of(
-                                        new BillItemCommand(
-                                                CategoryId.generate(),
-                                                Money.of(new BigDecimal("100.00"), PLN),
-                                                "test"))),
-                        null,
-                        null);
+        accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var updateCommand = new UpdateTransactionCommand(
+                nonExistentId,
+                new BillCommand(List.of(
+                        new BillItemCommand(CategoryId.generate(), Money.of(new BigDecimal("100.00"), PLN), "test"))),
+                null,
+                null);
 
         // When & Then
         assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
@@ -487,18 +432,15 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var createCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Transaction to delete",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var createCommand = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Transaction to delete",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         // When
@@ -506,10 +448,9 @@ public class TransactionServiceTest {
 
         // Then
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var deletedTransaction =
-                transactionRepository
-                        .findByIdIncludingDeleted(transaction.id(), user.groupId())
-                        .orElseThrow();
+        var deletedTransaction = transactionRepository
+                .findByIdIncludingDeleted(transaction.id(), user.groupId())
+                .orElseThrow();
         assertThat(deletedTransaction.tombstone().isDeleted()).isTrue();
 
         var account = accountModuleFacade.getAccount(accountId.id(), userId);
@@ -521,21 +462,17 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createExpenseCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        accountModuleFacade.deposit(
-                accountId.id(), new Money(new BigDecimal("200.00"), PLN), userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        accountModuleFacade.deposit(accountId.id(), new Money(new BigDecimal("200.00"), PLN), userId);
 
-        var createCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("50.00"), PLN),
-                        "Expense to delete",
-                        LocalDate.now(),
-                        TransactionType.EXPENSE,
-                        categoryId,
-                        userId);
+        var createCommand = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("50.00"), PLN),
+                "Expense to delete",
+                LocalDate.now(),
+                TransactionType.EXPENSE,
+                categoryId,
+                userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         // When
@@ -551,8 +488,7 @@ public class TransactionServiceTest {
         // Given
         var nonExistentId = TransactionId.generate();
         var userId = createTestUser();
-        accountModuleFacade.createAccount(
-                new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
 
         // When & Then
         assertThatThrownBy(() -> transactionService.deleteTransaction(nonExistentId, userId))
@@ -565,26 +501,22 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var createCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Transaction to delete twice",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var createCommand = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Transaction to delete twice",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         var transaction = transactionService.createTransaction(createCommand);
         transactionService.deleteTransaction(transaction.id(), userId);
 
         // When & Then
         assertThatThrownBy(() -> transactionService.deleteTransaction(transaction.id(), userId))
                 .isInstanceOf(TransactionAlreadyDeletedException.class)
-                .hasMessage(
-                        "Transaction with id " + transaction.id().value() + " is already deleted");
+                .hasMessage("Transaction with id " + transaction.id().value() + " is already deleted");
     }
 
     @Test
@@ -592,40 +524,36 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade
-                        .createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId))
-                        .id();
+        var accountId = accountModuleFacade
+                .createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId))
+                .id();
 
         // Existing transaction
-        var existingCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId,
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Existing Transaction",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var existingCommand = TransactionCommandFixture.createCommand(
+                accountId,
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Existing Transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         transactionService.createTransaction(existingCommand);
 
         // New transactions (one duplicate, one new)
-        var newCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId,
-                        Money.of(new BigDecimal("200.00"), PLN),
-                        "New Transaction",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var newCommand = TransactionCommandFixture.createCommand(
+                accountId,
+                Money.of(new BigDecimal("200.00"), PLN),
+                "New Transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
 
         var commands = of(existingCommand, newCommand);
 
         // When
-        var result =
-                transactionService.bulkCreateTransactions(
-                        new BulkCreateTransactionCommand(accountId, commands), userId);
+        var result = transactionService.bulkCreateTransactions(
+                new BulkCreateTransactionCommand(accountId, commands), userId);
 
         // Then
         assertThat(result.savedCount()).isEqualTo(1);
@@ -633,8 +561,7 @@ public class TransactionServiceTest {
         assertThat(result.savedTransactionIds()).hasSize(1);
 
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var allTransactions =
-                transactionService.getAllTransactions(user.groupId(), Pageable.ofSize(20));
+        var allTransactions = transactionService.getAllTransactions(user.groupId(), Pageable.ofSize(20));
         assertThat(allTransactions).hasSize(2); // 1 existing + 1 new
 
         var account = accountModuleFacade.getAccount(accountId, userId);
@@ -647,33 +574,29 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var command =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Test transaction",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var command = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Test transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
 
         // When
         var transaction = transactionService.createTransaction(command);
 
         // Then
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var query =
-                new AuditLogQuery(
-                        user.groupId(),
-                        AuditEntityType.TRANSACTION,
-                        EntityId.from(transaction.id().value()),
-                        AuditOperation.CREATE,
-                        null,
-                        null,
-                        null);
+        var query = new AuditLogQuery(
+                user.groupId(),
+                AuditEntityType.TRANSACTION,
+                EntityId.from(transaction.id().value()),
+                AuditOperation.CREATE,
+                null,
+                null,
+                null);
         var auditLogs = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));
 
         assertThat(auditLogs.getContent()).hasSize(1);
@@ -690,46 +613,38 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var createCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Original transaction",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var createCommand = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Original transaction",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         var transaction = transactionService.createTransaction(createCommand);
 
-        var billItem =
-                new BillItemCommand(
-                        transaction.bill().items().getFirst().categoryId(),
-                        transaction.amount(),
-                        "Updated description");
-        var updateCommand =
-                new UpdateTransactionCommand(
-                        transaction.id(),
-                        new BillCommand(of(billItem)),
-                        createCommand.accountId(),
-                        createCommand.transactionDate());
+        var billItem = new BillItemCommand(
+                transaction.bill().items().getFirst().categoryId(), transaction.amount(), "Updated description");
+        var updateCommand = new UpdateTransactionCommand(
+                transaction.id(),
+                new BillCommand(of(billItem)),
+                createCommand.accountId(),
+                createCommand.transactionDate());
 
         // When
         transactionService.updateTransaction(updateCommand, userId);
 
         // Then
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var query =
-                new AuditLogQuery(
-                        user.groupId(),
-                        AuditEntityType.TRANSACTION,
-                        EntityId.from(transaction.id().value()),
-                        AuditOperation.UPDATE,
-                        null,
-                        null,
-                        null);
+        var query = new AuditLogQuery(
+                user.groupId(),
+                AuditEntityType.TRANSACTION,
+                EntityId.from(transaction.id().value()),
+                AuditOperation.UPDATE,
+                null,
+                null,
+                null);
         var auditLogs = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));
 
         assertThat(auditLogs.getContent()).hasSize(1);
@@ -738,8 +653,7 @@ public class TransactionServiceTest {
         assertThat(auditLog.entityType()).isEqualTo(AuditEntityType.TRANSACTION);
         assertThat(auditLog.entityId()).isEqualTo(EntityId.from(transaction.id().value()));
         assertThat(auditLog.performedBy()).isEqualTo(userId);
-        assertThat(auditLog.changeDescription())
-                .isEqualTo("Transaction updated: Updated description");
+        assertThat(auditLog.changeDescription()).isEqualTo("Transaction updated: Updated description");
     }
 
     @Test
@@ -747,18 +661,15 @@ public class TransactionServiceTest {
         // Given
         var userId = createTestUser();
         var categoryId = createIncomeCategory(userId);
-        var accountId =
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var createCommand =
-                TransactionCommandFixture.createCommand(
-                        accountId.id(),
-                        Money.of(new BigDecimal("100.00"), PLN),
-                        "Transaction to delete",
-                        LocalDate.now(),
-                        INCOME,
-                        categoryId,
-                        userId);
+        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var createCommand = TransactionCommandFixture.createCommand(
+                accountId.id(),
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Transaction to delete",
+                LocalDate.now(),
+                INCOME,
+                categoryId,
+                userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         // When
@@ -766,15 +677,14 @@ public class TransactionServiceTest {
 
         // Then
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var query =
-                new AuditLogQuery(
-                        user.groupId(),
-                        AuditEntityType.TRANSACTION,
-                        EntityId.from(transaction.id().value()),
-                        AuditOperation.DELETE,
-                        null,
-                        null,
-                        null);
+        var query = new AuditLogQuery(
+                user.groupId(),
+                AuditEntityType.TRANSACTION,
+                EntityId.from(transaction.id().value()),
+                AuditOperation.DELETE,
+                null,
+                null,
+                null);
         var auditLogs = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));
 
         assertThat(auditLogs.getContent()).hasSize(1);
@@ -783,7 +693,6 @@ public class TransactionServiceTest {
         assertThat(auditLog.entityType()).isEqualTo(AuditEntityType.TRANSACTION);
         assertThat(auditLog.entityId()).isEqualTo(EntityId.from(transaction.id().value()));
         assertThat(auditLog.performedBy()).isEqualTo(userId);
-        assertThat(auditLog.changeDescription())
-                .isEqualTo("Transaction deleted: Transaction to delete");
+        assertThat(auditLog.changeDescription()).isEqualTo("Transaction deleted: Transaction to delete");
     }
 }

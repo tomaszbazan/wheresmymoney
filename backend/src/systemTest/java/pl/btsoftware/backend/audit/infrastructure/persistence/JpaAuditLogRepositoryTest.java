@@ -15,23 +15,24 @@ import pl.btsoftware.backend.users.domain.UserId;
 @SystemTest
 public class JpaAuditLogRepositoryTest {
 
-    @Autowired private AuditLogRepository auditLogRepository;
+    @Autowired
+    private AuditLogRepository auditLogRepository;
 
-    @Autowired private AuditLogJpaRepository auditLogJpaRepository;
+    @Autowired
+    private AuditLogJpaRepository auditLogJpaRepository;
 
     @Test
     void shouldStoreAndRetrieveAuditLog() {
         var groupId = new GroupId(randomUUID());
         var userId = UserId.of("user123");
         var entityId = EntityId.from(randomUUID());
-        var auditLog =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        entityId,
-                        userId,
-                        groupId,
-                        "Account created: Test Account");
+        var auditLog = AuditLog.create(
+                AuditOperation.CREATE,
+                AuditEntityType.ACCOUNT,
+                entityId,
+                userId,
+                groupId,
+                "Account created: Test Account");
 
         auditLogRepository.store(auditLog);
         var retrieved = auditLogRepository.findById(auditLog.id(), groupId);
@@ -61,14 +62,8 @@ public class JpaAuditLogRepositoryTest {
         var group1 = new GroupId(randomUUID());
         var group2 = new GroupId(randomUUID());
         var userId = UserId.of("user123");
-        var auditLog =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        EntityId.from(randomUUID()),
-                        userId,
-                        group1,
-                        "Test");
+        var auditLog = AuditLog.create(
+                AuditOperation.CREATE, AuditEntityType.ACCOUNT, EntityId.from(randomUUID()), userId, group1, "Test");
 
         auditLogRepository.store(auditLog);
         var resultGroup1 = auditLogRepository.findById(auditLog.id(), group1);
@@ -83,13 +78,9 @@ public class JpaAuditLogRepositoryTest {
         var groupId = new GroupId(randomUUID());
         var userId = UserId.of("user123");
 
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
-        auditLogRepository.store(
-                createAuditLog(
-                        AuditOperation.UPDATE, AuditEntityType.TRANSACTION, userId, groupId));
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.DELETE, AuditEntityType.CATEGORY, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.UPDATE, AuditEntityType.TRANSACTION, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.DELETE, AuditEntityType.CATEGORY, userId, groupId));
 
         var query = AuditLogQuery.allForGroup(groupId);
         var result = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));
@@ -103,21 +94,15 @@ public class JpaAuditLogRepositoryTest {
         var groupId = new GroupId(randomUUID());
         var userId = UserId.of("user123");
 
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
-        auditLogRepository.store(
-                createAuditLog(
-                        AuditOperation.CREATE, AuditEntityType.TRANSACTION, userId, groupId));
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.TRANSACTION, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
 
-        var query =
-                new AuditLogQuery(groupId, AuditEntityType.ACCOUNT, null, null, null, null, null);
+        var query = new AuditLogQuery(groupId, AuditEntityType.ACCOUNT, null, null, null, null, null);
         var result = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));
 
         assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent())
-                .allMatch(log -> log.entityType() == AuditEntityType.ACCOUNT);
+        assertThat(result.getContent()).allMatch(log -> log.entityType() == AuditEntityType.ACCOUNT);
     }
 
     @Test
@@ -126,16 +111,9 @@ public class JpaAuditLogRepositoryTest {
         var userId = UserId.of("user123");
         var targetEntityId = EntityId.from(randomUUID());
 
-        auditLogRepository.store(
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        targetEntityId,
-                        userId,
-                        groupId,
-                        "Target"));
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
+        auditLogRepository.store(AuditLog.create(
+                AuditOperation.CREATE, AuditEntityType.ACCOUNT, targetEntityId, userId, groupId, "Target"));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
 
         var query = new AuditLogQuery(groupId, null, targetEntityId, null, null, null, null);
         var result = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));
@@ -149,12 +127,9 @@ public class JpaAuditLogRepositoryTest {
         var groupId = new GroupId(randomUUID());
         var userId = UserId.of("user123");
 
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.UPDATE, AuditEntityType.ACCOUNT, userId, groupId));
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.DELETE, AuditEntityType.ACCOUNT, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.UPDATE, AuditEntityType.ACCOUNT, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.DELETE, AuditEntityType.ACCOUNT, userId, groupId));
 
         var query = new AuditLogQuery(groupId, null, null, AuditOperation.UPDATE, null, null, null);
         var result = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));
@@ -169,10 +144,8 @@ public class JpaAuditLogRepositoryTest {
         var user1 = UserId.of("user1");
         var user2 = UserId.of("user2");
 
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, user1, groupId));
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, user2, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, user1, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, user2, groupId));
 
         var query = new AuditLogQuery(groupId, null, null, null, user1, null, null);
         var result = auditLogRepository.findByQuery(query, PageRequest.of(0, 10));
@@ -187,8 +160,7 @@ public class JpaAuditLogRepositoryTest {
         var userId = UserId.of("user123");
 
         var beforeTime = OffsetDateTime.now().minusMinutes(1);
-        auditLogRepository.store(
-                createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
+        auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
         Thread.sleep(10);
         var afterTime = OffsetDateTime.now().plusMinutes(1);
 
@@ -204,9 +176,7 @@ public class JpaAuditLogRepositoryTest {
         var userId = UserId.of("user123");
 
         for (int i = 0; i < 25; i++) {
-            auditLogRepository.store(
-                    createAuditLog(
-                            AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
+            auditLogRepository.store(createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT, userId, groupId));
         }
 
         var query = AuditLogQuery.allForGroup(groupId);
@@ -245,12 +215,6 @@ public class JpaAuditLogRepositoryTest {
 
     private AuditLog createAuditLog(
             AuditOperation operation, AuditEntityType entityType, UserId userId, GroupId groupId) {
-        return AuditLog.create(
-                operation,
-                entityType,
-                EntityId.from(randomUUID()),
-                userId,
-                groupId,
-                "Test description");
+        return AuditLog.create(operation, entityType, EntityId.from(randomUUID()), userId, groupId, "Test description");
     }
 }

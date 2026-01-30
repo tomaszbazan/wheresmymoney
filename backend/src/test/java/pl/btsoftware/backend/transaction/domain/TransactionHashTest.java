@@ -11,15 +11,13 @@ class TransactionHashTest {
     @Test
     void shouldThrowExceptionWhenHashIsNull() {
         // given & when & then
-        assertThatThrownBy(() -> new TransactionHash(null))
-                .isInstanceOf(TransactionHashInvalidException.class);
+        assertThatThrownBy(() -> new TransactionHash(null)).isInstanceOf(TransactionHashInvalidException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenHashIsNotHexadecimal() {
         // given & when & then
-        assertThatThrownBy(() -> new TransactionHash("not-a-hash"))
-                .isInstanceOf(TransactionHashInvalidException.class);
+        assertThatThrownBy(() -> new TransactionHash("not-a-hash")).isInstanceOf(TransactionHashInvalidException.class);
     }
 
     @Test

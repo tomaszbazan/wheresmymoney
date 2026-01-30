@@ -36,13 +36,8 @@ class NameValidationRulesTest {
         var tooLongException = new TestTooLongException();
         var invalidCharsException = new TestInvalidCharactersException();
 
-        assertThatThrownBy(
-                        () ->
-                                NameValidationRules.validate(
-                                        invalidName,
-                                        () -> emptyException,
-                                        () -> tooLongException,
-                                        () -> invalidCharsException))
+        assertThatThrownBy(() -> NameValidationRules.validate(
+                        invalidName, () -> emptyException, () -> tooLongException, () -> invalidCharsException))
                 .isInstanceOf(expectedError.getExceptionClass());
     }
 
@@ -54,10 +49,7 @@ class NameValidationRulesTest {
         var invalidCharsException = new TestInvalidCharactersException();
 
         NameValidationRules.validate(
-                validName,
-                () -> emptyException,
-                () -> tooLongException,
-                () -> invalidCharsException);
+                validName, () -> emptyException, () -> tooLongException, () -> invalidCharsException);
 
         assertThat(validName).isNotNull();
     }
@@ -80,13 +72,8 @@ class NameValidationRulesTest {
         var tooLongException = new TestTooLongException();
         var invalidCharsException = new TestInvalidCharactersException();
 
-        assertThatCode(
-                        () ->
-                                NameValidationRules.validate(
-                                        emptyName,
-                                        null,
-                                        () -> tooLongException,
-                                        () -> invalidCharsException))
+        assertThatCode(() -> NameValidationRules.validate(
+                        emptyName, null, () -> tooLongException, () -> invalidCharsException))
                 .doesNotThrowAnyException();
     }
 
@@ -96,13 +83,8 @@ class NameValidationRulesTest {
         var emptyException = new TestEmptyException();
         var invalidCharsException = new TestInvalidCharactersException();
 
-        assertThatCode(
-                        () ->
-                                NameValidationRules.validate(
-                                        tooLongName,
-                                        () -> emptyException,
-                                        null,
-                                        () -> invalidCharsException))
+        assertThatCode(() -> NameValidationRules.validate(
+                        tooLongName, () -> emptyException, null, () -> invalidCharsException))
                 .doesNotThrowAnyException();
     }
 
@@ -112,20 +94,14 @@ class NameValidationRulesTest {
         var emptyException = new TestEmptyException();
         var tooLongException = new TestTooLongException();
 
-        assertThatCode(
-                        () ->
-                                NameValidationRules.validate(
-                                        nameWithInvalidChars,
-                                        () -> emptyException,
-                                        () -> tooLongException,
-                                        null))
+        assertThatCode(() -> NameValidationRules.validate(
+                        nameWithInvalidChars, () -> emptyException, () -> tooLongException, null))
                 .doesNotThrowAnyException();
     }
 
     @ParameterizedTest
     @MethodSource("invalidNameTestCases")
-    void shouldSkipAllValidationsWhenAllSuppliersAreNull(
-            String invalidName, ValidationError expectedError) {
+    void shouldSkipAllValidationsWhenAllSuppliersAreNull(String invalidName, ValidationError expectedError) {
         assertThatCode(() -> NameValidationRules.validate(invalidName, null, null, null))
                 .doesNotThrowAnyException();
     }

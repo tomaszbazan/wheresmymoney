@@ -13,13 +13,9 @@ public class UserService {
     private final GroupInvitationRepository invitationRepository;
 
     public User registerUser(RegisterUserCommand command) {
-        userRepository
-                .findById(new UserId(command.externalAuthId()))
-                .ifPresent(
-                        user -> {
-                            throw new IllegalStateException(
-                                    "User with external auth ID already exists");
-                        });
+        userRepository.findById(new UserId(command.externalAuthId())).ifPresent(user -> {
+            throw new IllegalStateException("User with external auth ID already exists");
+        });
 
         if (command.hasInvitationToken()) {
             return registerUserToExistingGroup(command);
@@ -39,19 +35,11 @@ public class UserService {
     private User registerUserToExistingGroup(RegisterUserCommand command) {
         var groupId = handleInvitationBasedRegistration(command);
 
-        var user =
-                User.create(
-                        new UserId(command.externalAuthId()),
-                        command.email(),
-                        command.displayName(),
-                        groupId);
+        var user = User.create(new UserId(command.externalAuthId()), command.email(), command.displayName(), groupId);
 
         userRepository.save(user);
 
-        Group group =
-                groupRepository
-                        .findById(groupId)
-                        .orElseThrow(() -> new IllegalStateException("Group not found"));
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new IllegalStateException("Group not found"));
         var updatedGroup = group.addMember(user.id());
         groupRepository.save(updatedGroup);
 
@@ -64,12 +52,8 @@ public class UserService {
                         ? command.groupName().trim()
                         : command.displayName() + " Group";
 
-        var user =
-                User.create(
-                        new UserId(command.externalAuthId()),
-                        command.email(),
-                        command.displayName(),
-                        GroupId.generate());
+        var user = User.create(
+                new UserId(command.externalAuthId()), command.email(), command.displayName(), GroupId.generate());
 
         var group = Group.createEmpty(groupName, "", user.id());
         var updatedUser = user.changeGroup(group.id());
@@ -84,10 +68,9 @@ public class UserService {
     }
 
     private GroupId handleInvitationBasedRegistration(RegisterUserCommand command) {
-        var invitation =
-                invitationRepository
-                        .findByToken(command.invitationToken())
-                        .orElseThrow(InvitationNotFoundException::new);
+        var invitation = invitationRepository
+                .findByToken(command.invitationToken())
+                .orElseThrow(InvitationNotFoundException::new);
 
         var acceptedInvitation = invitation.accept();
         invitationRepository.save(acceptedInvitation);

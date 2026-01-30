@@ -8,9 +8,6 @@ import pl.btsoftware.backend.shared.Color;
 public record UpdateCategoryRequest(String name, Color color, UUID parentId) {
     public UpdateCategoryCommand toCommand(UUID categoryId) {
         return new UpdateCategoryCommand(
-                CategoryId.of(categoryId),
-                name,
-                color,
-                parentId != null ? CategoryId.of(parentId) : null);
+                CategoryId.of(categoryId), name, color, parentId != null ? CategoryId.of(parentId) : null);
     }
 }

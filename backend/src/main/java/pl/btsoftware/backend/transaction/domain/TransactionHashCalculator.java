@@ -11,19 +11,14 @@ import pl.btsoftware.backend.shared.TransactionType;
 public class TransactionHashCalculator {
 
     public static TransactionHash calculateHash(
-            AccountId accountId,
-            Money amount,
-            String description,
-            LocalDate transactionDate,
-            TransactionType type) {
+            AccountId accountId, Money amount, String description, LocalDate transactionDate, TransactionType type) {
         var normalizedDescription = description != null ? description.trim().toLowerCase() : "";
-        var concatenated =
-                accountId.value().toString()
-                        + amount.value().toString()
-                        + amount.currency().name()
-                        + normalizedDescription
-                        + transactionDate.toString()
-                        + type.name();
+        var concatenated = accountId.value().toString()
+                + amount.value().toString()
+                + amount.currency().name()
+                + normalizedDescription
+                + transactionDate.toString()
+                + type.name();
 
         return new TransactionHash(sha256(concatenated));
     }

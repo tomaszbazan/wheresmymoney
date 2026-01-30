@@ -24,8 +24,7 @@ public class CsvParseService {
         var account = accountFacade.getAccount(command.accountId(), user.groupId());
         var parseResult = parser.parse(command.csvFile(), account.balance().currency());
 
-        var categorizedProposals =
-                applyCategorySuggestions(parseResult.proposals(), user.groupId());
+        var categorizedProposals = applyCategorySuggestions(parseResult.proposals(), user.groupId());
 
         return new CsvParseResult(
                 categorizedProposals,
@@ -35,8 +34,7 @@ public class CsvParseService {
                 parseResult.errorCount());
     }
 
-    private List<TransactionProposal> applyCategorySuggestions(
-            List<TransactionProposal> proposals, GroupId groupId) {
+    private List<TransactionProposal> applyCategorySuggestions(List<TransactionProposal> proposals, GroupId groupId) {
         if (proposals.isEmpty()) {
             return proposals;
         }
@@ -63,21 +61,20 @@ public class CsvParseService {
         }
 
         return proposals.stream()
-                .map(
-                        proposal -> {
-                            var suggestion = suggestionMap.get(proposal.transactionId());
-                            if (suggestion != null) {
-                                return new TransactionProposal(
-                                        proposal.transactionId(),
-                                        proposal.transactionDate(),
-                                        proposal.description(),
-                                        proposal.amount(),
-                                        proposal.currency(),
-                                        proposal.type(),
-                                        suggestion.categoryId());
-                            }
-                            return proposal;
-                        })
+                .map(proposal -> {
+                    var suggestion = suggestionMap.get(proposal.transactionId());
+                    if (suggestion != null) {
+                        return new TransactionProposal(
+                                proposal.transactionId(),
+                                proposal.transactionDate(),
+                                proposal.description(),
+                                proposal.amount(),
+                                proposal.currency(),
+                                proposal.type(),
+                                suggestion.categoryId());
+                    }
+                    return proposal;
+                })
                 .toList();
     }
 }

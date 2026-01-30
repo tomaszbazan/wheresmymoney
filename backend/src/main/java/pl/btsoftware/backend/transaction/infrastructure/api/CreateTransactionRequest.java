@@ -20,10 +20,6 @@ public record CreateTransactionRequest(
 
     public CreateTransactionCommand toCommand(UserId userId, AccountId accountId) {
         return new CreateTransactionCommand(
-                accountId,
-                transactionDate,
-                TransactionType.valueOf(type.toUpperCase()),
-                bill.toCommand(),
-                userId);
+                accountId, transactionDate, TransactionType.valueOf(type.toUpperCase()), bill.toCommand(), userId);
     }
 }

@@ -41,27 +41,21 @@ class SimpleTransactionServiceTest {
         var categoryQueryFacade = Mockito.mock(CategoryQueryFacade.class);
 
         this.testGroupId = new GroupId(UUID.randomUUID());
-        var mockUser =
-                User.create(new UserId("user-123"), "test@example.com", "Test User", testGroupId);
+        var mockUser = User.create(new UserId("user-123"), "test@example.com", "Test User", testGroupId);
         when(usersModuleFacade.findUserOrThrow(any(UserId.class))).thenReturn(mockUser);
         when(categoryQueryFacade.allCategoriesExists(any(), any(GroupId.class))).thenReturn(true);
 
         var auditModuleFacade = Mockito.mock(AuditModuleFacade.class);
-        var accountService =
-                new AccountService(
-                        accountRepository,
-                        usersModuleFacade,
-                        Mockito.mock(TransactionQueryFacade.class),
-                        auditModuleFacade);
+        var accountService = new AccountService(
+                accountRepository, usersModuleFacade, Mockito.mock(TransactionQueryFacade.class), auditModuleFacade);
         this.accountModuleFacade = new AccountModuleFacade(accountService, usersModuleFacade);
         var transactionAuditModuleFacade = Mockito.mock(AuditModuleFacade.class);
-        this.transactionService =
-                new TransactionService(
-                        transactionRepository,
-                        accountModuleFacade,
-                        categoryQueryFacade,
-                        usersModuleFacade,
-                        transactionAuditModuleFacade);
+        this.transactionService = new TransactionService(
+                transactionRepository,
+                accountModuleFacade,
+                categoryQueryFacade,
+                usersModuleFacade,
+                transactionAuditModuleFacade);
     }
 
     @Test
@@ -74,15 +68,8 @@ class SimpleTransactionServiceTest {
         var date = LocalDate.of(2024, 1, 15);
         var categoryId = CategoryId.generate();
 
-        var command =
-                createCommand(
-                        account.id(),
-                        Money.of(amount, PLN),
-                        description,
-                        date,
-                        TransactionType.INCOME,
-                        categoryId,
-                        userId);
+        var command = createCommand(
+                account.id(), Money.of(amount, PLN), description, date, TransactionType.INCOME, categoryId, userId);
 
         var transaction = transactionService.createTransaction(command);
 
@@ -108,15 +95,8 @@ class SimpleTransactionServiceTest {
         var date = LocalDate.of(2024, 1, 20);
         var categoryId = CategoryId.generate();
 
-        var command =
-                createCommand(
-                        account.id(),
-                        Money.of(amount, PLN),
-                        description,
-                        date,
-                        TransactionType.EXPENSE,
-                        categoryId,
-                        userId);
+        var command = createCommand(
+                account.id(), Money.of(amount, PLN), description, date, TransactionType.EXPENSE, categoryId, userId);
 
         var transaction = transactionService.createTransaction(command);
 

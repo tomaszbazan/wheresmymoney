@@ -21,8 +21,7 @@ public record GroupInvitation(
         Instant expiresAt) {
     private static final Duration DEFAULT_VALIDITY = Duration.ofDays(7);
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final String TOKEN_CHARS =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final String TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int TOKEN_LENGTH = 32;
 
     public GroupInvitation(
@@ -39,8 +38,7 @@ public record GroupInvitation(
         this.id = Objects.requireNonNull(id, "GroupInvitationId cannot be null");
         this.groupId = Objects.requireNonNull(groupId, "GroupId cannot be null");
         this.inviteeEmail = inviteeEmail.trim().toLowerCase();
-        this.invitationToken =
-                Objects.requireNonNull(invitationToken, "Invitation token cannot be null");
+        this.invitationToken = Objects.requireNonNull(invitationToken, "Invitation token cannot be null");
         this.invitedBy = Objects.requireNonNull(invitedBy, "InvitedBy cannot be null");
         this.status = Objects.requireNonNull(status, "Status cannot be null");
         this.createdAt = Objects.requireNonNull(createdAt, "CreatedAt cannot be null");

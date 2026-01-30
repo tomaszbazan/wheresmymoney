@@ -9,16 +9,13 @@ class CategorizationPromptTest {
 
     @Test
     void shouldRejectNullJsonPrompt() {
-        assertThatThrownBy(() -> new CategorizationPrompt(null))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new CategorizationPrompt(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void shouldRejectBlankJsonPrompt() {
-        assertThatThrownBy(() -> new CategorizationPrompt(""))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new CategorizationPrompt("   "))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new CategorizationPrompt("")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new CategorizationPrompt("   ")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

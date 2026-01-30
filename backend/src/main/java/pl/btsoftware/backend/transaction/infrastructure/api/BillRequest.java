@@ -10,6 +10,7 @@ public record BillRequest(@NotEmpty List<BillItemRequest> billItems) {
     }
 
     public BillCommand toCommand() {
-        return new BillCommand(billItems.stream().map(BillItemRequest::toCommand).toList());
+        return new BillCommand(
+                billItems.stream().map(BillItemRequest::toCommand).toList());
     }
 }

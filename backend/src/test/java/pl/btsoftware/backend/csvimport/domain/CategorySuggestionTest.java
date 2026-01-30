@@ -32,8 +32,7 @@ class CategorySuggestionTest {
         var confidence = -0.1;
 
         // when & then
-        assertThatThrownBy(
-                        () -> new CategorySuggestion(transactionProposalId, categoryId, confidence))
+        assertThatThrownBy(() -> new CategorySuggestion(transactionProposalId, categoryId, confidence))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Confidence must be between 0.0 and 1.0");
     }
@@ -46,8 +45,7 @@ class CategorySuggestionTest {
         var confidence = 1.1;
 
         // when & then
-        assertThatThrownBy(
-                        () -> new CategorySuggestion(transactionProposalId, categoryId, confidence))
+        assertThatThrownBy(() -> new CategorySuggestion(transactionProposalId, categoryId, confidence))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Confidence must be between 0.0 and 1.0");
     }

@@ -16,7 +16,8 @@ import pl.btsoftware.backend.users.domain.UserId;
 @NoArgsConstructor
 @Getter
 public class AuditLogEntity {
-    @Id private UUID id;
+    @Id
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     private AuditOperation operation;

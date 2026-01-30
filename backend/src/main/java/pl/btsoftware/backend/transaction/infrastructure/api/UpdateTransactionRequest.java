@@ -8,13 +8,12 @@ import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.application.UpdateTransactionCommand;
 
 public record UpdateTransactionRequest(
-        @NotNull BillRequest bill, @NotNull String accountId, @NotNull LocalDate transactionDate) {
+        @NotNull BillRequest bill,
+        @NotNull String accountId,
+        @NotNull LocalDate transactionDate) {
 
     public UpdateTransactionCommand toCommand(TransactionId transactionId) {
         return new UpdateTransactionCommand(
-                transactionId,
-                bill.toCommand(),
-                new AccountId(UUID.fromString(accountId)),
-                transactionDate);
+                transactionId, bill.toCommand(), new AccountId(UUID.fromString(accountId)), transactionDate);
     }
 }

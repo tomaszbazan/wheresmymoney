@@ -37,9 +37,7 @@ public class JpaTransactionRepository implements TransactionRepository {
 
     @Override
     public Optional<Transaction> findByIdIncludingDeleted(TransactionId id, GroupId groupId) {
-        return repository
-                .findByIdAndCreatedByGroup(id.value(), groupId.value())
-                .map(TransactionEntity::toDomain);
+        return repository.findByIdAndCreatedByGroup(id.value(), groupId.value()).map(TransactionEntity::toDomain);
     }
 
     @Override
@@ -51,19 +49,16 @@ public class JpaTransactionRepository implements TransactionRepository {
 
     @Override
     public boolean existsByCategoryId(CategoryId categoryId, GroupId groupId) {
-        return repository.existsByCategoryIdAndCreatedByGroupAndIsDeletedFalse(
-                categoryId.value(), groupId.value());
+        return repository.existsByCategoryIdAndCreatedByGroupAndIsDeletedFalse(categoryId.value(), groupId.value());
     }
 
     @Override
     public boolean existsByAccountId(AccountId accountId, GroupId groupId) {
-        return repository.existsByAccountIdAndCreatedByGroupAndIsDeletedFalse(
-                accountId.value(), groupId.value());
+        return repository.existsByAccountIdAndCreatedByGroupAndIsDeletedFalse(accountId.value(), groupId.value());
     }
 
     @Override
-    public Optional<Transaction> findByAccountIdAndHash(
-            AccountId accountId, TransactionHash hash, GroupId groupId) {
+    public Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId) {
         return repository
                 .findByAccountIdAndTransactionHashAndCreatedByGroupAndIsDeletedFalse(
                         accountId.value(), hash.value(), groupId.value())

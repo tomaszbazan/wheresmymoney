@@ -19,12 +19,7 @@ import pl.btsoftware.backend.users.domain.UserId;
 import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
 public record Account(
-        AccountId id,
-        String name,
-        Money balance,
-        AuditInfo createdInfo,
-        AuditInfo updatedInfo,
-        Tombstone tombstone) {
+        AccountId id, String name, Money balance, AuditInfo createdInfo, AuditInfo updatedInfo, Tombstone tombstone) {
     public Account(
             AccountId id,
             String name,
@@ -65,8 +60,7 @@ public record Account(
 
     public Account changeName(String newName) {
         validateAccountName(newName);
-        return new Account(
-                id, newName, balance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
+        return new Account(id, newName, balance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     public UserId createdBy() {
@@ -99,11 +93,11 @@ public record Account(
 
     private Account updateBalance(Money amount) {
         if (balance().currency() != amount.currency()) {
-            throw new TransactionCurrencyMismatchException(amount.currency(), balance().currency());
+            throw new TransactionCurrencyMismatchException(
+                    amount.currency(), balance().currency());
         }
         Money newBalance = balance.add(amount);
-        return new Account(
-                id, name, newBalance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
+        return new Account(id, name, newBalance, createdInfo, updatedInfo.updateTimestamp(), tombstone);
     }
 
     public Account delete() {

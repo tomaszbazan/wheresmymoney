@@ -11,7 +11,8 @@ public record BillCommand(List<BillItemCommand> billItems) {
 
     public Bill toDomain() {
         return new Bill(
-                BillId.generate(), billItems.stream().map(BillItemCommand::toDomain).toList());
+                BillId.generate(),
+                billItems.stream().map(BillItemCommand::toDomain).toList());
     }
 
     public List<String> billItemsDescription() {

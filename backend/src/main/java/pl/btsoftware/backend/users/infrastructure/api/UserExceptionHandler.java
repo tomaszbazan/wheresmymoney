@@ -21,15 +21,13 @@ public class UserExceptionHandler {
     }
 
     @ExceptionHandler(InvitationNotFoundException.class)
-    public ResponseEntity<String> handleInvitationNotFoundException(
-            InvitationNotFoundException ex) {
+    public ResponseEntity<String> handleInvitationNotFoundException(InvitationNotFoundException ex) {
         log.error("Invitation not found: {}", ex.getMessage(), ex);
         return ResponseEntity.status(NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(InvitationTokenExpiredException.class)
-    public ResponseEntity<String> handleInvitationTokenExpiredException(
-            InvitationTokenExpiredException ex) {
+    public ResponseEntity<String> handleInvitationTokenExpiredException(InvitationTokenExpiredException ex) {
         log.error("Invitation token expired: {}", ex.getMessage(), ex);
         return ResponseEntity.status(GONE).body(ex.getMessage());
     }

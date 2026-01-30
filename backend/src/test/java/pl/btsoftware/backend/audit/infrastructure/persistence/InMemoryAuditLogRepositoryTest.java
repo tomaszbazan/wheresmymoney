@@ -26,14 +26,13 @@ class InMemoryAuditLogRepositoryTest {
 
     @Test
     void shouldStoreAndRetrieveAuditLog() {
-        var auditLog =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        EntityId.from(randomUUID()),
-                        userId,
-                        groupId,
-                        "Account created");
+        var auditLog = AuditLog.create(
+                AuditOperation.CREATE,
+                AuditEntityType.ACCOUNT,
+                EntityId.from(randomUUID()),
+                userId,
+                groupId,
+                "Account created");
 
         repository.store(auditLog);
         var retrieved = repository.findById(auditLog.id(), groupId);
@@ -51,14 +50,13 @@ class InMemoryAuditLogRepositoryTest {
 
     @Test
     void shouldReturnEmptyWhenGroupIdDoesNotMatch() {
-        var auditLog =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        EntityId.from(randomUUID()),
-                        userId,
-                        groupId,
-                        "Account created");
+        var auditLog = AuditLog.create(
+                AuditOperation.CREATE,
+                AuditEntityType.ACCOUNT,
+                EntityId.from(randomUUID()),
+                userId,
+                groupId,
+                "Account created");
         repository.store(auditLog);
 
         var differentGroupId = new GroupId(randomUUID());
@@ -89,8 +87,7 @@ class InMemoryAuditLogRepositoryTest {
         repository.store(accountLog);
         repository.store(transactionLog);
 
-        var query =
-                new AuditLogQuery(groupId, AuditEntityType.ACCOUNT, null, null, null, null, null);
+        var query = new AuditLogQuery(groupId, AuditEntityType.ACCOUNT, null, null, null, null, null);
         var result = repository.findByQuery(query, PageRequest.of(0, 10));
 
         assertThat(result.getContent()).hasSize(1);
@@ -101,13 +98,7 @@ class InMemoryAuditLogRepositoryTest {
     void shouldFilterByEntityId() {
         var entityId = EntityId.from(randomUUID());
         var targetLog =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        entityId,
-                        userId,
-                        groupId,
-                        "Target");
+                AuditLog.create(AuditOperation.CREATE, AuditEntityType.ACCOUNT, entityId, userId, groupId, "Target");
         var otherLog = createAuditLog(AuditOperation.CREATE, AuditEntityType.ACCOUNT);
         repository.store(targetLog);
         repository.store(otherLog);
@@ -139,22 +130,10 @@ class InMemoryAuditLogRepositoryTest {
     void shouldFilterByPerformedBy() {
         var user1 = UserId.of("user1");
         var user2 = UserId.of("user2");
-        var log1 =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        EntityId.from(randomUUID()),
-                        user1,
-                        groupId,
-                        "Log 1");
-        var log2 =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        EntityId.from(randomUUID()),
-                        user2,
-                        groupId,
-                        "Log 2");
+        var log1 = AuditLog.create(
+                AuditOperation.CREATE, AuditEntityType.ACCOUNT, EntityId.from(randomUUID()), user1, groupId, "Log 1");
+        var log2 = AuditLog.create(
+                AuditOperation.CREATE, AuditEntityType.ACCOUNT, EntityId.from(randomUUID()), user2, groupId, "Log 2");
         repository.store(log1);
         repository.store(log2);
 
@@ -212,22 +191,10 @@ class InMemoryAuditLogRepositoryTest {
     void shouldIsolateByGroup() {
         var group1 = new GroupId(randomUUID());
         var group2 = new GroupId(randomUUID());
-        var log1 =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        EntityId.from(randomUUID()),
-                        userId,
-                        group1,
-                        "Group 1");
-        var log2 =
-                AuditLog.create(
-                        AuditOperation.CREATE,
-                        AuditEntityType.ACCOUNT,
-                        EntityId.from(randomUUID()),
-                        userId,
-                        group2,
-                        "Group 2");
+        var log1 = AuditLog.create(
+                AuditOperation.CREATE, AuditEntityType.ACCOUNT, EntityId.from(randomUUID()), userId, group1, "Group 1");
+        var log2 = AuditLog.create(
+                AuditOperation.CREATE, AuditEntityType.ACCOUNT, EntityId.from(randomUUID()), userId, group2, "Group 2");
         repository.store(log1);
         repository.store(log2);
 
@@ -239,12 +206,6 @@ class InMemoryAuditLogRepositoryTest {
     }
 
     private AuditLog createAuditLog(AuditOperation operation, AuditEntityType entityType) {
-        return AuditLog.create(
-                operation,
-                entityType,
-                EntityId.from(randomUUID()),
-                userId,
-                groupId,
-                "Test description");
+        return AuditLog.create(operation, entityType, EntityId.from(randomUUID()), userId, groupId, "Test description");
     }
 }

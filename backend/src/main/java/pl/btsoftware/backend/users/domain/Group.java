@@ -8,12 +8,7 @@ import pl.btsoftware.backend.shared.validation.NameValidationRules;
 import pl.btsoftware.backend.users.domain.error.*;
 
 public record Group(
-        GroupId id,
-        String name,
-        String description,
-        Set<UserId> memberIds,
-        UserId createdBy,
-        Instant createdAt) {
+        GroupId id, String name, String description, Set<UserId> memberIds, UserId createdBy, Instant createdAt) {
 
     public Group {
         validateName(name);
@@ -45,19 +40,11 @@ public record Group(
 
     public static Group create(String name, String description, UserId creatorId) {
         Set<UserId> initialMembers = Set.of(creatorId);
-        return new Group(
-                GroupId.generate(), name, description, initialMembers, creatorId, Instant.now());
+        return new Group(GroupId.generate(), name, description, initialMembers, creatorId, Instant.now());
     }
 
     public static Group createEmpty(String name, String description, UserId creatorId) {
-        return new Group(
-                GroupId.generate(),
-                name,
-                description,
-                new HashSet<>(),
-                creatorId,
-                Instant.now(),
-                false);
+        return new Group(GroupId.generate(), name, description, new HashSet<>(), creatorId, Instant.now(), false);
     }
 
     public static Group createEmptyWithId(

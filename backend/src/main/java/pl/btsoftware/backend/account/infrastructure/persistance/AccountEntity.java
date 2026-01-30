@@ -18,7 +18,9 @@ import pl.btsoftware.backend.shared.Tombstone;
 @NoArgsConstructor
 @Getter
 public class AccountEntity {
-    @Id private UUID id;
+    @Id
+    private UUID id;
+
     private String name;
     private BigDecimal balance;
 
@@ -40,7 +42,8 @@ public class AccountEntity {
     @Column(name = "updated_by")
     private String updatedBy;
 
-    @Version private Long version;
+    @Version
+    private Long version;
 
     public AccountEntity(
             UUID id,
@@ -84,12 +87,7 @@ public class AccountEntity {
         var createdAuditInfo = AuditInfo.create(createdBy, ownedByGroup, createdAt);
         var updatedAuditInfo = AuditInfo.create(updatedBy, ownedByGroup, updatedAt);
         return new Account(
-                accountId,
-                name,
-                Money.of(balance, currency),
-                createdAuditInfo,
-                updatedAuditInfo,
-                Tombstone.active());
+                accountId, name, Money.of(balance, currency), createdAuditInfo, updatedAuditInfo, Tombstone.active());
     }
 
     public void updateFrom(Account account) {

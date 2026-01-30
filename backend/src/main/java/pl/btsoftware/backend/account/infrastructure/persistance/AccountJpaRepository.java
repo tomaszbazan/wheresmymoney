@@ -9,8 +9,7 @@ import pl.btsoftware.backend.shared.Currency;
 
 @Repository
 public interface AccountJpaRepository extends JpaRepository<AccountEntity, UUID> {
-    Optional<AccountEntity> findByNameAndCurrencyAndOwnedByGroup(
-            String name, Currency currency, UUID groupId);
+    Optional<AccountEntity> findByNameAndCurrencyAndOwnedByGroup(String name, Currency currency, UUID groupId);
 
     Optional<AccountEntity> findByIdAndOwnedByGroup(UUID id, UUID groupId);
 

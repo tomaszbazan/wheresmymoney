@@ -52,8 +52,7 @@ class BillTest {
         var items = List.<BillItem>of();
 
         // when // then
-        assertThatThrownBy(() -> new Bill(billId, items))
-                .isInstanceOf(BillMustHaveAtLeastOneItemException.class);
+        assertThatThrownBy(() -> new Bill(billId, items)).isInstanceOf(BillMustHaveAtLeastOneItemException.class);
     }
 
     @Test
@@ -62,8 +61,7 @@ class BillTest {
         var billId = BillId.generate();
 
         // when // then
-        assertThatThrownBy(() -> new Bill(billId, null))
-                .isInstanceOf(BillMustHaveAtLeastOneItemException.class);
+        assertThatThrownBy(() -> new Bill(billId, null)).isInstanceOf(BillMustHaveAtLeastOneItemException.class);
     }
 
     @Test
@@ -98,8 +96,7 @@ class BillTest {
         var bill = new Bill(BillId.generate(), List.of(item));
 
         // when // then
-        assertThatThrownBy(() -> bill.items().add(item))
-                .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> bill.items().add(item)).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -116,23 +113,16 @@ class BillTest {
         // then
         assertThat(categories)
                 .hasSize(3)
-                .containsExactlyInAnyOrder(
-                        item1.categoryId(), item2.categoryId(), item3.categoryId());
+                .containsExactlyInAnyOrder(item1.categoryId(), item2.categoryId(), item3.categoryId());
     }
 
     private BillItem billItem(String amount, String description) {
         return new BillItem(
-                BillItemId.generate(),
-                CategoryId.generate(),
-                Money.of(new BigDecimal(amount)),
-                description);
+                BillItemId.generate(), CategoryId.generate(), Money.of(new BigDecimal(amount)), description);
     }
 
     private BillItem billItem(String amount, Currency currency, String description) {
         return new BillItem(
-                BillItemId.generate(),
-                CategoryId.generate(),
-                Money.of(new BigDecimal(amount), currency),
-                description);
+                BillItemId.generate(), CategoryId.generate(), Money.of(new BigDecimal(amount), currency), description);
     }
 }

@@ -113,8 +113,7 @@ class GroupTest {
         var group = Group.create("Test Group", "Description", creator);
 
         // when & then
-        assertThatThrownBy(() -> group.removeMember(creator))
-                .isInstanceOf(CannotRemoveLastGroupMemberException.class);
+        assertThatThrownBy(() -> group.removeMember(creator)).isInstanceOf(CannotRemoveLastGroupMemberException.class);
     }
 
     @Test
@@ -128,14 +127,7 @@ class GroupTest {
     void shouldAllowCreationWithEmptyMembers() {
         // The canonical constructor allows empty members - only the private constructor with
         // validation doesn't
-        Group group =
-                new Group(
-                        GroupId.generate(),
-                        "Name",
-                        "Description",
-                        Set.of(),
-                        UserId.generate(),
-                        Instant.now());
+        Group group = new Group(GroupId.generate(), "Name", "Description", Set.of(), UserId.generate(), Instant.now());
 
         assertThat(group.isEmpty()).isTrue();
         assertThat(group.getMemberCount()).isEqualTo(0);

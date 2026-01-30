@@ -36,8 +36,7 @@ class GroupInvitationTest {
 
     @Test
     void shouldThrowExceptionWhenEmailIsNull() {
-        assertThatThrownBy(
-                        () -> GroupInvitation.create(GroupId.generate(), null, UserId.generate()))
+        assertThatThrownBy(() -> GroupInvitation.create(GroupId.generate(), null, UserId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
     }
 
@@ -49,8 +48,7 @@ class GroupInvitationTest {
 
     @Test
     void shouldThrowExceptionWhenEmailIsBlank() {
-        assertThatThrownBy(
-                        () -> GroupInvitation.create(GroupId.generate(), "   ", UserId.generate()))
+        assertThatThrownBy(() -> GroupInvitation.create(GroupId.generate(), "   ", UserId.generate()))
                 .isInstanceOf(UserEmailEmptyException.class);
     }
 
@@ -58,8 +56,7 @@ class GroupInvitationTest {
     void shouldTrimAndLowercaseEmail() {
         String email = "  TEST@EXAMPLE.COM  ";
 
-        GroupInvitation invitation =
-                GroupInvitation.create(GroupId.generate(), email, UserId.generate());
+        GroupInvitation invitation = GroupInvitation.create(GroupId.generate(), email, UserId.generate());
 
         assertThat(invitation.inviteeEmail()).isEqualTo("test@example.com");
     }
@@ -67,8 +64,7 @@ class GroupInvitationTest {
     @Test
     void shouldAcceptPendingInvitation() {
         // given
-        var invitation =
-                GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
+        var invitation = GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
 
         // when
         var acceptedInvitation = invitation.accept();
@@ -84,19 +80,17 @@ class GroupInvitationTest {
         UserId invitedBy = UserId.generate();
         Instant pastTime = Instant.now().minus(Duration.ofDays(8));
 
-        GroupInvitation expiredInvitation =
-                new GroupInvitation(
-                        id,
-                        groupId,
-                        "test@example.com",
-                        "token",
-                        invitedBy,
-                        InvitationStatus.PENDING,
-                        pastTime,
-                        pastTime.plus(Duration.ofDays(7)));
+        GroupInvitation expiredInvitation = new GroupInvitation(
+                id,
+                groupId,
+                "test@example.com",
+                "token",
+                invitedBy,
+                InvitationStatus.PENDING,
+                pastTime,
+                pastTime.plus(Duration.ofDays(7)));
 
-        assertThatThrownBy(expiredInvitation::accept)
-                .isInstanceOf(InvitationTokenExpiredException.class);
+        assertThatThrownBy(expiredInvitation::accept).isInstanceOf(InvitationTokenExpiredException.class);
     }
 
     @Test
@@ -106,26 +100,16 @@ class GroupInvitationTest {
         UserId invitedBy = UserId.generate();
         Instant now = Instant.now();
 
-        GroupInvitation acceptedInvitation =
-                new GroupInvitation(
-                        id,
-                        groupId,
-                        "test@example.com",
-                        "token",
-                        invitedBy,
-                        ACCEPTED,
-                        now,
-                        now.plus(Duration.ofDays(7)));
+        GroupInvitation acceptedInvitation = new GroupInvitation(
+                id, groupId, "test@example.com", "token", invitedBy, ACCEPTED, now, now.plus(Duration.ofDays(7)));
 
-        assertThatThrownBy(acceptedInvitation::accept)
-                .isInstanceOf(InvitationNotPendingException.class);
+        assertThatThrownBy(acceptedInvitation::accept).isInstanceOf(InvitationNotPendingException.class);
     }
 
     @Test
     void shouldExpireInvitation() {
         // given
-        var invitation =
-                GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
+        var invitation = GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
 
         // when
         var expiredInvitation = invitation.expire();
@@ -142,16 +126,15 @@ class GroupInvitationTest {
         UserId invitedBy = UserId.generate();
         Instant pastTime = Instant.now().minus(Duration.ofDays(8));
 
-        GroupInvitation expiredInvitation =
-                new GroupInvitation(
-                        id,
-                        groupId,
-                        "test@example.com",
-                        "token",
-                        invitedBy,
-                        InvitationStatus.PENDING,
-                        pastTime,
-                        pastTime.plus(Duration.ofDays(7)));
+        GroupInvitation expiredInvitation = new GroupInvitation(
+                id,
+                groupId,
+                "test@example.com",
+                "token",
+                invitedBy,
+                InvitationStatus.PENDING,
+                pastTime,
+                pastTime.plus(Duration.ofDays(7)));
 
         assertThat(expiredInvitation.isExpired()).isTrue();
         assertThat(expiredInvitation.isPending()).isFalse();
@@ -159,8 +142,7 @@ class GroupInvitationTest {
 
     @Test
     void shouldBePendingWhenNotExpired() {
-        GroupInvitation invitation =
-                GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
+        GroupInvitation invitation = GroupInvitation.create(GroupId.generate(), "test@example.com", UserId.generate());
 
         assertThat(invitation.isPending()).isTrue();
         assertThat(invitation.isExpired()).isFalse();

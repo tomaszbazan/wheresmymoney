@@ -18,6 +18,8 @@ public record BulkCreateTransactionRequest(
         var accountId = AccountId.from(this.accountId);
         return new BulkCreateTransactionCommand(
                 accountId,
-                transactions.stream().map(req -> req.toCommand(userId, accountId)).toList());
+                transactions.stream()
+                        .map(req -> req.toCommand(userId, accountId))
+                        .toList());
     }
 }

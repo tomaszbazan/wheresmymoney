@@ -26,17 +26,12 @@ public class TransactionController {
 
     @PostMapping("/transactions")
     public TransactionView createTransaction(
-            @RequestBody @Valid CreateTransactionRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @RequestBody @Valid CreateTransactionRequest request, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
-        log.info(
-                "Received request to create transaction for account: {} by user: {}",
-                request.accountId(),
-                userId);
+        log.info("Received request to create transaction for account: {} by user: {}", request.accountId(), userId);
         var transaction = transactionModuleFacade.createTransaction(request.toCommand(userId));
         return TransactionView.from(
-                transaction,
-                categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
+                transaction, categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
     }
 
     @GetMapping("/transactions/{id}")
@@ -45,8 +40,7 @@ public class TransactionController {
         log.info("Received request to get transaction with id: {} by user: {}", id, userId);
         var transaction = transactionModuleFacade.getTransactionById(id, userId);
         return TransactionView.from(
-                transaction,
-                categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
+                transaction, categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
     }
 
     @GetMapping("/transactions")
@@ -55,21 +49,15 @@ public class TransactionController {
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
-        log.info(
-                "Received request to get paginated transactions (page={}, size={}) by user: {}",
-                page,
-                size,
-                userId);
+        log.info("Received request to get paginated transactions (page={}, size={}) by user: {}", page, size, userId);
 
         var validatedSize = paginationValidator.validatePageSize(size);
-        var pageable =
-                PageRequest.of(
-                        page, validatedSize, Sort.by("transactionDate", "createdAt").descending());
+        var pageable = PageRequest.of(
+                page, validatedSize, Sort.by("transactionDate", "createdAt").descending());
         var transactionsPage = transactionModuleFacade.getAllTransactions(userId, pageable);
 
         return TransactionsPaginatedView.from(
-                transactionsPage,
-                categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
+                transactionsPage, categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
     }
 
     @PutMapping("/transactions/{id}")
@@ -79,12 +67,9 @@ public class TransactionController {
             @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received request to update transaction with id: {} by user: {}", id, userId);
-        var transaction =
-                transactionModuleFacade.updateTransaction(
-                        request.toCommand(TransactionId.of(id)), userId);
+        var transaction = transactionModuleFacade.updateTransaction(request.toCommand(TransactionId.of(id)), userId);
         return TransactionView.from(
-                transaction,
-                categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
+                transaction, categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));
     }
 
     @DeleteMapping("/transactions/{id}")
@@ -96,16 +81,14 @@ public class TransactionController {
 
     @PostMapping("/transactions/bulk")
     public BulkCreateTransactionResponse bulkCreateTransactions(
-            @RequestBody @Valid BulkCreateTransactionRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @RequestBody @Valid BulkCreateTransactionRequest request, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info(
                 "Received request to bulk create {} transactions for account: {} by user: {}",
                 request.transactions().size(),
                 request.accountId(),
                 userId);
-        var result =
-                transactionModuleFacade.bulkCreateTransactions(request.toCommands(userId), userId);
+        var result = transactionModuleFacade.bulkCreateTransactions(request.toCommands(userId), userId);
         return BulkCreateTransactionResponse.from(result);
     }
 }

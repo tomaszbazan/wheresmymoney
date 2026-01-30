@@ -41,9 +41,7 @@ class TransactionTest {
             var bill = new Bill(BillId.generate(), List.of(billItem));
 
             // when
-            var transaction =
-                    Transaction.create(
-                            accountId, EXPENSE, bill, transactionDate, transactionHash, auditInfo);
+            var transaction = Transaction.create(accountId, EXPENSE, bill, transactionDate, transactionHash, auditInfo);
 
             // then
             assertThat(transaction.id()).isNotNull();
@@ -68,24 +66,14 @@ class TransactionTest {
             var transactionHash = new TransactionHash("a".repeat(64));
             var auditInfo = Instancio.create(AuditInfo.class);
 
-            var item1 =
-                    new BillItem(
-                            BillItemId.generate(),
-                            CategoryId.generate(),
-                            Money.of(BigDecimal.valueOf(30), PLN),
-                            "Clothes");
-            var item2 =
-                    new BillItem(
-                            BillItemId.generate(),
-                            CategoryId.generate(),
-                            Money.of(BigDecimal.valueOf(20), PLN),
-                            "Drinks");
+            var item1 = new BillItem(
+                    BillItemId.generate(), CategoryId.generate(), Money.of(BigDecimal.valueOf(30), PLN), "Clothes");
+            var item2 = new BillItem(
+                    BillItemId.generate(), CategoryId.generate(), Money.of(BigDecimal.valueOf(20), PLN), "Drinks");
             var bill = new Bill(BillId.generate(), List.of(item1, item2));
 
             // when
-            var transaction =
-                    Transaction.create(
-                            accountId, EXPENSE, bill, transactionDate, transactionHash, auditInfo);
+            var transaction = Transaction.create(accountId, EXPENSE, bill, transactionDate, transactionHash, auditInfo);
 
             // then
             assertThat(transaction.bill().items()).hasSize(2);
@@ -99,17 +87,17 @@ class TransactionTest {
         @Test
         void shouldReturnDescriptionFromSingleBillItem() {
             // given
-            var billItem =
-                    new BillItem(
-                            BillItemId.generate(),
-                            CategoryId.generate(),
-                            Money.of(BigDecimal.valueOf(100), PLN),
-                            "Test description");
+            var billItem = new BillItem(
+                    BillItemId.generate(),
+                    CategoryId.generate(),
+                    Money.of(BigDecimal.valueOf(100), PLN),
+                    "Test description");
             var bill = new Bill(BillId.generate(), List.of(billItem));
 
             // when
-            var transaction =
-                    Instancio.of(Transaction.class).set(field(Transaction::bill), bill).create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::bill), bill)
+                    .create();
 
             // then
             assertThat(transaction.description()).isEqualTo("Test description");
@@ -118,17 +106,14 @@ class TransactionTest {
         @Test
         void shouldReturnNullDescriptionWhenBillItemHasNullDescription() {
             // given
-            var billItem =
-                    new BillItem(
-                            BillItemId.generate(),
-                            CategoryId.generate(),
-                            Money.of(BigDecimal.valueOf(100), PLN),
-                            null);
+            var billItem = new BillItem(
+                    BillItemId.generate(), CategoryId.generate(), Money.of(BigDecimal.valueOf(100), PLN), null);
             var bill = new Bill(BillId.generate(), List.of(billItem));
 
             // when
-            var transaction =
-                    Instancio.of(Transaction.class).set(field(Transaction::bill), bill).create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::bill), bill)
+                    .create();
 
             // then
             assertThat(transaction.description()).isNull();
@@ -142,14 +127,14 @@ class TransactionTest {
         void shouldReturnCreatedBy() {
             // given
             var userId = UserId.generate();
-            var auditInfo =
-                    Instancio.of(AuditInfo.class).set(field(AuditInfo::who), userId).create();
+            var auditInfo = Instancio.of(AuditInfo.class)
+                    .set(field(AuditInfo::who), userId)
+                    .create();
 
             // when
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::createdInfo), auditInfo)
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::createdInfo), auditInfo)
+                    .create();
 
             // then
             assertThat(transaction.createdBy()).isEqualTo(userId);
@@ -159,14 +144,14 @@ class TransactionTest {
         void shouldReturnLastUpdatedBy() {
             // given
             var userId = UserId.generate();
-            var auditInfo =
-                    Instancio.of(AuditInfo.class).set(field(AuditInfo::who), userId).create();
+            var auditInfo = Instancio.of(AuditInfo.class)
+                    .set(field(AuditInfo::who), userId)
+                    .create();
 
             // when
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::updatedInfo), auditInfo)
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::updatedInfo), auditInfo)
+                    .create();
 
             // then
             assertThat(transaction.lastUpdatedBy()).isEqualTo(userId);
@@ -176,16 +161,14 @@ class TransactionTest {
         void shouldReturnOwnedBy() {
             // given
             var groupId = GroupId.generate();
-            var auditInfo =
-                    Instancio.of(AuditInfo.class)
-                            .set(field(AuditInfo::fromGroup), groupId)
-                            .create();
+            var auditInfo = Instancio.of(AuditInfo.class)
+                    .set(field(AuditInfo::fromGroup), groupId)
+                    .create();
 
             // when
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::createdInfo), auditInfo)
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::createdInfo), auditInfo)
+                    .create();
 
             // then
             assertThat(transaction.ownedBy()).isEqualTo(groupId);
@@ -195,14 +178,14 @@ class TransactionTest {
         void shouldReturnCreatedAt() {
             // given
             var timestamp = OffsetDateTime.now();
-            var auditInfo =
-                    Instancio.of(AuditInfo.class).set(field(AuditInfo::when), timestamp).create();
+            var auditInfo = Instancio.of(AuditInfo.class)
+                    .set(field(AuditInfo::when), timestamp)
+                    .create();
 
             // when
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::createdInfo), auditInfo)
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::createdInfo), auditInfo)
+                    .create();
 
             // then
             assertThat(transaction.createdAt()).isEqualTo(timestamp);
@@ -212,14 +195,14 @@ class TransactionTest {
         void shouldReturnLastUpdatedAt() {
             // given
             var timestamp = OffsetDateTime.now();
-            var auditInfo =
-                    Instancio.of(AuditInfo.class).set(field(AuditInfo::when), timestamp).create();
+            var auditInfo = Instancio.of(AuditInfo.class)
+                    .set(field(AuditInfo::when), timestamp)
+                    .create();
 
             // when
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::updatedInfo), auditInfo)
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::updatedInfo), auditInfo)
+                    .create();
 
             // then
             assertThat(transaction.lastUpdatedAt()).isEqualTo(timestamp);
@@ -232,27 +215,18 @@ class TransactionTest {
         @Test
         void shouldUpdateBill() {
             // given
-            var originalBillItem =
-                    new BillItem(
-                            BillItemId.generate(),
-                            CategoryId.generate(),
-                            Money.of(BigDecimal.valueOf(100), PLN),
-                            "Original");
+            var originalBillItem = new BillItem(
+                    BillItemId.generate(), CategoryId.generate(), Money.of(BigDecimal.valueOf(100), PLN), "Original");
             var originalBill = new Bill(BillId.generate(), List.of(originalBillItem));
 
-            var newBillItem =
-                    new BillItem(
-                            BillItemId.generate(),
-                            CategoryId.generate(),
-                            Money.of(BigDecimal.valueOf(200), PLN),
-                            "Updated");
+            var newBillItem = new BillItem(
+                    BillItemId.generate(), CategoryId.generate(), Money.of(BigDecimal.valueOf(200), PLN), "Updated");
             var newBill = new Bill(BillId.generate(), List.of(newBillItem));
 
             var userId = UserId.generate();
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::bill), originalBill)
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::bill), originalBill)
+                    .create();
 
             // when
             var updatedTransaction = transaction.updateBill(newBill, null, null, userId);
@@ -273,10 +247,9 @@ class TransactionTest {
         @Test
         void shouldReturnTrueWhenTransactionIsDeleted() {
             // given
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::tombstone), Tombstone.deleted())
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::tombstone), Tombstone.deleted())
+                    .create();
 
             // when
             var isDeleted = transaction.isDeleted();
@@ -288,10 +261,9 @@ class TransactionTest {
         @Test
         void shouldReturnFalseWhenTransactionIsNotDeleted() {
             // given
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::tombstone), Tombstone.active())
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::tombstone), Tombstone.active())
+                    .create();
 
             // when
             var isDeleted = transaction.isDeleted();
@@ -307,10 +279,9 @@ class TransactionTest {
         @Test
         void shouldDeleteTransaction() {
             // given
-            var transaction =
-                    Instancio.of(Transaction.class)
-                            .set(field(Transaction::tombstone), Tombstone.active())
-                            .create();
+            var transaction = Instancio.of(Transaction.class)
+                    .set(field(Transaction::tombstone), Tombstone.active())
+                    .create();
 
             // when
             var deletedTransaction = transaction.delete();

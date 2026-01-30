@@ -12,10 +12,6 @@ import pl.btsoftware.backend.users.infrastructure.api.UserView;
 
 public record CreateAccountCommand(String name, @Nullable Currency currency, UserId userId) {
     public Account toDomain(User user) {
-        return new Account(
-                generate(),
-                name,
-                isNull(currency) ? Currency.DEFAULT : currency,
-                UserView.from(user));
+        return new Account(generate(), name, isNull(currency) ? Currency.DEFAULT : currency, UserView.from(user));
     }
 }

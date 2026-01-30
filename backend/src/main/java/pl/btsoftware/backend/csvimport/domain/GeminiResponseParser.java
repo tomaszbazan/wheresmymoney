@@ -55,9 +55,7 @@ public class GeminiResponseParser {
                 categoryId = CategoryId.of(UUID.fromString(uuidStr));
             }
 
-            suggestions.add(
-                    new CategorySuggestion(
-                            TransactionProposalId.from(transactionId), categoryId, confidence));
+            suggestions.add(new CategorySuggestion(TransactionProposalId.from(transactionId), categoryId, confidence));
         } catch (IllegalArgumentException e) {
             log.warn("Skipping invalid suggestion: {}", e.getMessage());
         } catch (Exception e) {

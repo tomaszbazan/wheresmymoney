@@ -22,11 +22,14 @@ import pl.btsoftware.backend.users.domain.UserId;
 @SystemTest
 public class TransferSystemTest {
 
-    @Autowired private UsersModuleFacade usersModuleFacade;
+    @Autowired
+    private UsersModuleFacade usersModuleFacade;
 
-    @Autowired private AccountModuleFacade accountModuleFacade;
+    @Autowired
+    private AccountModuleFacade accountModuleFacade;
 
-    @Autowired private TransferModuleFacade transferModuleFacade;
+    @Autowired
+    private TransferModuleFacade transferModuleFacade;
 
     @Test
     void shouldPerformTransferBetweenSameCurrencyAccounts() {
@@ -36,14 +39,13 @@ public class TransferSystemTest {
         var targetAccount = createAccount(user.id(), "Target PLN", PLN);
 
         // When
-        var command =
-                new CreateTransferCommand(
-                        sourceAccount.id(),
-                        targetAccount.id(),
-                        new BigDecimal("100.00"),
-                        new BigDecimal("100.00"),
-                        "Transfer PLN-PLN",
-                        user.id());
+        var command = new CreateTransferCommand(
+                sourceAccount.id(),
+                targetAccount.id(),
+                new BigDecimal("100.00"),
+                new BigDecimal("100.00"),
+                "Transfer PLN-PLN",
+                user.id());
 
         var transfer = transferModuleFacade.createTransfer(command);
 
@@ -63,21 +65,19 @@ public class TransferSystemTest {
         var targetAccount = createAccount(user.id(), "Target EUR", EUR);
 
         // When
-        var command =
-                new CreateTransferCommand(
-                        sourceAccount.id(),
-                        targetAccount.id(),
-                        new BigDecimal("100.00"), // 100 PLN
-                        new BigDecimal("25.00"), // 25 EUR
-                        "Transfer PLN-EUR",
-                        user.id());
+        var command = new CreateTransferCommand(
+                sourceAccount.id(),
+                targetAccount.id(),
+                new BigDecimal("100.00"), // 100 PLN
+                new BigDecimal("25.00"), // 25 EUR
+                "Transfer PLN-EUR",
+                user.id());
 
         var transfer = transferModuleFacade.createTransfer(command);
 
         // Then
         assertThat(transfer.id()).isNotNull();
-        assertThat(transfer.exchangeRate().rate())
-                .isEqualByComparingTo(new BigDecimal("0.25")); // 25 / 100 = 0.25
+        assertThat(transfer.exchangeRate().rate()).isEqualByComparingTo(new BigDecimal("0.25")); // 25 / 100 = 0.25
 
         verifyAccountBalance(sourceAccount.id(), user.id(), "-100.00");
         verifyAccountBalance(targetAccount.id(), user.id(), "25.00");
@@ -85,13 +85,12 @@ public class TransferSystemTest {
 
     private User registerUser() {
         var timestamp = System.currentTimeMillis();
-        var command =
-                new RegisterUserCommand(
-                        "transfer-test-" + timestamp,
-                        "transfer" + timestamp + "@example.com",
-                        "Transfer User",
-                        "Transfer Group " + timestamp,
-                        null);
+        var command = new RegisterUserCommand(
+                "transfer-test-" + timestamp,
+                "transfer" + timestamp + "@example.com",
+                "Transfer User",
+                "Transfer Group " + timestamp,
+                null);
         return usersModuleFacade.registerUser(command);
     }
 

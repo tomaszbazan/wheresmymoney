@@ -39,8 +39,7 @@ class AccountTest {
     void shouldChangeName() {
         // given
         var accountId = AccountId.generate();
-        var account =
-                new Account(accountId, "Original Name", PLN, Instancio.create(UserView.class));
+        var account = new Account(accountId, "Original Name", PLN, Instancio.create(UserView.class));
 
         // when
         var updatedAccount = account.changeName("New Name");
@@ -55,44 +54,44 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenChangingNameToNull() {
         // given
-        var account =
-                Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
+        var account = Instancio.of(Account.class)
+                .set(field(Account::balance), Money.zero())
+                .create();
 
         // when & then
-        assertThatThrownBy(() -> account.changeName(null))
-                .isInstanceOf(AccountNameEmptyException.class);
+        assertThatThrownBy(() -> account.changeName(null)).isInstanceOf(AccountNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenChangingNameToBlank() {
         // given
-        var account =
-                Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
+        var account = Instancio.of(Account.class)
+                .set(field(Account::balance), Money.zero())
+                .create();
 
         // when & then
-        assertThatThrownBy(() -> account.changeName(""))
-                .isInstanceOf(AccountNameEmptyException.class);
-        assertThatThrownBy(() -> account.changeName("   "))
-                .isInstanceOf(AccountNameEmptyException.class);
+        assertThatThrownBy(() -> account.changeName("")).isInstanceOf(AccountNameEmptyException.class);
+        assertThatThrownBy(() -> account.changeName("   ")).isInstanceOf(AccountNameEmptyException.class);
     }
 
     @Test
     void shouldThrowExceptionWhenNameIsTooLong() {
         // given
-        var account =
-                Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
+        var account = Instancio.of(Account.class)
+                .set(field(Account::balance), Money.zero())
+                .create();
         var tooLongName = "a".repeat(101);
 
         // when & then
-        assertThatThrownBy(() -> account.changeName(tooLongName))
-                .isInstanceOf(AccountNameTooLongException.class);
+        assertThatThrownBy(() -> account.changeName(tooLongName)).isInstanceOf(AccountNameTooLongException.class);
     }
 
     @Test
     void shouldAcceptNameWithMaximumLength() {
         // given
-        var account =
-                Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
+        var account = Instancio.of(Account.class)
+                .set(field(Account::balance), Money.zero())
+                .create();
         var maxLengthName = "a".repeat(100);
 
         // when
@@ -105,8 +104,9 @@ class AccountTest {
     @Test
     void shouldThrowExceptionWhenNameContainsInvalidCharacters() {
         // given
-        var account =
-                Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
+        var account = Instancio.of(Account.class)
+                .set(field(Account::balance), Money.zero())
+                .create();
 
         // when & then
         assertThatThrownBy(() -> account.changeName("Invalid\nName"))
@@ -120,8 +120,9 @@ class AccountTest {
     @Test
     void shouldAcceptNameWithValidSpecialCharacters() {
         // given
-        var account =
-                Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
+        var account = Instancio.of(Account.class)
+                .set(field(Account::balance), Money.zero())
+                .create();
         var nameWithSpecialChars = "Valid Name 123 ĄŚŻŹĆÓŃĘ -_@?!.#";
 
         // when
@@ -134,12 +135,7 @@ class AccountTest {
     @Test
     void shouldHaveZeroBalanceByDefault() {
         // when
-        var account =
-                new Account(
-                        AccountId.generate(),
-                        "Test Account",
-                        PLN,
-                        Instancio.create(UserView.class));
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
 
         // then
         assertThat(account.balance().value()).isEqualByComparingTo(BigDecimal.ZERO);
@@ -150,12 +146,7 @@ class AccountTest {
     @EnumSource(Currency.class)
     void shouldCreateAccountWithValidCurrency(Currency currency) {
         // when
-        var account =
-                new Account(
-                        AccountId.generate(),
-                        "Test Account",
-                        currency,
-                        Instancio.create(UserView.class));
+        var account = new Account(AccountId.generate(), "Test Account", currency, Instancio.create(UserView.class));
 
         // then
         assertThat(account.balance().currency()).isEqualTo(currency);
@@ -163,32 +154,20 @@ class AccountTest {
 
     @ParameterizedTest
     @MethodSource("accountNameValidationTestCases")
-    void shouldValidateNameInPrimaryConstructor(
-            String name, Class<? extends Exception> expectedException) {
+    void shouldValidateNameInPrimaryConstructor(String name, Class<? extends Exception> expectedException) {
         // given
         var accountId = AccountId.generate();
         var balance = Money.of(TEN, PLN);
 
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                new Account(
-                                        accountId,
-                                        name,
-                                        balance,
-                                        Instancio.create(AuditInfo.class)))
+        assertThatThrownBy(() -> new Account(accountId, name, balance, Instancio.create(AuditInfo.class)))
                 .isInstanceOf(expectedException);
     }
 
     @Test
     void shouldDepositAndUpdateBalance() {
         // given
-        var account =
-                new Account(
-                        AccountId.generate(),
-                        "Test Account",
-                        PLN,
-                        Instancio.create(UserView.class));
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var amount = Money.of(BigDecimal.valueOf(100), PLN);
 
         // when
@@ -201,12 +180,7 @@ class AccountTest {
     @Test
     void shouldWithdrawAndUpdateBalance() {
         // given
-        var account =
-                new Account(
-                        AccountId.generate(),
-                        "Test Account",
-                        PLN,
-                        Instancio.create(UserView.class));
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var amount = Money.of(BigDecimal.valueOf(50), PLN);
 
         // when
@@ -219,12 +193,7 @@ class AccountTest {
     @Test
     void shouldPerformMultipleOperations() {
         // given
-        var account =
-                new Account(
-                        AccountId.generate(),
-                        "Test Account",
-                        PLN,
-                        Instancio.create(UserView.class));
+        var account = new Account(AccountId.generate(), "Test Account", PLN, Instancio.create(UserView.class));
         var depositAmount = Money.of(BigDecimal.valueOf(200), PLN);
         var withdrawAmount = Money.of(BigDecimal.valueOf(75), PLN);
 
@@ -233,19 +202,18 @@ class AccountTest {
         var accountAfterBoth = accountAfterDeposit.withdraw(withdrawAmount);
 
         // then
-        assertThat(accountAfterBoth.balance().value())
-                .isEqualByComparingTo(BigDecimal.valueOf(125));
+        assertThat(accountAfterBoth.balance().value()).isEqualByComparingTo(BigDecimal.valueOf(125));
     }
 
     @Test
     void shouldThrowExceptionWhenDepositingWithMismatchedCurrency() {
         // given
-        var account =
-                Instancio.of(Account.class).set(field(Account::balance), Money.zero()).create();
+        var account = Instancio.of(Account.class)
+                .set(field(Account::balance), Money.zero())
+                .create();
         var amount = Money.of(BigDecimal.valueOf(100), Currency.EUR);
 
         // when & then
-        assertThatThrownBy(() -> account.deposit(amount))
-                .isInstanceOf(TransactionCurrencyMismatchException.class);
+        assertThatThrownBy(() -> account.deposit(amount)).isInstanceOf(TransactionCurrencyMismatchException.class);
     }
 }

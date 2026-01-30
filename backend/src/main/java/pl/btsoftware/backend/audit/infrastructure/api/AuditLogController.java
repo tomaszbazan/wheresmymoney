@@ -37,9 +37,7 @@ public class AuditLogController {
         var user = usersModuleFacade.findUserOrThrow(userId);
 
         var validatedSize = paginationValidator.validatePageSize(size);
-        var queryRequest =
-                new AuditLogQueryRequest(
-                        entityType, entityId, operation, performedBy, fromDate, toDate);
+        var queryRequest = new AuditLogQueryRequest(entityType, entityId, operation, performedBy, fromDate, toDate);
         var query = queryRequest.toDomain(user.groupId());
         var pageable = PageRequest.of(page, validatedSize);
 
@@ -50,18 +48,13 @@ public class AuditLogController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AuditLogView> getAuditLogById(
-            @PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<AuditLogView> getAuditLogById(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         var user = usersModuleFacade.findUserOrThrow(userId);
 
-        var auditLog =
-                auditLogService
-                        .findById(AuditLogId.of(id), user.groupId())
-                        .orElseThrow(
-                                () ->
-                                        new IllegalArgumentException(
-                                                "Audit log not found with id: " + id));
+        var auditLog = auditLogService
+                .findById(AuditLogId.of(id), user.groupId())
+                .orElseThrow(() -> new IllegalArgumentException("Audit log not found with id: " + id));
         var auditLogView = AuditLogView.from(auditLog);
 
         return ResponseEntity.ok(auditLogView);

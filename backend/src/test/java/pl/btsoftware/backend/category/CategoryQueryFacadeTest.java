@@ -46,26 +46,22 @@ class CategoryQueryFacadeTest {
         void shouldReturnTrueWhenAllCategoriesExist() {
             // given
             var groupId = GroupId.generate();
-            var category1 =
-                    Instancio.of(Category.class)
-                            .set(field(AuditInfo::fromGroup), groupId)
-                            .set(field(Category::tombstone), Tombstone.active())
-                            .set(field(Category::name), "Test Category")
-                            .create();
+            var category1 = Instancio.of(Category.class)
+                    .set(field(AuditInfo::fromGroup), groupId)
+                    .set(field(Category::tombstone), Tombstone.active())
+                    .set(field(Category::name), "Test Category")
+                    .create();
             categoryRepository.store(category1);
 
-            var category2 =
-                    Instancio.of(Category.class)
-                            .set(field(AuditInfo::fromGroup), groupId)
-                            .set(field(Category::tombstone), Tombstone.active())
-                            .set(field(Category::name), "Test Category")
-                            .create();
+            var category2 = Instancio.of(Category.class)
+                    .set(field(AuditInfo::fromGroup), groupId)
+                    .set(field(Category::tombstone), Tombstone.active())
+                    .set(field(Category::name), "Test Category")
+                    .create();
             categoryRepository.store(category2);
 
             // when
-            var allExist =
-                    categoryQueryFacade.allCategoriesExists(
-                            Set.of(category1.id(), category2.id()), groupId);
+            var allExist = categoryQueryFacade.allCategoriesExists(Set.of(category1.id(), category2.id()), groupId);
 
             // then
             assertThat(allExist).isTrue();
@@ -75,12 +71,11 @@ class CategoryQueryFacadeTest {
         void shouldReturnFalseWhenCategoriesAreDeleted() {
             // given
             var groupId = GroupId.generate();
-            var category =
-                    Instancio.of(Category.class)
-                            .set(field(AuditInfo::fromGroup), groupId)
-                            .set(field(Category::tombstone), Tombstone.deleted())
-                            .set(field(Category::name), "Test Category")
-                            .create();
+            var category = Instancio.of(Category.class)
+                    .set(field(AuditInfo::fromGroup), groupId)
+                    .set(field(Category::tombstone), Tombstone.deleted())
+                    .set(field(Category::name), "Test Category")
+                    .create();
             categoryRepository.store(category);
 
             // when
@@ -96,12 +91,11 @@ class CategoryQueryFacadeTest {
             var groupId1 = GroupId.generate();
             var groupId2 = GroupId.generate();
 
-            var category =
-                    Instancio.of(Category.class)
-                            .set(field(AuditInfo::fromGroup), groupId1)
-                            .set(field(Category::tombstone), Tombstone.active())
-                            .set(field(Category::name), "Test Category")
-                            .create();
+            var category = Instancio.of(Category.class)
+                    .set(field(AuditInfo::fromGroup), groupId1)
+                    .set(field(Category::tombstone), Tombstone.active())
+                    .set(field(Category::name), "Test Category")
+                    .create();
             categoryRepository.store(category);
 
             // when

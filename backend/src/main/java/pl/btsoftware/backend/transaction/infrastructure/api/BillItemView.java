@@ -11,10 +11,7 @@ public record BillItemView(UUID id, CategoryView category, BigDecimal amount, St
     public static BillItemView from(BillItem item, Function<CategoryId, Category> categoryMapper) {
         var category = categoryMapper.apply(item.categoryId());
         return new BillItemView(
-                item.id().value(),
-                CategoryView.from(category),
-                item.amount().value(),
-                item.description());
+                item.id().value(), CategoryView.from(category), item.amount().value(), item.description());
     }
 
     record CategoryView(UUID id, String name) {

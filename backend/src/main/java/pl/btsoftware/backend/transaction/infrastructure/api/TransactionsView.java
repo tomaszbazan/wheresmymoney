@@ -11,11 +11,9 @@ public record TransactionsView(List<TransactionView> transactions) {
         this.transactions = transactions != null ? List.copyOf(transactions) : List.of();
     }
 
-    public static TransactionsView from(
-            List<Transaction> transactions, Function<CategoryId, Category> categoryMapper) {
-        return new TransactionsView(
-                transactions.stream()
-                        .map(transaction -> TransactionView.from(transaction, categoryMapper))
-                        .toList());
+    public static TransactionsView from(List<Transaction> transactions, Function<CategoryId, Category> categoryMapper) {
+        return new TransactionsView(transactions.stream()
+                .map(transaction -> TransactionView.from(transaction, categoryMapper))
+                .toList());
     }
 }

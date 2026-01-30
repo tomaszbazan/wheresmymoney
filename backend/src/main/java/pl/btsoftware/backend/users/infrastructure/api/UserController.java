@@ -28,13 +28,8 @@ public class UserController {
                 request.email(),
                 invitationToken != null);
 
-        var command =
-                new RegisterUserCommand(
-                        request.externalAuthId(),
-                        request.email(),
-                        request.displayName(),
-                        request.groupName(),
-                        invitationToken);
+        var command = new RegisterUserCommand(
+                request.externalAuthId(), request.email(), request.displayName(), request.groupName(), invitationToken);
 
         var user = usersModuleFacade.registerUser(command);
 

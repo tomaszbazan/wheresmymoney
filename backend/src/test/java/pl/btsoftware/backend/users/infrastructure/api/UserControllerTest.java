@@ -32,30 +32,31 @@ import pl.btsoftware.backend.users.domain.error.UserNotFoundException;
 @Import(WebConfig.class)
 class UserControllerTest {
 
-    @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @MockBean private UsersModuleFacade usersModuleFacade;
+    @MockBean
+    private UsersModuleFacade usersModuleFacade;
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
         // given
         var request = Instancio.create(RegisterUserRequest.class);
 
-        var user =
-                Instancio.of(User.class)
-                        .set(field(User::id), new UserId(request.externalAuthId()))
-                        .set(field(User::email), request.email())
-                        .set(field(User::displayName), request.displayName())
-                        .create();
+        var user = Instancio.of(User.class)
+                .set(field(User::id), new UserId(request.externalAuthId()))
+                .set(field(User::email), request.email())
+                .set(field(User::displayName), request.displayName())
+                .create();
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenReturn(user);
 
         // when & then
-        mockMvc.perform(
-                        post("/api/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(user.id().value()))
@@ -64,7 +65,8 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.groupId").value(user.groupId().value().toString()))
                 .andExpect(jsonPath("$.createdAt").value(user.createdAt().toString()))
                 .andExpect(jsonPath("$.lastLoginAt").value(user.lastLoginAt().toString()))
-                .andExpect(jsonPath("$.joinedGroupAt").value(user.joinedGroupAt().toString()));
+                .andExpect(
+                        jsonPath("$.joinedGroupAt").value(user.joinedGroupAt().toString()));
     }
 
     @Test
@@ -72,29 +74,30 @@ class UserControllerTest {
         // given
         var request = Instancio.create(RegisterUserRequest.class);
 
-        var mockUser =
-                Instancio.of(User.class)
-                        .set(field(User::id), new UserId(request.externalAuthId()))
-                        .set(field(User::email), request.email())
-                        .set(field(User::displayName), request.displayName())
-                        .create();
+        var mockUser = Instancio.of(User.class)
+                .set(field(User::id), new UserId(request.externalAuthId()))
+                .set(field(User::email), request.email())
+                .set(field(User::displayName), request.displayName())
+                .create();
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenReturn(mockUser);
 
         // when & then
-        mockMvc.perform(
-                        post("/api/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                                .param("invitationToken", "valid-token-123"))
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .param("invitationToken", "valid-token-123"))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(mockUser.id().value()))
                 .andExpect(jsonPath("$.email").value(mockUser.email()))
                 .andExpect(jsonPath("$.displayName").value(mockUser.displayName()))
-                .andExpect(jsonPath("$.groupId").value(mockUser.groupId().value().toString()))
+                .andExpect(
+                        jsonPath("$.groupId").value(mockUser.groupId().value().toString()))
                 .andExpect(jsonPath("$.createdAt").value(mockUser.createdAt().toString()))
-                .andExpect(jsonPath("$.lastLoginAt").value(mockUser.lastLoginAt().toString()))
-                .andExpect(jsonPath("$.joinedGroupAt").value(mockUser.joinedGroupAt().toString()));
+                .andExpect(
+                        jsonPath("$.lastLoginAt").value(mockUser.lastLoginAt().toString()))
+                .andExpect(jsonPath("$.joinedGroupAt")
+                        .value(mockUser.joinedGroupAt().toString()));
     }
 
     @Test
@@ -103,9 +106,8 @@ class UserControllerTest {
         var user = Instancio.create(User.class);
         when(usersModuleFacade.findUserOrThrow(new UserId(user.id().value()))).thenReturn(user);
 
-        mockMvc.perform(
-                        get("/api/users/profile")
-                                .with(jwt().jwt(jwt -> jwt.subject(user.id().value()))))
+        mockMvc.perform(get("/api/users/profile")
+                        .with(jwt().jwt(jwt -> jwt.subject(user.id().value()))))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.id").value(user.id().value()))
@@ -114,20 +116,18 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.groupId").value(user.groupId().value().toString()))
                 .andExpect(jsonPath("$.createdAt").value(user.createdAt().toString()))
                 .andExpect(jsonPath("$.lastLoginAt").value(user.lastLoginAt().toString()))
-                .andExpect(jsonPath("$.joinedGroupAt").value(user.joinedGroupAt().toString()));
+                .andExpect(
+                        jsonPath("$.joinedGroupAt").value(user.joinedGroupAt().toString()));
     }
 
     @Test
     void shouldReturn400WhenUserNotFound() throws Exception {
         // given
         var externalAuthId = "non-existent";
-        when(usersModuleFacade.findUserOrThrow(new UserId(externalAuthId)))
-                .thenThrow(new UserNotFoundException());
+        when(usersModuleFacade.findUserOrThrow(new UserId(externalAuthId))).thenThrow(new UserNotFoundException());
 
         // when & then
-        mockMvc.perform(
-                        get("/api/users/profile")
-                                .with(jwt().jwt(jwt -> jwt.subject(externalAuthId))))
+        mockMvc.perform(get("/api/users/profile").with(jwt().jwt(jwt -> jwt.subject(externalAuthId))))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("User not found"));
     }
@@ -135,34 +135,28 @@ class UserControllerTest {
     @Test
     void shouldReturn500WhenRegisteringUserWithInvalidEmail() throws Exception {
         // given
-        var request =
-                Instancio.of(RegisterUserRequest.class)
-                        .set(field(RegisterUserRequest::email), "")
-                        .create();
-        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
-                .thenThrow(new UserEmailEmptyException());
+        var request = Instancio.of(RegisterUserRequest.class)
+                .set(field(RegisterUserRequest::email), "")
+                .create();
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenThrow(new UserEmailEmptyException());
 
         // when & then
-        mockMvc.perform(
-                        post("/api/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("User email cannot be empty"));
     }
 
     @Test
     void shouldReturn500WhenRegisteringUserWithInvalidDisplayName() throws Exception {
-        RegisterUserRequest request =
-                new RegisterUserRequest("ext-auth-123", "test@example.com", "", "Group");
+        RegisterUserRequest request = new RegisterUserRequest("ext-auth-123", "test@example.com", "", "Group");
 
-        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
-                .thenThrow(new DisplayNameEmptyException());
+        when(usersModuleFacade.registerUser(any(RegisterUserCommand.class))).thenThrow(new DisplayNameEmptyException());
 
-        mockMvc.perform(
-                        post("/api/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Display name cannot be empty"));
     }
@@ -170,17 +164,15 @@ class UserControllerTest {
     @Test
     void shouldReturn404WhenInvitationTokenNotFound() throws Exception {
         RegisterUserRequest request =
-                new RegisterUserRequest(
-                        "ext-auth-999", "test@example.com", "Test User", "Test Group");
+                new RegisterUserRequest("ext-auth-999", "test@example.com", "Test User", "Test Group");
 
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
                 .thenThrow(new InvitationNotFoundException());
 
-        mockMvc.perform(
-                        post("/api/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                                .param("invitationToken", "invalid-token"))
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .param("invitationToken", "invalid-token"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Invitation not found"));
     }
@@ -188,19 +180,14 @@ class UserControllerTest {
     @Test
     void shouldReturn409WhenUserAlreadyExists() throws Exception {
         RegisterUserRequest request =
-                new RegisterUserRequest(
-                        "ext-auth-duplicate",
-                        "duplicate@example.com",
-                        "Duplicate User",
-                        "Test Group");
+                new RegisterUserRequest("ext-auth-duplicate", "duplicate@example.com", "Duplicate User", "Test Group");
 
         when(usersModuleFacade.registerUser(any(RegisterUserCommand.class)))
                 .thenThrow(new IllegalStateException("User with external auth ID already exists"));
 
-        mockMvc.perform(
-                        post("/api/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("User with external auth ID already exists"));
     }
@@ -214,10 +201,9 @@ class UserControllerTest {
     void shouldReturn500WhenRegisterRequestHasNullValues() throws Exception {
         String invalidJson = "{ \"invalidField\": \"value\" }";
 
-        mockMvc.perform(
-                        post("/api/users/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(invalidJson))
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
                 .andExpect(status().isInternalServerError());
     }
 }

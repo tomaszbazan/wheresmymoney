@@ -21,9 +21,11 @@ import pl.btsoftware.backend.users.domain.UserId;
 @SystemTest
 public class AccountServiceTest {
 
-    @Autowired private AccountService accountService;
+    @Autowired
+    private AccountService accountService;
 
-    @Autowired private UsersModuleFacade usersModuleFacade;
+    @Autowired
+    private UsersModuleFacade usersModuleFacade;
 
     @Test
     void shouldCreateAccountWithSpecificCurrency() {
@@ -49,9 +51,7 @@ public class AccountServiceTest {
 
         // when & then
         assertThatThrownBy(
-                        () ->
-                                accountService.createAccount(
-                                        new CreateAccountCommand("Duplicate Account", PLN, userId)))
+                        () -> accountService.createAccount(new CreateAccountCommand("Duplicate Account", PLN, userId)))
                 .isInstanceOf(AccountAlreadyExistsException.class);
     }
 
@@ -151,13 +151,12 @@ public class AccountServiceTest {
 
     private UserId createTestUser() {
         var timestamp = System.currentTimeMillis();
-        var command =
-                new RegisterUserCommand(
-                        "test-auth-id-" + timestamp,
-                        "test" + timestamp + "@example.com",
-                        "Test User",
-                        "Test Group " + timestamp,
-                        null);
+        var command = new RegisterUserCommand(
+                "test-auth-id-" + timestamp,
+                "test" + timestamp + "@example.com",
+                "Test User",
+                "Test Group " + timestamp,
+                null);
         var user = usersModuleFacade.registerUser(command);
         return user.id();
     }

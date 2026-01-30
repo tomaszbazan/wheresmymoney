@@ -36,10 +36,9 @@ public class GroupController {
     public GroupInvitationView getInvitationDetails(@PathVariable String token) {
         log.info("Getting invitation details for token: {}", token);
 
-        var invitation =
-                usersModuleFacade
-                        .findInvitationByToken(token)
-                        .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
+        var invitation = usersModuleFacade
+                .findInvitationByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
 
         return GroupInvitationView.from(invitation);
     }
@@ -58,10 +57,9 @@ public class GroupController {
     public GroupView getGroup(@PathVariable UUID groupId) {
         log.info("Getting group details for ID: {}", groupId);
 
-        var group =
-                usersModuleFacade
-                        .findGroupById(new GroupId(groupId))
-                        .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+        var group = usersModuleFacade
+                .findGroupById(new GroupId(groupId))
+                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
         return GroupView.from(group);
     }

@@ -45,24 +45,20 @@ public class AccountServiceTest {
         this.usersModuleFacade = Mockito.mock(UsersModuleFacade.class);
         this.auditModuleFacade = Mockito.mock(AuditModuleFacade.class);
         this.accountService =
-                new AccountService(
-                        accountRepository,
-                        usersModuleFacade,
-                        transactionQueryFacade,
-                        auditModuleFacade);
+                new AccountService(accountRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
     }
 
     private void userExistsInGroup(UserId userAId, GroupId groupId) {
-        var user =
-                Instancio.of(User.class)
-                        .set(field(User::id), userAId)
-                        .set(field(User::groupId), groupId)
-                        .create();
+        var user = Instancio.of(User.class)
+                .set(field(User::id), userAId)
+                .set(field(User::groupId), groupId)
+                .create();
         when(usersModuleFacade.findUserOrThrow(userAId)).thenReturn(user);
     }
 
     private User userExists(CreateAccountCommand command) {
-        var user = Instancio.of(User.class).set(field(User::id), command.userId()).create();
+        var user =
+                Instancio.of(User.class).set(field(User::id), command.userId()).create();
         when(usersModuleFacade.findUserOrThrow(command.userId())).thenReturn(user);
         return user;
     }
@@ -73,10 +69,9 @@ public class AccountServiceTest {
         @EnumSource(Currency.class)
         void shouldCreateAccountWithDifferentSupportedCurrencies(Currency currency) {
             // given
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::currency), currency)
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::currency), currency)
+                    .create();
             var user = userExists(command);
 
             // when
@@ -87,18 +82,15 @@ public class AccountServiceTest {
             assertThat(account.balance().currency()).isEqualTo(currency);
             assertThat(account.balance().value()).isZero();
             assertThat(account.id()).isNotNull();
-            verify(auditModuleFacade)
-                    .logAccountCreated(
-                            account.id(), account.name(), command.userId(), user.groupId());
+            verify(auditModuleFacade).logAccountCreated(account.id(), account.name(), command.userId(), user.groupId());
         }
 
         @Test
         void shouldCreateAccountWithoutCurrency() {
             // given
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .setBlank(field(CreateAccountCommand::currency))
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .setBlank(field(CreateAccountCommand::currency))
+                    .create();
             userExists(command);
 
             // when
@@ -114,10 +106,9 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithEmptyName() {
             // given
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::name), "")
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "")
+                    .create();
             var user = userExists(command);
 
             // when & then
@@ -129,10 +120,9 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithNullName() {
             // given
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .setBlank(field(CreateAccountCommand::name))
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .setBlank(field(CreateAccountCommand::name))
+                    .create();
             var user = userExists(command);
 
             // when & then
@@ -144,10 +134,9 @@ public class AccountServiceTest {
         @Test
         void shouldRejectAccountCreationWithBlankName() {
             // given
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::name), "    ")
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "    ")
+                    .create();
             var user = userExists(command);
 
             // when & then
@@ -160,10 +149,9 @@ public class AccountServiceTest {
         void shouldRejectAccountCreationWithTooLongName() {
             // given
             var longName = "a".repeat(101);
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::name), longName)
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), longName)
+                    .create();
             var user = userExists(command);
 
             // when & then
@@ -176,10 +164,9 @@ public class AccountServiceTest {
         @ValueSource(strings = {"Invalid\nName", "Invalid\tName"})
         void shouldRejectAccountCreationWithInvalidCharacters(String invalidName) {
             // given
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::name), invalidName)
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), invalidName)
+                    .create();
             var user = userExists(command);
 
             // when & then
@@ -192,10 +179,9 @@ public class AccountServiceTest {
         void shouldCreateAccountWithValidSpecialCharacters() {
             // given
             var validName = "Valid Name-123 ŁĄŚĆÓŻŹ";
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::name), validName)
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), validName)
+                    .create();
             var user = userExists(command);
 
             // when
@@ -203,20 +189,17 @@ public class AccountServiceTest {
 
             // then
             assertThat(account.name()).isEqualTo(validName);
-            assertThat(accountRepository.findAllBy(user.groupId()))
-                    .hasSize(1)
-                    .containsOnly(account);
+            assertThat(accountRepository.findAllBy(user.groupId())).hasSize(1).containsOnly(account);
         }
 
         @Test
         void shouldRejectDuplicateAccountNamesAndCurrencies() {
             // given
             var accountName = "Duplicate Account";
-            var command =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::name), accountName)
-                            .set(field(CreateAccountCommand::currency), PLN)
-                            .create();
+            var command = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), PLN)
+                    .create();
             var user = userExists(command);
 
             // when
@@ -233,16 +216,14 @@ public class AccountServiceTest {
         void shouldAllowSameNameWithDifferentCurrencies() {
             // given
             var accountName = "Multi-Currency Account";
-            var command1 =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::name), accountName)
-                            .set(field(CreateAccountCommand::currency), PLN)
-                            .create();
-            var command2 =
-                    Instancio.of(CreateAccountCommand.class)
-                            .set(field(CreateAccountCommand::name), accountName)
-                            .set(field(CreateAccountCommand::currency), EUR)
-                            .create();
+            var command1 = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), PLN)
+                    .create();
+            var command2 = Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), EUR)
+                    .create();
             var user1 = userExists(command1);
             var user2 = userExists(command2);
 
@@ -268,27 +249,21 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account1 =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), "Checking Account")
-                                    .set(field(CreateAccountCommand::currency), PLN)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
-            var account2 =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), "Savings Account")
-                                    .set(field(CreateAccountCommand::currency), EUR)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
-            var account3 =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), "Investment Account")
-                                    .set(field(CreateAccountCommand::currency), USD)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
+            var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Checking Account")
+                    .set(field(CreateAccountCommand::currency), PLN)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
+            var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Savings Account")
+                    .set(field(CreateAccountCommand::currency), EUR)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
+            var account3 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Investment Account")
+                    .set(field(CreateAccountCommand::currency), USD)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
 
             // when
             var result = accountService.getAccounts(userId);
@@ -298,15 +273,14 @@ public class AccountServiceTest {
             assertThat(result).containsExactlyInAnyOrder(account1, account2, account3);
 
             // verify each account has required fields
-            result.forEach(
-                    account -> {
-                        assertThat(account.id()).isNotNull();
-                        assertThat(account.name()).isNotEmpty();
-                        assertThat(account.balance().currency()).isNotNull();
-                        assertThat(account.balance().value()).isNotNull();
-                        assertThat(account.createdAt()).isNotNull();
-                        assertThat(account.lastUpdatedAt()).isNotNull();
-                    });
+            result.forEach(account -> {
+                assertThat(account.id()).isNotNull();
+                assertThat(account.name()).isNotEmpty();
+                assertThat(account.balance().currency()).isNotNull();
+                assertThat(account.balance().value()).isNotNull();
+                assertThat(account.createdAt()).isNotNull();
+                assertThat(account.lastUpdatedAt()).isNotNull();
+            });
         }
 
         @Test
@@ -330,13 +304,11 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), accountName)
-                                    .set(field(CreateAccountCommand::currency), currency)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), accountName)
+                    .set(field(CreateAccountCommand::currency), currency)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
 
             // when
             var result = accountService.getById(account.id(), userId);
@@ -371,13 +343,11 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), "Complete Account")
-                                    .set(field(CreateAccountCommand::currency), GBP)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Complete Account")
+                    .set(field(CreateAccountCommand::currency), GBP)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
 
             // when
             var retrievedAccount = accountService.getById(account.id(), userId);
@@ -401,8 +371,7 @@ public class AccountServiceTest {
             userExistsInGroup(requestingUserId, groupId);
 
             var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Shared Account", PLN, accountOwnerUserId));
+                    accountService.createAccount(new CreateAccountCommand("Shared Account", PLN, accountOwnerUserId));
 
             // when
             var retrievedAccount = accountService.getById(account.id(), requestingUserId);
@@ -424,9 +393,8 @@ public class AccountServiceTest {
             var requestingUserGroupId = GroupId.generate();
             userExistsInGroup(requestingUserId, requestingUserGroupId);
 
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
 
             // when & then
             assertThatThrownBy(() -> accountService.getById(account.id(), requestingUserId))
@@ -453,9 +421,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Group Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("Group Account", PLN, userId));
 
             // when
             var retrievedAccount = accountService.getById(account.id(), groupId);
@@ -487,9 +453,8 @@ public class AccountServiceTest {
             var differentGroupId = GroupId.generate();
             userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
 
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand("Protected Account", EUR, accountOwnerUserId));
 
             // when & then
             assertThatThrownBy(() -> accountService.getById(account.id(), differentGroupId))
@@ -505,13 +470,11 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), "Original Name")
-                                    .set(field(CreateAccountCommand::currency), PLN)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Original Name")
+                    .set(field(CreateAccountCommand::currency), PLN)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
             var newName = "Updated Name";
 
             // when
@@ -522,12 +485,7 @@ public class AccountServiceTest {
             var retrievedAccount = accountService.getById(account.id(), userId);
             assertThat(retrievedAccount.name()).isEqualTo(newName);
             verify(auditModuleFacade)
-                    .logAccountUpdated(
-                            account.id(),
-                            "Original Name",
-                            newName,
-                            updatedAccount.lastUpdatedBy(),
-                            groupId);
+                    .logAccountUpdated(account.id(), "Original Name", newName, updatedAccount.lastUpdatedBy(), groupId);
         }
 
         @Test
@@ -537,10 +495,7 @@ public class AccountServiceTest {
             var newName = "Updated Name";
 
             // when & then
-            assertThatThrownBy(
-                            () ->
-                                    accountService.updateAccount(
-                                            nonExistentAccountId, newName, GroupId.generate()))
+            assertThatThrownBy(() -> accountService.updateAccount(nonExistentAccountId, newName, GroupId.generate()))
                     .isInstanceOf(AccountNotFoundException.class);
         }
 
@@ -550,13 +505,11 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), "Original Name")
-                                    .set(field(CreateAccountCommand::currency), PLN)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
+            var account = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Original Name")
+                    .set(field(CreateAccountCommand::currency), PLN)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
             var emptyName = "";
 
             // when & then
@@ -574,26 +527,19 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account1 =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), "Account One")
-                                    .set(field(CreateAccountCommand::currency), PLN)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
-            var account2 =
-                    accountService.createAccount(
-                            Instancio.of(CreateAccountCommand.class)
-                                    .set(field(CreateAccountCommand::name), "Account Two")
-                                    .set(field(CreateAccountCommand::currency), PLN)
-                                    .set(field(CreateAccountCommand::userId), userId)
-                                    .create());
+            var account1 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Account One")
+                    .set(field(CreateAccountCommand::currency), PLN)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
+            var account2 = accountService.createAccount(Instancio.of(CreateAccountCommand.class)
+                    .set(field(CreateAccountCommand::name), "Account Two")
+                    .set(field(CreateAccountCommand::currency), PLN)
+                    .set(field(CreateAccountCommand::userId), userId)
+                    .create());
 
             // when & then
-            assertThatThrownBy(
-                            () ->
-                                    accountService.updateAccount(
-                                            account2.id(), "Account One", groupId))
+            assertThatThrownBy(() -> accountService.updateAccount(account2.id(), "Account One", groupId))
                     .isInstanceOf(AccountAlreadyExistsException.class);
 
             // verify original names are preserved
@@ -613,17 +559,15 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand(randomUUID().toString(), PLN, userId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand(randomUUID().toString(), PLN, userId));
 
             // when
             accountService.deleteAccount(account.id(), userId);
 
             // then
             assertThat(accountService.getAccounts(userId)).isEmpty();
-            verify(auditModuleFacade)
-                    .logAccountDeleted(account.id(), account.name(), userId, groupId);
+            verify(auditModuleFacade).logAccountDeleted(account.id(), account.name(), userId, groupId);
         }
 
         @Test
@@ -632,9 +576,8 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand(randomUUID().toString(), PLN, userId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand(randomUUID().toString(), PLN, userId));
 
             when(transactionQueryFacade.hasTransactions(account.id(), groupId)).thenReturn(true);
 
@@ -664,9 +607,8 @@ public class AccountServiceTest {
             var groupId = GroupId.generate();
             var userId = UserId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand(randomUUID().toString(), PLN, userId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand(randomUUID().toString(), PLN, userId));
 
             // when
             accountService.deleteAccount(account.id(), userId);
@@ -686,9 +628,8 @@ public class AccountServiceTest {
             var attemptingUserGroupId = GroupId.generate();
             userExistsInGroup(attemptingUserId, attemptingUserGroupId);
 
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
             assertThatThrownBy(() -> accountService.deleteAccount(account.id(), attemptingUserId))
@@ -711,24 +652,16 @@ public class AccountServiceTest {
             userExistsInGroup(user1Id, groupId);
             userExistsInGroup(user2Id, groupId);
 
-            var accountUserA =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Personal PLN", PLN, user1Id));
-            var accountUserB =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Savings USD", USD, user2Id));
+            var accountUserA = accountService.createAccount(new CreateAccountCommand("Personal PLN", PLN, user1Id));
+            var accountUserB = accountService.createAccount(new CreateAccountCommand("Savings USD", USD, user2Id));
 
             // when
             var accountsForUserA = accountService.getAccounts(user1Id);
             var accountsForUserB = accountService.getAccounts(user2Id);
 
             // then
-            assertThat(accountsForUserA)
-                    .hasSize(2)
-                    .containsExactlyInAnyOrder(accountUserA, accountUserB);
-            assertThat(accountsForUserB)
-                    .hasSize(2)
-                    .containsExactlyInAnyOrder(accountUserA, accountUserB);
+            assertThat(accountsForUserA).hasSize(2).containsExactlyInAnyOrder(accountUserA, accountUserB);
+            assertThat(accountsForUserB).hasSize(2).containsExactlyInAnyOrder(accountUserA, accountUserB);
         }
 
         @Test
@@ -741,13 +674,11 @@ public class AccountServiceTest {
             userExistsInGroup(user2Id, groupId);
 
             var businessAccount =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Business Account", EUR, user1Id));
+                    accountService.createAccount(new CreateAccountCommand("Business Account", EUR, user1Id));
 
             // when
             var updatedAccount =
-                    accountService.updateAccount(
-                            businessAccount.id(), "Updated Business Account", groupId);
+                    accountService.updateAccount(businessAccount.id(), "Updated Business Account", groupId);
 
             // then
             assertThat(updatedAccount.name()).isEqualTo("Updated Business Account");
@@ -764,21 +695,14 @@ public class AccountServiceTest {
             userExistsInGroup(user1Id, GroupId.generate());
             userExistsInGroup(user2Id, GroupId.generate());
 
-            var accountUserA =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Private Account", PLN, user1Id));
-            var accountUserB =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Group Y Account", EUR, user2Id));
+            var accountUserA = accountService.createAccount(new CreateAccountCommand("Private Account", PLN, user1Id));
+            var accountUserB = accountService.createAccount(new CreateAccountCommand("Group Y Account", EUR, user2Id));
 
             // when
             var accountsForUserB = accountService.getAccounts(user2Id);
 
             // then
-            assertThat(accountsForUserB)
-                    .hasSize(1)
-                    .containsOnly(accountUserB)
-                    .doesNotContain(accountUserA);
+            assertThat(accountsForUserB).hasSize(1).containsOnly(accountUserB).doesNotContain(accountUserA);
         }
 
         @Test
@@ -792,9 +716,8 @@ public class AccountServiceTest {
             var requestingUserGroupId = GroupId.generate();
             userExistsInGroup(requestingUserId, requestingUserGroupId);
 
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
             assertThatThrownBy(() -> accountService.getById(account.id(), requestingUserId))
@@ -809,15 +732,11 @@ public class AccountServiceTest {
             userExistsInGroup(accountOwnerUserId, accountOwnerGroupId);
 
             var attemptingGroupId = GroupId.generate();
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
-            assertThatThrownBy(
-                            () ->
-                                    accountService.updateAccount(
-                                            account.id(), "New Name", attemptingGroupId))
+            assertThatThrownBy(() -> accountService.updateAccount(account.id(), "New Name", attemptingGroupId))
                     .isInstanceOf(AccountNotFoundException.class);
         }
 
@@ -832,9 +751,8 @@ public class AccountServiceTest {
             var attemptingUserGroupId = GroupId.generate();
             userExistsInGroup(attemptingUserId, attemptingUserGroupId);
 
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
 
             // when & then
             assertThatThrownBy(() -> accountService.deleteAccount(account.id(), attemptingUserId))
@@ -854,9 +772,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Savings Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("Savings Account", PLN, userId));
             var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
 
             // when
@@ -864,12 +780,9 @@ public class AccountServiceTest {
 
             // then
             var updatedAccount = accountService.getById(account.id(), userId);
-            assertThat(updatedAccount.balance().value())
-                    .isEqualByComparingTo(new BigDecimal("100.00"));
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("100.00"));
             assertThat(updatedAccount.balance().currency()).isEqualTo(PLN);
-            verify(auditModuleFacade)
-                    .logAccountDeposit(
-                            account.id(), account.name(), userId, groupId, depositAmount);
+            verify(auditModuleFacade).logAccountDeposit(account.id(), account.name(), userId, groupId, depositAmount);
         }
 
         @Test
@@ -878,9 +791,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Checking Account", EUR, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("Checking Account", EUR, userId));
             var firstDeposit = Money.of(new BigDecimal("50.00"), EUR);
             var secondDeposit = Money.of(new BigDecimal("75.50"), EUR);
 
@@ -890,14 +801,10 @@ public class AccountServiceTest {
 
             // then
             var updatedAccount = accountService.getById(account.id(), userId);
-            assertThat(updatedAccount.balance().value())
-                    .isEqualByComparingTo(new BigDecimal("125.50"));
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("125.50"));
             assertThat(updatedAccount.balance().currency()).isEqualTo(EUR);
-            verify(auditModuleFacade)
-                    .logAccountDeposit(account.id(), account.name(), userId, groupId, firstDeposit);
-            verify(auditModuleFacade)
-                    .logAccountDeposit(
-                            account.id(), account.name(), userId, groupId, secondDeposit);
+            verify(auditModuleFacade).logAccountDeposit(account.id(), account.name(), userId, groupId, firstDeposit);
+            verify(auditModuleFacade).logAccountDeposit(account.id(), account.name(), userId, groupId, secondDeposit);
         }
 
         @Test
@@ -906,9 +813,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("PLN Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("PLN Account", PLN, userId));
             var depositAmount = Money.of(new BigDecimal("100.00"), EUR);
 
             // when & then
@@ -929,10 +834,7 @@ public class AccountServiceTest {
             var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
 
             // when & then
-            assertThatThrownBy(
-                            () ->
-                                    accountService.deposit(
-                                            nonExistentAccountId, depositAmount, userId))
+            assertThatThrownBy(() -> accountService.deposit(nonExistentAccountId, depositAmount, userId))
                     .isInstanceOf(AccountNotFoundException.class);
         }
 
@@ -947,16 +849,12 @@ public class AccountServiceTest {
             var attemptingUserGroupId = GroupId.generate();
             userExistsInGroup(attemptingUserId, attemptingUserGroupId);
 
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
             var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
 
             // when & then
-            assertThatThrownBy(
-                            () ->
-                                    accountService.deposit(
-                                            account.id(), depositAmount, attemptingUserId))
+            assertThatThrownBy(() -> accountService.deposit(account.id(), depositAmount, attemptingUserId))
                     .isInstanceOf(AccountNotFoundException.class);
 
             // and
@@ -970,9 +868,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Time Test Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("Time Test Account", PLN, userId));
             var depositAmount = Money.of(new BigDecimal("50.00"), PLN);
 
             // when
@@ -981,9 +877,7 @@ public class AccountServiceTest {
             // then
             var updatedAccount = accountService.getById(account.id(), userId);
             assertThat(updatedAccount.lastUpdatedAt()).isAfter(account.lastUpdatedAt());
-            verify(auditModuleFacade)
-                    .logAccountDeposit(
-                            account.id(), account.name(), userId, groupId, depositAmount);
+            verify(auditModuleFacade).logAccountDeposit(account.id(), account.name(), userId, groupId, depositAmount);
         }
     }
 
@@ -996,9 +890,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Savings Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("Savings Account", PLN, userId));
             var depositAmount = Money.of(new BigDecimal("200.00"), PLN);
             accountService.deposit(account.id(), depositAmount, userId);
             var withdrawAmount = Money.of(new BigDecimal("75.00"), PLN);
@@ -1008,12 +900,9 @@ public class AccountServiceTest {
 
             // then
             var updatedAccount = accountService.getById(account.id(), userId);
-            assertThat(updatedAccount.balance().value())
-                    .isEqualByComparingTo(new BigDecimal("125.00"));
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("125.00"));
             assertThat(updatedAccount.balance().currency()).isEqualTo(PLN);
-            verify(auditModuleFacade)
-                    .logAccountWithdraw(
-                            account.id(), account.name(), userId, groupId, withdrawAmount);
+            verify(auditModuleFacade).logAccountWithdraw(account.id(), account.name(), userId, groupId, withdrawAmount);
         }
 
         @Test
@@ -1022,9 +911,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Checking Account", EUR, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("Checking Account", EUR, userId));
             var withdrawAmount = Money.of(new BigDecimal("50.00"), EUR);
 
             // when
@@ -1032,12 +919,9 @@ public class AccountServiceTest {
 
             // then
             var updatedAccount = accountService.getById(account.id(), userId);
-            assertThat(updatedAccount.balance().value())
-                    .isEqualByComparingTo(new BigDecimal("-50.00"));
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("-50.00"));
             assertThat(updatedAccount.balance().currency()).isEqualTo(EUR);
-            verify(auditModuleFacade)
-                    .logAccountWithdraw(
-                            account.id(), account.name(), userId, groupId, withdrawAmount);
+            verify(auditModuleFacade).logAccountWithdraw(account.id(), account.name(), userId, groupId, withdrawAmount);
         }
 
         @Test
@@ -1046,9 +930,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Expense Account", USD, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("Expense Account", USD, userId));
             var depositAmount = Money.of(new BigDecimal("300.00"), USD);
             accountService.deposit(account.id(), depositAmount, userId);
             var firstWithdrawal = Money.of(new BigDecimal("100.00"), USD);
@@ -1060,15 +942,12 @@ public class AccountServiceTest {
 
             // then
             var updatedAccount = accountService.getById(account.id(), userId);
-            assertThat(updatedAccount.balance().value())
-                    .isEqualByComparingTo(new BigDecimal("149.50"));
+            assertThat(updatedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("149.50"));
             assertThat(updatedAccount.balance().currency()).isEqualTo(USD);
             verify(auditModuleFacade)
-                    .logAccountWithdraw(
-                            account.id(), account.name(), userId, groupId, firstWithdrawal);
+                    .logAccountWithdraw(account.id(), account.name(), userId, groupId, firstWithdrawal);
             verify(auditModuleFacade)
-                    .logAccountWithdraw(
-                            account.id(), account.name(), userId, groupId, secondWithdrawal);
+                    .logAccountWithdraw(account.id(), account.name(), userId, groupId, secondWithdrawal);
         }
 
         @Test
@@ -1077,9 +956,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("PLN Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("PLN Account", PLN, userId));
             var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
             accountService.deposit(account.id(), depositAmount, userId);
             var withdrawAmount = Money.of(new BigDecimal("50.00"), EUR);
@@ -1090,8 +967,7 @@ public class AccountServiceTest {
 
             // and
             var unchangedAccount = accountService.getById(account.id(), userId);
-            assertThat(unchangedAccount.balance().value())
-                    .isEqualByComparingTo(new BigDecimal("100.00"));
+            assertThat(unchangedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("100.00"));
         }
 
         @Test
@@ -1103,10 +979,7 @@ public class AccountServiceTest {
             var withdrawAmount = Money.of(new BigDecimal("50.00"), PLN);
 
             // when & then
-            assertThatThrownBy(
-                            () ->
-                                    accountService.withdraw(
-                                            nonExistentAccountId, withdrawAmount, userId))
+            assertThatThrownBy(() -> accountService.withdraw(nonExistentAccountId, withdrawAmount, userId))
                     .isInstanceOf(AccountNotFoundException.class);
         }
 
@@ -1121,24 +994,19 @@ public class AccountServiceTest {
             var attemptingUserGroupId = GroupId.generate();
             userExistsInGroup(attemptingUserId, attemptingUserGroupId);
 
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
+            var account = accountService.createAccount(
+                    new CreateAccountCommand("Protected Account", PLN, accountOwnerUserId));
             var depositAmount = Money.of(new BigDecimal("100.00"), PLN);
             accountService.deposit(account.id(), depositAmount, accountOwnerUserId);
             var withdrawAmount = Money.of(new BigDecimal("50.00"), PLN);
 
             // when & then
-            assertThatThrownBy(
-                            () ->
-                                    accountService.withdraw(
-                                            account.id(), withdrawAmount, attemptingUserId))
+            assertThatThrownBy(() -> accountService.withdraw(account.id(), withdrawAmount, attemptingUserId))
                     .isInstanceOf(AccountNotFoundException.class);
 
             // and
             var unchangedAccount = accountService.getById(account.id(), accountOwnerUserId);
-            assertThat(unchangedAccount.balance().value())
-                    .isEqualByComparingTo(new BigDecimal("100.00"));
+            assertThat(unchangedAccount.balance().value()).isEqualByComparingTo(new BigDecimal("100.00"));
         }
 
         @Test
@@ -1147,9 +1015,7 @@ public class AccountServiceTest {
             var userId = UserId.generate();
             var groupId = GroupId.generate();
             userExistsInGroup(userId, groupId);
-            var account =
-                    accountService.createAccount(
-                            new CreateAccountCommand("Time Test Account", PLN, userId));
+            var account = accountService.createAccount(new CreateAccountCommand("Time Test Account", PLN, userId));
             var withdrawAmount = Money.of(new BigDecimal("25.00"), PLN);
 
             // when
@@ -1158,9 +1024,7 @@ public class AccountServiceTest {
             // then
             var updatedAccount = accountService.getById(account.id(), userId);
             assertThat(updatedAccount.lastUpdatedAt()).isAfter(account.lastUpdatedAt());
-            verify(auditModuleFacade)
-                    .logAccountWithdraw(
-                            account.id(), account.name(), userId, groupId, withdrawAmount);
+            verify(auditModuleFacade).logAccountWithdraw(account.id(), account.name(), userId, groupId, withdrawAmount);
         }
     }
 }

@@ -17,15 +17,14 @@ class CsvParseResultTest {
     @Test
     void shouldCreateResultWithProposalsAndErrors() {
         // given
-        var proposal =
-                new TransactionProposal(
-                        new TransactionProposalId(UUID.randomUUID()),
-                        LocalDate.of(2025, 12, 17),
-                        "Wpływy: Test",
-                        new BigDecimal("100.00"),
-                        Currency.PLN,
-                        TransactionType.INCOME,
-                        null);
+        var proposal = new TransactionProposal(
+                new TransactionProposalId(UUID.randomUUID()),
+                LocalDate.of(2025, 12, 17),
+                "Wpływy: Test",
+                new BigDecimal("100.00"),
+                Currency.PLN,
+                TransactionType.INCOME,
+                null);
         var error = new ParseError(INVALID_CSV_FORMAT, 5, "Invalid format");
 
         // when
@@ -42,15 +41,14 @@ class CsvParseResultTest {
     @Test
     void shouldCreateResultWithNoErrors() {
         // given
-        var proposal =
-                new TransactionProposal(
-                        new TransactionProposalId(UUID.randomUUID()),
-                        LocalDate.of(2025, 12, 17),
-                        "Wpływy: Test",
-                        new BigDecimal("100.00"),
-                        Currency.PLN,
-                        TransactionType.INCOME,
-                        null);
+        var proposal = new TransactionProposal(
+                new TransactionProposalId(UUID.randomUUID()),
+                LocalDate.of(2025, 12, 17),
+                "Wpływy: Test",
+                new BigDecimal("100.00"),
+                Currency.PLN,
+                TransactionType.INCOME,
+                null);
 
         // when
         var result = new CsvParseResult(List.of(proposal), List.of(), 1, 1, 0);
@@ -106,14 +104,12 @@ class CsvParseResultTest {
     @Test
     void shouldRejectNullProposals() {
         // when & then
-        assertThatThrownBy(() -> new CsvParseResult(null, List.of(), 0, 0, 0))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new CsvParseResult(null, List.of(), 0, 0, 0)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void shouldRejectNullErrors() {
         // when & then
-        assertThatThrownBy(() -> new CsvParseResult(List.of(), null, 0, 0, 0))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new CsvParseResult(List.of(), null, 0, 0, 0)).isInstanceOf(NullPointerException.class);
     }
 }

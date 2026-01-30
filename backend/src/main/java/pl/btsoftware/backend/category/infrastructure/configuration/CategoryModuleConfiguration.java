@@ -34,8 +34,7 @@ public class CategoryModuleConfiguration {
             UsersModuleFacade usersModuleFacade,
             TransactionQueryFacade transactionQueryFacade,
             AuditModuleFacade auditModuleFacade) {
-        return new CategoryService(
-                categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
+        return new CategoryService(categoryRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
     }
 
     @Bean

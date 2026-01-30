@@ -22,9 +22,7 @@ public class AuditLogService {
             UserId performedBy,
             GroupId groupId,
             String changeDescription) {
-        var auditLog =
-                AuditLog.create(
-                        CREATE, entityType, entityId, performedBy, groupId, changeDescription);
+        var auditLog = AuditLog.create(CREATE, entityType, entityId, performedBy, groupId, changeDescription);
         auditLogRepository.store(auditLog);
         return auditLog;
     }
@@ -35,9 +33,7 @@ public class AuditLogService {
             UserId performedBy,
             GroupId groupId,
             String changeDescription) {
-        var auditLog =
-                AuditLog.create(
-                        UPDATE, entityType, entityId, performedBy, groupId, changeDescription);
+        var auditLog = AuditLog.create(UPDATE, entityType, entityId, performedBy, groupId, changeDescription);
         auditLogRepository.store(auditLog);
         return auditLog;
     }
@@ -48,9 +44,7 @@ public class AuditLogService {
             UserId performedBy,
             GroupId groupId,
             String changeDescription) {
-        var auditLog =
-                AuditLog.create(
-                        DELETE, entityType, entityId, performedBy, groupId, changeDescription);
+        var auditLog = AuditLog.create(DELETE, entityType, entityId, performedBy, groupId, changeDescription);
         auditLogRepository.store(auditLog);
         return auditLog;
     }

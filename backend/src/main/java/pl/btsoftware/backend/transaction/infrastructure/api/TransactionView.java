@@ -21,8 +21,7 @@ public record TransactionView(
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt) {
 
-    public static TransactionView from(
-            Transaction transaction, Function<CategoryId, Category> categoryMapper) {
+    public static TransactionView from(Transaction transaction, Function<CategoryId, Category> categoryMapper) {
         return new TransactionView(
                 transaction.id().value(),
                 transaction.accountId().value(),
@@ -40,10 +39,9 @@ public record TransactionView(
         }
 
         public static BillView from(Bill bill, Function<CategoryId, Category> categoryMapper) {
-            return new BillView(
-                    bill.items().stream()
-                            .map(item -> BillItemView.from(item, categoryMapper))
-                            .toList());
+            return new BillView(bill.items().stream()
+                    .map(item -> BillItemView.from(item, categoryMapper))
+                    .toList());
         }
     }
 }

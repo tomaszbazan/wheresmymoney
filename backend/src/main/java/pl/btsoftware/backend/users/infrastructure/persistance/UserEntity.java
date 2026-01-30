@@ -57,12 +57,6 @@ public class UserEntity {
 
     public User toDomain() {
         return new User(
-                new UserId(id),
-                email,
-                displayName,
-                new GroupId(groupId),
-                createdAt,
-                lastLoginAt,
-                joinedGroupAt);
+                new UserId(id), email, displayName, new GroupId(groupId), createdAt, lastLoginAt, joinedGroupAt);
     }
 }

@@ -54,11 +54,10 @@ public class InMemoryGroupInvitationRepository implements GroupInvitationReposit
 
     @Override
     public void deleteExpired() {
-        List<GroupInvitationId> expiredIds =
-                invitations.values().stream()
-                        .filter(GroupInvitation::isExpired)
-                        .map(GroupInvitation::id)
-                        .toList();
+        List<GroupInvitationId> expiredIds = invitations.values().stream()
+                .filter(GroupInvitation::isExpired)
+                .map(GroupInvitation::id)
+                .toList();
 
         expiredIds.forEach(invitations::remove);
     }

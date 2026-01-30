@@ -3,8 +3,7 @@ package pl.btsoftware.backend.transaction.application;
 import java.util.List;
 import pl.btsoftware.backend.shared.TransactionId;
 
-public record BulkCreateResult(
-        int savedCount, int duplicateCount, List<TransactionId> savedTransactionIds) {
+public record BulkCreateResult(int savedCount, int duplicateCount, List<TransactionId> savedTransactionIds) {
     public BulkCreateResult {
         savedTransactionIds = List.copyOf(savedTransactionIds);
     }

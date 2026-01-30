@@ -25,21 +25,18 @@ class TransferController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    TransferView createTransfer(
-            @RequestBody @Valid CreateTransferRequest request, @AuthenticationPrincipal Jwt jwt) {
+    TransferView createTransfer(@RequestBody @Valid CreateTransferRequest request, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
 
-        var targetAmount =
-                request.targetAmount() != null ? request.targetAmount() : request.sourceAmount();
+        var targetAmount = request.targetAmount() != null ? request.targetAmount() : request.sourceAmount();
 
-        var command =
-                new CreateTransferCommand(
-                        new AccountId(request.sourceAccountId()),
-                        new AccountId(request.targetAccountId()),
-                        request.sourceAmount(),
-                        targetAmount,
-                        request.description(),
-                        userId);
+        var command = new CreateTransferCommand(
+                new AccountId(request.sourceAccountId()),
+                new AccountId(request.targetAccountId()),
+                request.sourceAmount(),
+                targetAmount,
+                request.description(),
+                userId);
 
         var transfer = transferModuleFacade.createTransfer(command);
         return toView(transfer);

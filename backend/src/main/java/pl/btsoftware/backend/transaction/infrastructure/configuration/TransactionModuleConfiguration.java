@@ -20,14 +20,12 @@ import pl.btsoftware.backend.users.UsersModuleFacade;
 public class TransactionModuleConfiguration {
 
     @Bean
-    public TransactionRepository transactionRepository(
-            TransactionJpaRepository transactionJpaRepository) {
+    public TransactionRepository transactionRepository(TransactionJpaRepository transactionJpaRepository) {
         return new JpaTransactionRepository(transactionJpaRepository);
     }
 
     @Bean
-    public TransactionQueryFacade transactionQueryFacade(
-            TransactionRepository transactionRepository) {
+    public TransactionQueryFacade transactionQueryFacade(TransactionRepository transactionRepository) {
         return new TransactionQueryFacade(transactionRepository);
     }
 
@@ -39,11 +37,7 @@ public class TransactionModuleConfiguration {
             UsersModuleFacade usersModuleFacade,
             AuditModuleFacade auditModuleFacade) {
         return new TransactionService(
-                transactionRepository,
-                accountModuleFacade,
-                categoryQueryFacade,
-                usersModuleFacade,
-                auditModuleFacade);
+                transactionRepository, accountModuleFacade, categoryQueryFacade, usersModuleFacade, auditModuleFacade);
     }
 
     @Bean
@@ -57,7 +51,6 @@ public class TransactionModuleConfiguration {
             TransactionModuleFacade transactionModuleFacade,
             CategoryModuleFacade categoryModuleFacade,
             PaginationValidator paginationValidator) {
-        return new TransactionController(
-                transactionModuleFacade, categoryModuleFacade, paginationValidator);
+        return new TransactionController(transactionModuleFacade, categoryModuleFacade, paginationValidator);
     }
 }

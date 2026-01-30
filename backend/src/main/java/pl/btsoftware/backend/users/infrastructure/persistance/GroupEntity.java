@@ -54,20 +54,12 @@ public class GroupEntity {
     }
 
     public Group toDomain() {
-        Set<UserId> domainMemberIds =
-                memberIds.stream().map(UserId::new).collect(Collectors.toSet());
+        Set<UserId> domainMemberIds = memberIds.stream().map(UserId::new).collect(Collectors.toSet());
 
         if (domainMemberIds.isEmpty()) {
-            return Group.createEmptyWithId(
-                    new GroupId(id), name, description, new UserId(createdBy), createdAt);
+            return Group.createEmptyWithId(new GroupId(id), name, description, new UserId(createdBy), createdAt);
         } else {
-            return new Group(
-                    new GroupId(id),
-                    name,
-                    description,
-                    domainMemberIds,
-                    new UserId(createdBy),
-                    createdAt);
+            return new Group(new GroupId(id), name, description, domainMemberIds, new UserId(createdBy), createdAt);
         }
     }
 }

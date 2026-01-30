@@ -89,15 +89,14 @@ class TransactionProposalTest {
     @Test
     void shouldHandleNullDescription() {
         // given & when
-        var proposal =
-                new TransactionProposal(
-                        new TransactionProposalId(randomUUID()),
-                        LocalDate.now(),
-                        null,
-                        BigDecimal.TEN,
-                        Currency.PLN,
-                        TransactionType.EXPENSE,
-                        new CategoryId(randomUUID()));
+        var proposal = new TransactionProposal(
+                new TransactionProposalId(randomUUID()),
+                LocalDate.now(),
+                null,
+                BigDecimal.TEN,
+                Currency.PLN,
+                TransactionType.EXPENSE,
+                new CategoryId(randomUUID()));
 
         // then
         assertThat(proposal.description()).isEmpty();
@@ -106,16 +105,8 @@ class TransactionProposalTest {
     @Test
     void shouldRejectNullTransactionId() {
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                new TransactionProposal(
-                                        null,
-                                        LocalDate.now(),
-                                        "Test",
-                                        BigDecimal.TEN,
-                                        Currency.PLN,
-                                        TransactionType.EXPENSE,
-                                        null))
+        assertThatThrownBy(() -> new TransactionProposal(
+                        null, LocalDate.now(), "Test", BigDecimal.TEN, Currency.PLN, TransactionType.EXPENSE, null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Transaction id cannot be null");
     }
@@ -123,16 +114,14 @@ class TransactionProposalTest {
     @Test
     void shouldRejectNullTransactionDate() {
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                new TransactionProposal(
-                                        new TransactionProposalId(randomUUID()),
-                                        null,
-                                        "Test",
-                                        BigDecimal.TEN,
-                                        Currency.PLN,
-                                        TransactionType.EXPENSE,
-                                        null))
+        assertThatThrownBy(() -> new TransactionProposal(
+                        new TransactionProposalId(randomUUID()),
+                        null,
+                        "Test",
+                        BigDecimal.TEN,
+                        Currency.PLN,
+                        TransactionType.EXPENSE,
+                        null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Transaction date cannot be null");
     }
@@ -140,16 +129,14 @@ class TransactionProposalTest {
     @Test
     void shouldRejectNullAmount() {
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                new TransactionProposal(
-                                        new TransactionProposalId(randomUUID()),
-                                        LocalDate.now(),
-                                        "Test",
-                                        null,
-                                        Currency.PLN,
-                                        TransactionType.EXPENSE,
-                                        null))
+        assertThatThrownBy(() -> new TransactionProposal(
+                        new TransactionProposalId(randomUUID()),
+                        LocalDate.now(),
+                        "Test",
+                        null,
+                        Currency.PLN,
+                        TransactionType.EXPENSE,
+                        null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Amount cannot be null");
     }
@@ -157,16 +144,14 @@ class TransactionProposalTest {
     @Test
     void shouldRejectNullCurrency() {
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                new TransactionProposal(
-                                        new TransactionProposalId(randomUUID()),
-                                        LocalDate.now(),
-                                        "Test",
-                                        BigDecimal.TEN,
-                                        null,
-                                        TransactionType.EXPENSE,
-                                        null))
+        assertThatThrownBy(() -> new TransactionProposal(
+                        new TransactionProposalId(randomUUID()),
+                        LocalDate.now(),
+                        "Test",
+                        BigDecimal.TEN,
+                        null,
+                        TransactionType.EXPENSE,
+                        null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Currency cannot be null");
     }
@@ -174,16 +159,14 @@ class TransactionProposalTest {
     @Test
     void shouldRejectNullTransactionType() {
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                new TransactionProposal(
-                                        new TransactionProposalId(randomUUID()),
-                                        LocalDate.now(),
-                                        "Test",
-                                        BigDecimal.TEN,
-                                        Currency.PLN,
-                                        null,
-                                        null))
+        assertThatThrownBy(() -> new TransactionProposal(
+                        new TransactionProposalId(randomUUID()),
+                        LocalDate.now(),
+                        "Test",
+                        BigDecimal.TEN,
+                        Currency.PLN,
+                        null,
+                        null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Transaction type cannot be null");
     }

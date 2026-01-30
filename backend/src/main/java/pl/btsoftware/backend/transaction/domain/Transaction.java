@@ -80,8 +80,7 @@ public record Transaction(
     public Transaction updateBill(
             Bill newBill, AccountId newAccountId, LocalDate newTransactionDate, UserId updatedBy) {
         var finalAccountId = newAccountId != null ? newAccountId : accountId;
-        var finalTransactionDate =
-                newTransactionDate != null ? newTransactionDate : transactionDate;
+        var finalTransactionDate = newTransactionDate != null ? newTransactionDate : transactionDate;
 
         return new Transaction(
                 id,
@@ -91,8 +90,7 @@ public record Transaction(
                 finalTransactionDate,
                 transactionHash,
                 createdInfo,
-                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when())
-                        .updateTimestamp(),
+                new AuditInfo(updatedBy, updatedInfo.fromGroup(), updatedInfo.when()).updateTimestamp(),
                 tombstone);
     }
 

@@ -19,7 +19,9 @@ import pl.btsoftware.backend.shared.Tombstone;
 @AllArgsConstructor
 @Getter
 public class CategoryEntity {
-    @Id private UUID id;
+    @Id
+    private UUID id;
+
     private String name;
 
     @Enumerated(EnumType.STRING)

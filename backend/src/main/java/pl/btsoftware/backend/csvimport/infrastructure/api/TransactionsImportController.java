@@ -26,9 +26,7 @@ import pl.btsoftware.backend.users.domain.UserId;
 @Slf4j
 public class TransactionsImportController {
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
-    private static final String[] ALLOWED_CONTENT_TYPES = {
-        "text/csv", "application/csv", "text/plain"
-    };
+    private static final String[] ALLOWED_CONTENT_TYPES = {"text/csv", "application/csv", "text/plain"};
 
     private final CsvParseService csvParseService;
 
@@ -43,14 +41,10 @@ public class TransactionsImportController {
         validateFile(file);
 
         try {
-            var command =
-                    new ParseCsvCommand(file.getInputStream(), userId, AccountId.from(accountId));
+            var command = new ParseCsvCommand(file.getInputStream(), userId, AccountId.from(accountId));
             var result = csvParseService.parse(command);
 
-            log.info(
-                    "CSV parsing completed: {} proposals, {} errors",
-                    result.successCount(),
-                    result.errorCount());
+            log.info("CSV parsing completed: {} proposals, {} errors", result.successCount(), result.errorCount());
             return CsvParseResultView.from(result);
         } catch (IOException e) {
             log.error("Failed to read CSV file", e);
@@ -64,14 +58,12 @@ public class TransactionsImportController {
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new CsvImportException(
-                    FILE_TOO_LARGE, "File size exceeds maximum allowed size of 10MB");
+            throw new CsvImportException(FILE_TOO_LARGE, "File size exceeds maximum allowed size of 10MB");
         }
 
         var contentType = file.getContentType();
         if (contentType == null || !isAllowedContentType(contentType)) {
-            throw new CsvImportException(
-                    INVALID_FILE_TYPE, "Invalid file type. Allowed types: CSV");
+            throw new CsvImportException(INVALID_FILE_TYPE, "Invalid file type. Allowed types: CSV");
         }
     }
 

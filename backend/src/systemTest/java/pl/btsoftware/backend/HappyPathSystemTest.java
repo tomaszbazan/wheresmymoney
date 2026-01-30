@@ -40,15 +40,20 @@ import pl.btsoftware.backend.users.domain.UserId;
 @SystemTest
 public class HappyPathSystemTest {
 
-    @Autowired private UsersModuleFacade usersModuleFacade;
+    @Autowired
+    private UsersModuleFacade usersModuleFacade;
 
-    @Autowired private AccountModuleFacade accountModuleFacade;
+    @Autowired
+    private AccountModuleFacade accountModuleFacade;
 
-    @Autowired private CategoryModuleFacade categoryModuleFacade;
+    @Autowired
+    private CategoryModuleFacade categoryModuleFacade;
 
-    @Autowired private TransactionService transactionService;
+    @Autowired
+    private TransactionService transactionService;
 
-    @Autowired private AuditLogService auditLogService;
+    @Autowired
+    private AuditLogService auditLogService;
 
     @Test
     void shouldCompleteFullUserJourneyWithAccountsCategoriesAndTransactions() {
@@ -69,29 +74,21 @@ public class HappyPathSystemTest {
         updateAccountName(account.id(), user.id());
         updateCategoryDetails(expenseCategory.id(), user.id());
 
-        deleteTransactionAndVerifyBalance(
-                expenseTransaction.id(), account.id(), user.id(), "5000.00");
+        deleteTransactionAndVerifyBalance(expenseTransaction.id(), account.id(), user.id(), "5000.00");
         deleteCategoryAndVerifyRemoval(expenseCategory.id(), user.id());
         deleteAccountAndVerifyRemoval(incomeTransaction.id(), account.id(), user.id());
 
-        verifyAuditTrail(
-                user,
-                account,
-                incomeCategory,
-                expenseCategory,
-                incomeTransaction,
-                expenseTransaction);
+        verifyAuditTrail(user, account, incomeCategory, expenseCategory, incomeTransaction, expenseTransaction);
     }
 
     private User registerUser() {
         var timestamp = System.currentTimeMillis();
-        var command =
-                new RegisterUserCommand(
-                        "happy-path-auth-" + timestamp,
-                        "happypath" + timestamp + "@example.com",
-                        "Happy Path User",
-                        "Happy Path Group " + timestamp,
-                        null);
+        var command = new RegisterUserCommand(
+                "happy-path-auth-" + timestamp,
+                "happypath" + timestamp + "@example.com",
+                "Happy Path User",
+                "Happy Path Group " + timestamp,
+                null);
         var user = usersModuleFacade.registerUser(command);
         assertThat(user.id()).isNotNull();
         assertThat(user.email()).isEqualTo("happypath" + timestamp + "@example.com");
@@ -109,9 +106,7 @@ public class HappyPathSystemTest {
     }
 
     private Category createIncomeCategory(UserId userId) {
-        var command =
-                new CreateCategoryCommand(
-                        "Salary", CategoryType.INCOME, Color.of("#4CAF50"), userId);
+        var command = new CreateCategoryCommand("Salary", CategoryType.INCOME, Color.of("#4CAF50"), userId);
         var category = categoryModuleFacade.createCategory(command);
         assertThat(category.id()).isNotNull();
         assertThat(category.name()).isEqualTo("Salary");
@@ -120,9 +115,7 @@ public class HappyPathSystemTest {
     }
 
     private Category createExpenseCategory(UserId userId) {
-        var command =
-                new CreateCategoryCommand(
-                        "Groceries", CategoryType.EXPENSE, Color.of("#FF5722"), userId);
+        var command = new CreateCategoryCommand("Groceries", CategoryType.EXPENSE, Color.of("#FF5722"), userId);
         var category = categoryModuleFacade.createCategory(command);
         assertThat(category.id()).isNotNull();
         assertThat(category.name()).isEqualTo("Groceries");
@@ -131,15 +124,14 @@ public class HappyPathSystemTest {
     }
 
     private Transaction addIncomeTransaction(Account account, Category category, UserId userId) {
-        var command =
-                TransactionCommandFixture.createCommand(
-                        account.id(),
-                        Money.of(new BigDecimal("5000.00"), PLN),
-                        "Monthly salary",
-                        LocalDate.now(),
-                        INCOME,
-                        category.id(),
-                        userId);
+        var command = TransactionCommandFixture.createCommand(
+                account.id(),
+                Money.of(new BigDecimal("5000.00"), PLN),
+                "Monthly salary",
+                LocalDate.now(),
+                INCOME,
+                category.id(),
+                userId);
         var transaction = transactionService.createTransaction(command);
         assertThat(transaction.id()).isNotNull();
         assertThat(transaction.amount().value()).isEqualByComparingTo(new BigDecimal("5000.00"));
@@ -149,15 +141,14 @@ public class HappyPathSystemTest {
     }
 
     private Transaction addExpenseTransaction(Account account, Category category, UserId userId) {
-        var command =
-                TransactionCommandFixture.createCommand(
-                        account.id(),
-                        Money.of(new BigDecimal("150.50"), PLN),
-                        "Weekly shopping",
-                        LocalDate.now(),
-                        EXPENSE,
-                        category.id(),
-                        userId);
+        var command = TransactionCommandFixture.createCommand(
+                account.id(),
+                Money.of(new BigDecimal("150.50"), PLN),
+                "Weekly shopping",
+                LocalDate.now(),
+                EXPENSE,
+                category.id(),
+                userId);
         var transaction = transactionService.createTransaction(command);
         assertThat(transaction.id()).isNotNull();
         assertThat(transaction.amount().value()).isEqualByComparingTo(new BigDecimal("150.50"));
@@ -166,17 +157,15 @@ public class HappyPathSystemTest {
     }
 
     private void updateExpenseTransaction(Transaction transaction, UserId userId) {
-        var billItem =
-                new BillItemCommand(
-                        transaction.bill().items().getFirst().categoryId(),
-                        Money.of(new BigDecimal("200.00"), PLN),
-                        "Weekly shopping - updated");
-        var command =
-                new UpdateTransactionCommand(
-                        transaction.id(),
-                        new BillCommand(List.of(billItem)),
-                        transaction.accountId(),
-                        transaction.transactionDate());
+        var billItem = new BillItemCommand(
+                transaction.bill().items().getFirst().categoryId(),
+                Money.of(new BigDecimal("200.00"), PLN),
+                "Weekly shopping - updated");
+        var command = new UpdateTransactionCommand(
+                transaction.id(),
+                new BillCommand(List.of(billItem)),
+                transaction.accountId(),
+                transaction.transactionDate());
         var updated = transactionService.updateTransaction(command, userId);
         assertThat(updated.description()).isEqualTo("Weekly shopping - updated");
         assertThat(updated.amount().value()).isEqualByComparingTo(new BigDecimal("200.00"));
@@ -189,9 +178,7 @@ public class HappyPathSystemTest {
     }
 
     private void updateCategoryDetails(CategoryId categoryId, UserId userId) {
-        var command =
-                new UpdateCategoryCommand(
-                        categoryId, "Food and Groceries", Color.of("#FF9800"), null);
+        var command = new UpdateCategoryCommand(categoryId, "Food and Groceries", Color.of("#FF9800"), null);
         var updated = categoryModuleFacade.updateCategory(command, userId);
         assertThat(updated.name()).isEqualTo("Food and Groceries");
         assertThat(updated.color()).isEqualTo(Color.of("#FF9800"));
@@ -203,10 +190,7 @@ public class HappyPathSystemTest {
     }
 
     private void deleteTransactionAndVerifyBalance(
-            TransactionId transactionId,
-            AccountId accountId,
-            UserId userId,
-            String expectedBalance) {
+            TransactionId transactionId, AccountId accountId, UserId userId, String expectedBalance) {
         transactionService.deleteTransaction(transactionId, userId);
         verifyAccountBalance(accountId, userId, expectedBalance);
     }
@@ -217,8 +201,7 @@ public class HappyPathSystemTest {
         assertThat(remaining).noneMatch(c -> c.id().equals(categoryId));
     }
 
-    private void deleteAccountAndVerifyRemoval(
-            TransactionId transactionId, AccountId accountId, UserId userId) {
+    private void deleteAccountAndVerifyRemoval(TransactionId transactionId, AccountId accountId, UserId userId) {
         transactionService.deleteTransaction(transactionId, userId);
         accountModuleFacade.deleteAccount(accountId, userId);
         var allAccounts = accountModuleFacade.getAccounts(userId);
@@ -234,92 +217,65 @@ public class HappyPathSystemTest {
             Transaction expenseTransaction) {
         var groupId = user.groupId();
 
-        var accountQuery =
-                new AuditLogQuery(
-                        groupId,
-                        AuditEntityType.ACCOUNT,
-                        EntityId.from(account.id().value()),
-                        null,
-                        null,
-                        null,
-                        null);
+        var accountQuery = new AuditLogQuery(
+                groupId, AuditEntityType.ACCOUNT, EntityId.from(account.id().value()), null, null, null, null);
         var accountAuditLogs = auditLogService.findByQuery(accountQuery, PageRequest.of(0, 100));
         assertThat(accountAuditLogs.getContent()).hasSize(9);
-        assertThat(accountAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.CREATE);
-        assertThat(accountAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.UPDATE);
-        assertThat(accountAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.DELETE);
+        assertThat(accountAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.CREATE);
+        assertThat(accountAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.UPDATE);
+        assertThat(accountAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.DELETE);
 
-        var incomeCategoryQuery =
-                new AuditLogQuery(
-                        groupId,
-                        AuditEntityType.CATEGORY,
-                        EntityId.from(incomeCategory.id().value()),
-                        null,
-                        null,
-                        null,
-                        null);
-        var incomeCategoryAuditLogs =
-                auditLogService.findByQuery(incomeCategoryQuery, PageRequest.of(0, 100));
+        var incomeCategoryQuery = new AuditLogQuery(
+                groupId,
+                AuditEntityType.CATEGORY,
+                EntityId.from(incomeCategory.id().value()),
+                null,
+                null,
+                null,
+                null);
+        var incomeCategoryAuditLogs = auditLogService.findByQuery(incomeCategoryQuery, PageRequest.of(0, 100));
         assertThat(incomeCategoryAuditLogs.getContent()).hasSize(1);
-        assertThat(incomeCategoryAuditLogs.getContent().getFirst().operation())
-                .isEqualTo(AuditOperation.CREATE);
+        assertThat(incomeCategoryAuditLogs.getContent().getFirst().operation()).isEqualTo(AuditOperation.CREATE);
 
-        var expenseCategoryQuery =
-                new AuditLogQuery(
-                        groupId,
-                        AuditEntityType.CATEGORY,
-                        EntityId.from(expenseCategory.id().value()),
-                        null,
-                        null,
-                        null,
-                        null);
-        var expenseCategoryAuditLogs =
-                auditLogService.findByQuery(expenseCategoryQuery, PageRequest.of(0, 100));
+        var expenseCategoryQuery = new AuditLogQuery(
+                groupId,
+                AuditEntityType.CATEGORY,
+                EntityId.from(expenseCategory.id().value()),
+                null,
+                null,
+                null,
+                null);
+        var expenseCategoryAuditLogs = auditLogService.findByQuery(expenseCategoryQuery, PageRequest.of(0, 100));
         assertThat(expenseCategoryAuditLogs.getContent()).hasSize(3);
-        assertThat(expenseCategoryAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.CREATE);
-        assertThat(expenseCategoryAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.UPDATE);
-        assertThat(expenseCategoryAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.DELETE);
+        assertThat(expenseCategoryAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.CREATE);
+        assertThat(expenseCategoryAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.UPDATE);
+        assertThat(expenseCategoryAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.DELETE);
 
-        var incomeTransactionQuery =
-                new AuditLogQuery(
-                        groupId,
-                        AuditEntityType.TRANSACTION,
-                        EntityId.from(incomeTransaction.id().value()),
-                        null,
-                        null,
-                        null,
-                        null);
-        var incomeTransactionAuditLogs =
-                auditLogService.findByQuery(incomeTransactionQuery, PageRequest.of(0, 100));
+        var incomeTransactionQuery = new AuditLogQuery(
+                groupId,
+                AuditEntityType.TRANSACTION,
+                EntityId.from(incomeTransaction.id().value()),
+                null,
+                null,
+                null,
+                null);
+        var incomeTransactionAuditLogs = auditLogService.findByQuery(incomeTransactionQuery, PageRequest.of(0, 100));
         assertThat(incomeTransactionAuditLogs.getContent()).hasSize(2);
-        assertThat(incomeTransactionAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.CREATE);
-        assertThat(incomeTransactionAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.DELETE);
+        assertThat(incomeTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.CREATE);
+        assertThat(incomeTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.DELETE);
 
-        var expenseTransactionQuery =
-                new AuditLogQuery(
-                        groupId,
-                        AuditEntityType.TRANSACTION,
-                        EntityId.from(expenseTransaction.id().value()),
-                        null,
-                        null,
-                        null,
-                        null);
-        var expenseTransactionAuditLogs =
-                auditLogService.findByQuery(expenseTransactionQuery, PageRequest.of(0, 100));
+        var expenseTransactionQuery = new AuditLogQuery(
+                groupId,
+                AuditEntityType.TRANSACTION,
+                EntityId.from(expenseTransaction.id().value()),
+                null,
+                null,
+                null,
+                null);
+        var expenseTransactionAuditLogs = auditLogService.findByQuery(expenseTransactionQuery, PageRequest.of(0, 100));
         assertThat(expenseTransactionAuditLogs.getContent()).hasSize(3);
-        assertThat(expenseTransactionAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.CREATE);
-        assertThat(expenseTransactionAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.UPDATE);
-        assertThat(expenseTransactionAuditLogs.getContent())
-                .anyMatch(log -> log.operation() == AuditOperation.DELETE);
+        assertThat(expenseTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.CREATE);
+        assertThat(expenseTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.UPDATE);
+        assertThat(expenseTransactionAuditLogs.getContent()).anyMatch(log -> log.operation() == AuditOperation.DELETE);
     }
 }

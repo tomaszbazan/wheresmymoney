@@ -17,7 +17,8 @@ import pl.btsoftware.backend.transfer.domain.Transfer;
 @NoArgsConstructor
 @Getter
 public class TransferEntity {
-    @Id private UUID id;
+    @Id
+    private UUID id;
 
     @Column(name = "source_account_id")
     private UUID sourceAccountId;
@@ -65,7 +66,8 @@ public class TransferEntity {
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
 
-    @Version private Long version;
+    @Version
+    private Long version;
 
     public static TransferEntity fromDomain(Transfer transfer) {
         return new TransferEntity(

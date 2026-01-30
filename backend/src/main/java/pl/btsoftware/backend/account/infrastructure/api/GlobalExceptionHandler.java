@@ -49,8 +49,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccountAlreadyExistsException.class)
-    public ResponseEntity<String> handleAccountAlreadyExistsException(
-            AccountAlreadyExistsException ex) {
+    public ResponseEntity<String> handleAccountAlreadyExistsException(AccountAlreadyExistsException ex) {
         log.error("{}", ex.getMessage(), ex);
         return ResponseEntity.status(CONFLICT).body(ex.getMessage());
     }
@@ -61,22 +60,19 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<String> handleHttpMessageNotReadableException(
-            HttpMessageNotReadableException ex) {
+    public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         return new ResponseEntity<>(ex.getMessage(), BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(
-            MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
         var message = "Invalid category type: " + ex.getValue();
         log.error(message, ex);
         return new ResponseEntity<>(message, BAD_REQUEST);
     }
 
     @ExceptionHandler(NoCategoriesAvailableException.class)
-    public ResponseEntity<String> handleNoCategoriesAvailableException(
-            NoCategoriesAvailableException ex) {
+    public ResponseEntity<String> handleNoCategoriesAvailableException(NoCategoriesAvailableException ex) {
         log.error("{}", ex.getMessage(), ex);
         return ResponseEntity.status(PRECONDITION_FAILED).body(ex.getMessage());
     }

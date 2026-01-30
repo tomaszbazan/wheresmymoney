@@ -16,7 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
         })
 class PingControllerTest {
 
-    @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
     void shouldReturnPongOnPingRequest() throws Exception {

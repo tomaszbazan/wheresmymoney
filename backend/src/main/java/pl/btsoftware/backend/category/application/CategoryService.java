@@ -31,16 +31,13 @@ public class CategoryService {
 
         validateHierarchyDepth(command.parentId(), user.groupId());
 
-        var auditInfo = AuditInfo.create(command.userId().value(), user.groupId().value());
+        var auditInfo =
+                AuditInfo.create(command.userId().value(), user.groupId().value());
         var category = command.toDomain(auditInfo);
         categoryRepository.store(category);
 
         auditModuleFacade.logCategoryCreated(
-                category.id(),
-                category.name(),
-                category.type().name(),
-                command.userId(),
-                user.groupId());
+                category.id(), category.name(), category.type().name(), command.userId(), user.groupId());
         return category;
     }
 
@@ -61,10 +58,9 @@ public class CategoryService {
     @Transactional
     public Category updateCategory(UpdateCategoryCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var category =
-                categoryRepository
-                        .findById(command.categoryId(), user.groupId())
-                        .orElseThrow(() -> new CategoryNotFoundException(command.categoryId()));
+        var category = categoryRepository
+                .findById(command.categoryId(), user.groupId())
+                .orElseThrow(() -> new CategoryNotFoundException(command.categoryId()));
 
         if (command.parentId() != null && !command.parentId().equals(category.parentId())) {
             validateHierarchyDepth(command.parentId(), user.groupId());
@@ -74,21 +70,16 @@ public class CategoryService {
 
         categoryRepository.store(updatedCategory);
         auditModuleFacade.logCategoryUpdated(
-                command.categoryId(),
-                category.name(),
-                updatedCategory.name(),
-                userId,
-                user.groupId());
+                command.categoryId(), category.name(), updatedCategory.name(), userId, user.groupId());
         return updatedCategory;
     }
 
     @Transactional
     public void deleteCategory(CategoryId categoryId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var category =
-                categoryRepository
-                        .findByIdIncludingDeleted(categoryId, user.groupId())
-                        .orElseThrow(() -> new CategoryNotFoundException(categoryId));
+        var category = categoryRepository
+                .findByIdIncludingDeleted(categoryId, user.groupId())
+                .orElseThrow(() -> new CategoryNotFoundException(categoryId));
 
         if (!category.ownedBy().equals(user.groupId())) {
             throw new CategoryAccessDeniedException();

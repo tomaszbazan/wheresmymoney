@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import pl.btsoftware.backend.transaction.application.BulkCreateResult;
 
-public record BulkCreateTransactionResponse(
-        int savedCount, int duplicateCount, List<UUID> savedTransactionIds) {
+public record BulkCreateTransactionResponse(int savedCount, int duplicateCount, List<UUID> savedTransactionIds) {
     public BulkCreateTransactionResponse {
         savedTransactionIds = List.copyOf(savedTransactionIds);
     }

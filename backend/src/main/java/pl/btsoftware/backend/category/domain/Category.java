@@ -47,24 +47,12 @@ public record Category(
     }
 
     public static Category create(
-            String name,
-            CategoryType type,
-            Color color,
-            CategoryId parentId,
-            AuditInfo createdInfo) {
+            String name, CategoryType type, Color color, CategoryId parentId, AuditInfo createdInfo) {
         return new Category(
-                CategoryId.generate(),
-                name,
-                type,
-                color,
-                parentId,
-                createdInfo,
-                createdInfo,
-                Tombstone.active());
+                CategoryId.generate(), name, type, color, parentId, createdInfo, createdInfo, Tombstone.active());
     }
 
-    public static Category create(
-            String name, CategoryType type, Color color, AuditInfo createdInfo) {
+    public static Category create(String name, CategoryType type, Color color, AuditInfo createdInfo) {
         return create(name, type, color, null, createdInfo);
     }
 
@@ -101,8 +89,7 @@ public record Category(
     }
 
     public Category delete() {
-        return new Category(
-                id, name, type, color, parentId, createdInfo, updatedInfo, Tombstone.deleted());
+        return new Category(id, name, type, color, parentId, createdInfo, updatedInfo, Tombstone.deleted());
     }
 
     private AuditInfo createUpdateInfo(UserId updatedBy) {
@@ -112,18 +99,13 @@ public record Category(
     public Category updateWith(UpdateCategoryCommand command, UserId updatedBy) {
         var category = this;
         if (command.color() != null && !command.color().equals(this.color)) {
-            category =
-                    category.withColor(command.color())
-                            .withUpdatedInfo(createUpdateInfo(updatedBy));
+            category = category.withColor(command.color()).withUpdatedInfo(createUpdateInfo(updatedBy));
         }
         if (command.name() != null && !command.name().equals(this.name)) {
-            category =
-                    category.withName(command.name()).withUpdatedInfo(createUpdateInfo(updatedBy));
+            category = category.withName(command.name()).withUpdatedInfo(createUpdateInfo(updatedBy));
         }
         if (command.parentId() != this.parentId) {
-            category =
-                    category.withParentId(command.parentId())
-                            .withUpdatedInfo(createUpdateInfo(updatedBy));
+            category = category.withParentId(command.parentId()).withUpdatedInfo(createUpdateInfo(updatedBy));
         }
         return category;
     }

@@ -27,14 +27,12 @@ class ParseErrorTest {
     @Test
     void shouldRejectNullErrorType() {
         // when & then
-        assertThatThrownBy(() -> new ParseError(null, 1, "details"))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new ParseError(null, 1, "details")).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void shouldRejectNullDetails() {
         // when & then
-        assertThatThrownBy(() -> new ParseError(INVALID_DATE_FORMAT, 1, null))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new ParseError(INVALID_DATE_FORMAT, 1, null)).isInstanceOf(NullPointerException.class);
     }
 }

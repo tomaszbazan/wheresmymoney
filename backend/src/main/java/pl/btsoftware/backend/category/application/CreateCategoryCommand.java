@@ -7,8 +7,7 @@ import pl.btsoftware.backend.shared.CategoryType;
 import pl.btsoftware.backend.shared.Color;
 import pl.btsoftware.backend.users.domain.UserId;
 
-public record CreateCategoryCommand(
-        String name, CategoryType type, Color color, UserId userId, CategoryId parentId) {
+public record CreateCategoryCommand(String name, CategoryType type, Color color, UserId userId, CategoryId parentId) {
     public CreateCategoryCommand(String name, CategoryType type, Color color, UserId userId) {
         this(name, type, color, userId, null);
     }

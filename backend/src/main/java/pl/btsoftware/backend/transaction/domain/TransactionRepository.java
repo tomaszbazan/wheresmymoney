@@ -22,9 +22,7 @@ public interface TransactionRepository {
 
     boolean existsByAccountId(AccountId accountId, GroupId groupId);
 
-    Optional<Transaction> findByAccountIdAndHash(
-            AccountId accountId, TransactionHash hash, GroupId groupId);
+    Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId);
 
-    List<TransactionHash> findExistingHashes(
-            AccountId accountId, List<TransactionHash> hashes, GroupId groupId);
+    List<TransactionHash> findExistingHashes(AccountId accountId, List<TransactionHash> hashes, GroupId groupId);
 }

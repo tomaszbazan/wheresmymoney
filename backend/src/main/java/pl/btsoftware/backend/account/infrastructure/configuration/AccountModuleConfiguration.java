@@ -26,13 +26,11 @@ public class AccountModuleConfiguration {
             UsersModuleFacade usersModuleFacade,
             TransactionQueryFacade transactionQueryFacade,
             AuditModuleFacade auditModuleFacade) {
-        return new AccountService(
-                accountRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
+        return new AccountService(accountRepository, usersModuleFacade, transactionQueryFacade, auditModuleFacade);
     }
 
     @Bean
-    public AccountModuleFacade accountModuleFacade(
-            AccountService accountService, UsersModuleFacade usersModuleFacade) {
+    public AccountModuleFacade accountModuleFacade(AccountService accountService, UsersModuleFacade usersModuleFacade) {
         return new AccountModuleFacade(accountService, usersModuleFacade);
     }
 

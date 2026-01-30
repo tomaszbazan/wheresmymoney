@@ -30,58 +30,47 @@ public class JpaAuditLogRepository implements AuditLogRepository {
 
     @Override
     public Optional<AuditLog> findById(AuditLogId id, GroupId groupId) {
-        return repository
-                .findByIdAndGroupId(id.value(), groupId.value())
-                .map(AuditLogEntity::toDomain);
+        return repository.findByIdAndGroupId(id.value(), groupId.value()).map(AuditLogEntity::toDomain);
     }
 
     @Override
     public Page<AuditLog> findByQuery(AuditLogQuery query, Pageable pageable) {
-        Specification<AuditLogEntity> spec =
-                (root, criteriaQuery, criteriaBuilder) -> {
-                    var predicates = new ArrayList<Predicate>();
+        Specification<AuditLogEntity> spec = (root, criteriaQuery, criteriaBuilder) -> {
+            var predicates = new ArrayList<Predicate>();
 
-                    predicates.add(
-                            criteriaBuilder.equal(root.get("groupId"), query.groupId().value()));
+            predicates.add(
+                    criteriaBuilder.equal(root.get("groupId"), query.groupId().value()));
 
-                    if (query.entityType() != null) {
-                        predicates.add(
-                                criteriaBuilder.equal(root.get("entityType"), query.entityType()));
-                    }
+            if (query.entityType() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("entityType"), query.entityType()));
+            }
 
-                    if (query.entityId() != null) {
-                        predicates.add(
-                                criteriaBuilder.equal(
-                                        root.get("entityId"), query.entityId().value()));
-                    }
+            if (query.entityId() != null) {
+                predicates.add(criteriaBuilder.equal(
+                        root.get("entityId"), query.entityId().value()));
+            }
 
-                    if (query.operation() != null) {
-                        predicates.add(
-                                criteriaBuilder.equal(root.get("operation"), query.operation()));
-                    }
+            if (query.operation() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("operation"), query.operation()));
+            }
 
-                    if (query.performedBy() != null) {
-                        predicates.add(
-                                criteriaBuilder.equal(
-                                        root.get("performedBy"), query.performedBy().value()));
-                    }
+            if (query.performedBy() != null) {
+                predicates.add(criteriaBuilder.equal(
+                        root.get("performedBy"), query.performedBy().value()));
+            }
 
-                    if (query.fromDate() != null) {
-                        predicates.add(
-                                criteriaBuilder.greaterThanOrEqualTo(
-                                        root.get("performedAt"), query.fromDate()));
-                    }
+            if (query.fromDate() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("performedAt"), query.fromDate()));
+            }
 
-                    if (query.toDate() != null) {
-                        predicates.add(
-                                criteriaBuilder.lessThanOrEqualTo(
-                                        root.get("performedAt"), query.toDate()));
-                    }
+            if (query.toDate() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("performedAt"), query.toDate()));
+            }
 
-                    criteriaQuery.orderBy(criteriaBuilder.desc(root.get("performedAt")));
+            criteriaQuery.orderBy(criteriaBuilder.desc(root.get("performedAt")));
 
-                    return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-                };
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
 
         return repository.findAll(spec, pageable).map(AuditLogEntity::toDomain);
     }

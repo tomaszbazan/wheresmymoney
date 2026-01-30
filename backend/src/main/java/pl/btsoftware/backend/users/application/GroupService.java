@@ -12,11 +12,9 @@ public class GroupService {
     private final UserRepository userRepository;
 
     public GroupInvitation inviteToGroup(UserId inviterId, InviteToGroupCommand command) {
-        var group =
-                groupRepository
-                        .findByUserId(inviterId)
-                        .orElseThrow(
-                                () -> new IllegalArgumentException("Inviter's group not found"));
+        var group = groupRepository
+                .findByUserId(inviterId)
+                .orElseThrow(() -> new IllegalArgumentException("Inviter's group not found"));
 
         var invitation = GroupInvitation.create(group.id(), command.inviteeEmail(), inviterId);
 
@@ -28,15 +26,9 @@ public class GroupService {
     }
 
     public void acceptInvitation(String token, UserId userId) {
-        var invitation =
-                invitationRepository
-                        .findByToken(token)
-                        .orElseThrow(InvitationNotFoundException::new);
+        var invitation = invitationRepository.findByToken(token).orElseThrow(InvitationNotFoundException::new);
 
-        var user =
-                userRepository
-                        .findById(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        var user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         var acceptedInvitation = invitation.accept();
         invitationRepository.save(acceptedInvitation);
@@ -47,10 +39,9 @@ public class GroupService {
         var updatedUser = user.changeGroup(newGroupId);
         userRepository.save(updatedUser);
 
-        Group newGroup =
-                groupRepository
-                        .findById(newGroupId)
-                        .orElseThrow(() -> new IllegalStateException("Target group not found"));
+        Group newGroup = groupRepository
+                .findById(newGroupId)
+                .orElseThrow(() -> new IllegalStateException("Target group not found"));
         var updatedNewGroup = newGroup.addMember(userId);
         groupRepository.save(updatedNewGroup);
 

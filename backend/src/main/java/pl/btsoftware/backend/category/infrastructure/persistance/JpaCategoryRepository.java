@@ -35,16 +35,12 @@ public class JpaCategoryRepository implements CategoryRepository {
 
     @Override
     public Optional<Category> findByIdIncludingDeleted(CategoryId id, GroupId groupId) {
-        return repository
-                .findByIdAndCreatedByGroup(id.value(), groupId.value())
-                .map(CategoryEntity::toDomain);
+        return repository.findByIdAndCreatedByGroup(id.value(), groupId.value()).map(CategoryEntity::toDomain);
     }
 
     @Override
     public List<Category> findByType(CategoryType type, GroupId groupId) {
-        return repository
-                .findByTypeAndCreatedByGroupAndIsDeletedFalse(type, groupId.value())
-                .stream()
+        return repository.findByTypeAndCreatedByGroupAndIsDeletedFalse(type, groupId.value()).stream()
                 .map(CategoryEntity::toDomain)
                 .toList();
     }
@@ -52,9 +48,7 @@ public class JpaCategoryRepository implements CategoryRepository {
     @Override
     public List<Category> findAllByIds(Set<CategoryId> ids, GroupId groupId) {
         var uuids = ids.stream().map(CategoryId::value).collect(Collectors.toSet());
-        return repository
-                .findByIdInAndCreatedByGroupAndIsDeletedFalse(uuids, groupId.value())
-                .stream()
+        return repository.findByIdInAndCreatedByGroupAndIsDeletedFalse(uuids, groupId.value()).stream()
                 .map(CategoryEntity::toDomain)
                 .toList();
     }

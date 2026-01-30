@@ -42,8 +42,7 @@ class GeminiClientTest {
         var prompt = "Test prompt";
 
         // when & then
-        assertThatThrownBy(() -> client.generateContent(prompt))
-                .isInstanceOf(GeminiClientException.class);
+        assertThatThrownBy(() -> client.generateContent(prompt)).isInstanceOf(GeminiClientException.class);
     }
 
     @Test

@@ -9,19 +9,13 @@ import pl.btsoftware.backend.transaction.domain.TransactionHashCalculator;
 import pl.btsoftware.backend.users.domain.UserId;
 
 public record CreateTransactionCommand(
-        AccountId accountId,
-        LocalDate transactionDate,
-        TransactionType type,
-        BillCommand billCommand,
-        UserId userId) {
+        AccountId accountId, LocalDate transactionDate, TransactionType type, BillCommand billCommand, UserId userId) {
 
     public Transaction toDomain(AuditInfo auditInfo) {
         var bill = billCommand.toDomain();
         var amount = bill.totalAmount();
         var description = String.join(", ", billCommand.billItemsDescription());
-        var hash =
-                TransactionHashCalculator.calculateHash(
-                        accountId, amount, description, transactionDate, type);
+        var hash = TransactionHashCalculator.calculateHash(accountId, amount, description, transactionDate, type);
         return Transaction.create(accountId, type, bill, transactionDate, hash, auditInfo);
     }
 }

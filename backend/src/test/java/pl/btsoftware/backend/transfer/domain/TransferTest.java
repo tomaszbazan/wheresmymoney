@@ -38,15 +38,8 @@ class TransferTest {
         var auditInfo = Instancio.create(AuditInfo.class);
 
         // when
-        var transfer =
-                Transfer.create(
-                        sourceAccountId,
-                        targetAccountId,
-                        sourceAmount,
-                        targetAmount,
-                        exchangeRate,
-                        description,
-                        auditInfo);
+        var transfer = Transfer.create(
+                sourceAccountId, targetAccountId, sourceAmount, targetAmount, exchangeRate, description, auditInfo);
 
         // then
         assertThat(transfer).isNotNull();
@@ -74,15 +67,8 @@ class TransferTest {
         var auditInfo = Instancio.create(AuditInfo.class);
 
         // when
-        var transfer =
-                Transfer.create(
-                        sourceAccountId,
-                        targetAccountId,
-                        sourceAmount,
-                        targetAmount,
-                        exchangeRate,
-                        description,
-                        auditInfo);
+        var transfer = Transfer.create(
+                sourceAccountId, targetAccountId, sourceAmount, targetAmount, exchangeRate, description, auditInfo);
 
         // then
         assertThat(transfer).isNotNull();
@@ -103,15 +89,8 @@ class TransferTest {
         var auditInfo = Instancio.create(AuditInfo.class);
 
         // when
-        var transfer =
-                Transfer.create(
-                        sourceAccountId,
-                        targetAccountId,
-                        sourceAmount,
-                        targetAmount,
-                        exchangeRate,
-                        null,
-                        auditInfo);
+        var transfer = Transfer.create(
+                sourceAccountId, targetAccountId, sourceAmount, targetAmount, exchangeRate, null, auditInfo);
 
         // then
         assertThat(transfer.description()).isNull();
@@ -128,15 +107,8 @@ class TransferTest {
         var auditInfo = Instancio.create(AuditInfo.class);
 
         // when
-        var transfer =
-                Transfer.create(
-                        sourceAccountId,
-                        targetAccountId,
-                        sourceAmount,
-                        targetAmount,
-                        exchangeRate,
-                        "",
-                        auditInfo);
+        var transfer = Transfer.create(
+                sourceAccountId, targetAccountId, sourceAmount, targetAmount, exchangeRate, "", auditInfo);
 
         // then
         assertThat(transfer.description()).isEmpty();
@@ -154,16 +126,14 @@ class TransferTest {
         var auditInfo = Instancio.create(AuditInfo.class);
 
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                Transfer.create(
-                                        sourceAccountId,
-                                        targetAccountId,
-                                        sourceAmount,
-                                        targetAmount,
-                                        exchangeRate,
-                                        description,
-                                        auditInfo))
+        assertThatThrownBy(() -> Transfer.create(
+                        sourceAccountId,
+                        targetAccountId,
+                        sourceAmount,
+                        targetAmount,
+                        exchangeRate,
+                        description,
+                        auditInfo))
                 .isInstanceOf(TransferDescriptionTooLongException.class);
     }
 
@@ -178,16 +148,14 @@ class TransferTest {
         var auditInfo = Instancio.create(AuditInfo.class);
 
         // when & then
-        assertThatThrownBy(
-                        () ->
-                                Transfer.create(
-                                        sourceAccountId,
-                                        targetAccountId,
-                                        sourceAmount,
-                                        targetAmount,
-                                        exchangeRate,
-                                        "test$description",
-                                        auditInfo))
+        assertThatThrownBy(() -> Transfer.create(
+                        sourceAccountId,
+                        targetAccountId,
+                        sourceAmount,
+                        targetAmount,
+                        exchangeRate,
+                        "test$description",
+                        auditInfo))
                 .isInstanceOf(TransferDescriptionInvalidCharactersException.class);
     }
 
@@ -203,15 +171,8 @@ class TransferTest {
         var auditInfo = Instancio.create(AuditInfo.class);
 
         // when
-        var transfer =
-                Transfer.create(
-                        sourceAccountId,
-                        targetAccountId,
-                        sourceAmount,
-                        targetAmount,
-                        exchangeRate,
-                        description,
-                        auditInfo);
+        var transfer = Transfer.create(
+                sourceAccountId, targetAccountId, sourceAmount, targetAmount, exchangeRate, description, auditInfo);
 
         // then
         assertThat(transfer.description()).hasSize(100);
@@ -228,25 +189,11 @@ class TransferTest {
         var auditInfo = Instancio.create(AuditInfo.class);
 
         // when
-        var transfer1 =
-                Transfer.create(
-                        sourceAccountId,
-                        targetAccountId,
-                        sourceAmount,
-                        targetAmount,
-                        exchangeRate,
-                        "Transfer 1",
-                        auditInfo);
+        var transfer1 = Transfer.create(
+                sourceAccountId, targetAccountId, sourceAmount, targetAmount, exchangeRate, "Transfer 1", auditInfo);
 
-        var transfer2 =
-                Transfer.create(
-                        sourceAccountId,
-                        targetAccountId,
-                        sourceAmount,
-                        targetAmount,
-                        exchangeRate,
-                        "Transfer 2",
-                        auditInfo);
+        var transfer2 = Transfer.create(
+                sourceAccountId, targetAccountId, sourceAmount, targetAmount, exchangeRate, "Transfer 2", auditInfo);
 
         // then
         assertThat(transfer1.id()).isNotEqualTo(transfer2.id());

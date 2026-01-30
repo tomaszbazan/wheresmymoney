@@ -24,8 +24,7 @@ public class CategorySuggestionService {
     private final CategorizationPromptBuilder promptBuilder;
     private final GeminiResponseParser responseParser;
 
-    public List<CategorySuggestion> suggestCategories(
-            List<TransactionProposal> transactions, GroupId groupId) {
+    public List<CategorySuggestion> suggestCategories(List<TransactionProposal> transactions, GroupId groupId) {
         validateInputs(transactions, groupId);
 
         var transactionsByType = groupTransactionsByType(transactions);

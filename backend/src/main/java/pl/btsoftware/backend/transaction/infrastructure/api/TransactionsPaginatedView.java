@@ -8,21 +8,16 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 
 public record TransactionsPaginatedView(
-        List<TransactionView> transactions,
-        int page,
-        int size,
-        long totalElements,
-        int totalPages) {
+        List<TransactionView> transactions, int page, int size, long totalElements, int totalPages) {
     public TransactionsPaginatedView {
         transactions = List.copyOf(transactions);
     }
 
     public static TransactionsPaginatedView from(
             Page<Transaction> transactionPage, Function<CategoryId, Category> categoryMapper) {
-        var transactions =
-                transactionPage.getContent().stream()
-                        .map(transaction -> TransactionView.from(transaction, categoryMapper))
-                        .toList();
+        var transactions = transactionPage.getContent().stream()
+                .map(transaction -> TransactionView.from(transaction, categoryMapper))
+                .toList();
 
         return new TransactionsPaginatedView(
                 List.copyOf(transactions),

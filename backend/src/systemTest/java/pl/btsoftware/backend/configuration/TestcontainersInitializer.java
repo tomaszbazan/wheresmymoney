@@ -7,8 +7,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.lifecycle.Startables;
 import org.testcontainers.utility.DockerImageName;
 
-class TestcontainersInitializer
-        implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+class TestcontainersInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
     private static final String POSTGRES_VERSION = "17";
 
     private static final PostgreSQLContainer<?> POSTGRES =

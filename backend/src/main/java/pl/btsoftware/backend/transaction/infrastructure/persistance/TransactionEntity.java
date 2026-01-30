@@ -24,7 +24,8 @@ import pl.btsoftware.backend.transaction.domain.TransactionHash;
 public class TransactionEntity {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    @Id private UUID id;
+    @Id
+    private UUID id;
 
     @Column(name = "account_id")
     private UUID accountId;

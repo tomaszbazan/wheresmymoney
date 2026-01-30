@@ -72,8 +72,7 @@ class CategorizationPromptBuilderTest {
         var transaction3 = createTransaction("Starbucks", TransactionType.EXPENSE);
         var category = createCategory("Food", CategoryType.EXPENSE);
 
-        var prompt =
-                builder.build(List.of(transaction1, transaction2, transaction3), List.of(category));
+        var prompt = builder.build(List.of(transaction1, transaction2, transaction3), List.of(category));
 
         var json = objectMapper.readTree(prompt.jsonPrompt());
         var transactions = json.get("transactions");
@@ -129,19 +128,9 @@ class CategorizationPromptBuilderTest {
         var auditInfo = AuditInfo.create(UserId.generate(), GroupId.generate());
         var food = Category.create("Food", CategoryType.EXPENSE, Color.of("#FF0000"), auditInfo);
         var restaurants =
-                Category.create(
-                        "Restaurants",
-                        CategoryType.EXPENSE,
-                        Color.of("#FF0000"),
-                        food.id(),
-                        auditInfo);
+                Category.create("Restaurants", CategoryType.EXPENSE, Color.of("#FF0000"), food.id(), auditInfo);
         var fastFood =
-                Category.create(
-                        "Fast Food",
-                        CategoryType.EXPENSE,
-                        Color.of("#FF0000"),
-                        restaurants.id(),
-                        auditInfo);
+                Category.create("Fast Food", CategoryType.EXPENSE, Color.of("#FF0000"), restaurants.id(), auditInfo);
         var transaction = createTransaction("McDonalds", TransactionType.EXPENSE);
 
         var prompt = builder.build(List.of(transaction), List.of(food, restaurants, fastFood));
@@ -151,7 +140,8 @@ class CategorizationPromptBuilderTest {
         assertThat(categories).hasSize(1);
 
         var foodNode = categories.get(0);
-        assertThat(foodNode.get("categoryId").asText()).isEqualTo(food.id().value().toString());
+        assertThat(foodNode.get("categoryId").asText())
+                .isEqualTo(food.id().value().toString());
         assertThat(foodNode.get("name").asText()).isEqualTo("Food");
         assertThat(foodNode.get("children")).hasSize(1);
 

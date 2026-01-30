@@ -26,8 +26,7 @@ public class MbankCsvParser implements TransactionCsvParser {
     private static final int AMOUNT_COLUMN = 4;
     private static final int MINIMUM_LINE_COUNT = 28;
     private static final int COLUMN_HEADER_LINE_INDEX = 26;
-    private static final String EXPECTED_COLUMN_HEADERS =
-            "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;";
+    private static final String EXPECTED_COLUMN_HEADERS = "#Data operacji;#Opis operacji;#Rachunek;#Kategoria;#Kwota;";
 
     public CsvParseResult parse(InputStream csvStream, Currency accountCurrency) {
         var csvBytes = readAllBytes(csvStream);
@@ -37,9 +36,7 @@ public class MbankCsvParser implements TransactionCsvParser {
         var errors = new ArrayList<ParseError>();
         var totalRows = 0;
 
-        try (var reader =
-                        new InputStreamReader(
-                                new ByteArrayInputStream(csvBytes), StandardCharsets.UTF_8);
+        try (var reader = new InputStreamReader(new ByteArrayInputStream(csvBytes), StandardCharsets.UTF_8);
                 var parser = createCsvParser(reader)) {
 
             for (CSVRecord record : parser) {
@@ -49,8 +46,7 @@ public class MbankCsvParser implements TransactionCsvParser {
                 }
             }
 
-            return new CsvParseResult(
-                    proposals, errors, totalRows, proposals.size(), errors.size());
+            return new CsvParseResult(proposals, errors, totalRows, proposals.size(), errors.size());
 
         } catch (IOException e) {
             throw new CsvImportException(FAILED_TO_PARSE_CSV, e.getMessage());
@@ -58,13 +54,12 @@ public class MbankCsvParser implements TransactionCsvParser {
     }
 
     private CSVParser createCsvParser(InputStreamReader reader) throws IOException {
-        var format =
-                CSVFormat.Builder.create()
-                        .setDelimiter(';')
-                        .setQuote('"')
-                        .setIgnoreEmptyLines(false)
-                        .setTrim(false)
-                        .build();
+        var format = CSVFormat.Builder.create()
+                .setDelimiter(';')
+                .setQuote('"')
+                .setIgnoreEmptyLines(false)
+                .setTrim(false)
+                .build();
 
         var parser = format.parse(reader);
 
@@ -93,14 +88,13 @@ public class MbankCsvParser implements TransactionCsvParser {
             var proposal = createProposal(record);
 
             if (accountCurrency != null && !proposal.currency().equals(accountCurrency)) {
-                errors.add(
-                        new ParseError(
-                                ErrorType.CURRENCY_MISMATCH,
-                                rowNumber,
-                                "Currency mismatch: CSV contains "
-                                        + proposal.currency()
-                                        + " but account uses "
-                                        + accountCurrency));
+                errors.add(new ParseError(
+                        ErrorType.CURRENCY_MISMATCH,
+                        rowNumber,
+                        "Currency mismatch: CSV contains "
+                                + proposal.currency()
+                                + " but account uses "
+                                + accountCurrency));
                 return;
             }
 
@@ -126,13 +120,7 @@ public class MbankCsvParser implements TransactionCsvParser {
         var type = determineType(amount);
 
         return new TransactionProposal(
-                TransactionProposalId.generate(),
-                date,
-                descriptionWithCategory,
-                amount,
-                currency,
-                type,
-                null);
+                TransactionProposalId.generate(), date, descriptionWithCategory, amount, currency, type, null);
     }
 
     private String cleanDescription(String description) {
@@ -147,42 +135,37 @@ public class MbankCsvParser implements TransactionCsvParser {
         try {
             return LocalDate.parse(dateString.trim());
         } catch (DateTimeParseException e) {
-            throw new CsvImportException(
-                    ErrorType.INVALID_DATE_FORMAT, "Invalid date format: " + dateString);
+            throw new CsvImportException(ErrorType.INVALID_DATE_FORMAT, "Invalid date format: " + dateString);
         }
     }
 
     private BigDecimal parseAmount(String amountString) {
         try {
-            var cleanAmount =
-                    amountString
-                            .replaceAll("[A-Z]{3}$", "")
-                            .replace(" ", "")
-                            .replace(",", ".")
-                            .trim();
+            var cleanAmount = amountString
+                    .replaceAll("[A-Z]{3}$", "")
+                    .replace(" ", "")
+                    .replace(",", ".")
+                    .trim();
 
             return new BigDecimal(cleanAmount);
         } catch (NumberFormatException e) {
-            throw new CsvImportException(
-                    ErrorType.INVALID_AMOUNT_FORMAT, "Invalid amount format: " + amountString);
+            throw new CsvImportException(ErrorType.INVALID_AMOUNT_FORMAT, "Invalid amount format: " + amountString);
         }
     }
 
     private Currency extractCurrency(String amountString) {
         try {
-            var currencyCode = amountString.trim().replaceAll("^[\\d\\s,.-]+", "").trim();
+            var currencyCode =
+                    amountString.trim().replaceAll("^[\\d\\s,.-]+", "").trim();
 
             return Currency.valueOf(currencyCode);
         } catch (IllegalArgumentException e) {
-            throw new CsvImportException(
-                    ErrorType.INVALID_CURRENCY, "Unsupported currency in amount: " + amountString);
+            throw new CsvImportException(ErrorType.INVALID_CURRENCY, "Unsupported currency in amount: " + amountString);
         }
     }
 
     private TransactionType determineType(BigDecimal amount) {
-        return amount.compareTo(BigDecimal.ZERO) >= 0
-                ? TransactionType.INCOME
-                : TransactionType.EXPENSE;
+        return amount.compareTo(BigDecimal.ZERO) >= 0 ? TransactionType.INCOME : TransactionType.EXPENSE;
     }
 
     private byte[] readAllBytes(InputStream stream) {
@@ -203,8 +186,7 @@ public class MbankCsvParser implements TransactionCsvParser {
 
     private ArrayList<String> readLines(InputStream csvStream) {
         var lines = new ArrayList<String>();
-        try (var reader =
-                new BufferedReader(new InputStreamReader(csvStream, StandardCharsets.UTF_8))) {
+        try (var reader = new BufferedReader(new InputStreamReader(csvStream, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null && lines.size() < MINIMUM_LINE_COUNT) {
                 lines.add(line);
@@ -224,8 +206,7 @@ public class MbankCsvParser implements TransactionCsvParser {
     private void validateMinimumLineCount(ArrayList<String> lines) {
         if (lines.size() < MINIMUM_LINE_COUNT) {
             throw new CsvImportException(
-                    INVALID_FILE,
-                    "CSV file must have at least 28 lines (mBank format header + column headers)");
+                    INVALID_FILE, "CSV file must have at least 28 lines (mBank format header + column headers)");
         }
     }
 
@@ -234,8 +215,7 @@ public class MbankCsvParser implements TransactionCsvParser {
 
         if (!columnHeaderLine.startsWith(EXPECTED_COLUMN_HEADERS)) {
             throw new CsvImportException(
-                    INVALID_FILE,
-                    "Expected mBank column headers at line 27: " + EXPECTED_COLUMN_HEADERS);
+                    INVALID_FILE, "Expected mBank column headers at line 27: " + EXPECTED_COLUMN_HEADERS);
         }
     }
 }

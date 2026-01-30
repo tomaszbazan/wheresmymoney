@@ -9,7 +9,6 @@ import pl.btsoftware.backend.users.domain.UserId;
 
 public record CreateCategoryRequest(String name, CategoryType type, Color color, UUID parentId) {
     public CreateCategoryCommand toCommand(UserId userId) {
-        return new CreateCategoryCommand(
-                name, type, color, userId, parentId != null ? CategoryId.of(parentId) : null);
+        return new CreateCategoryCommand(name, type, color, userId, parentId != null ? CategoryId.of(parentId) : null);
     }
 }

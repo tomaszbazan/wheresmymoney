@@ -49,32 +49,27 @@ class CsvParseServiceTest {
         userId = UserId.generate();
         accountId = AccountId.generate();
 
-        var user =
-                Instancio.of(User.class)
-                        .set(field(User::id), userId)
-                        .set(field(User::groupId), groupId)
-                        .create();
+        var user = Instancio.of(User.class)
+                .set(field(User::id), userId)
+                .set(field(User::groupId), groupId)
+                .create();
 
-        var account =
-                Instancio.of(Account.class)
-                        .set(field(Account::id), accountId)
-                        .set(field(Account::balance), Money.of(BigDecimal.ZERO, Currency.PLN))
-                        .create();
+        var account = Instancio.of(Account.class)
+                .set(field(Account::id), accountId)
+                .set(field(Account::balance), Money.of(BigDecimal.ZERO, Currency.PLN))
+                .create();
 
         when(usersFacade.findUserOrThrow(userId)).thenReturn(user);
         when(accountFacade.getAccount(accountId, groupId)).thenReturn(account);
 
         var parser = new MbankCsvParser();
-        service =
-                new CsvParseService(parser, accountFacade, usersFacade, categorySuggestionService);
+        service = new CsvParseService(parser, accountFacade, usersFacade, categorySuggestionService);
     }
 
     @Test
     void shouldParseValidCsv() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        """
+        var csv = createMbankTransactionListCsv("""
                 2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
                 2025-12-18;"Expense description";"mKonto";"Another Category";-100,00 PLN;;
                 """);
@@ -109,9 +104,7 @@ class CsvParseServiceTest {
     @Test
     void shouldHandlePartialParse() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        """
+        var csv = createMbankTransactionListCsv("""
                 2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
                 invalid-date;"Invalid";"mKonto";"Another Category";-100,00 PLN;;
                 """);
@@ -134,9 +127,7 @@ class CsvParseServiceTest {
     @Test
     void shouldRejectWhenCurrencyMismatch() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        """
+        var csv = createMbankTransactionListCsv("""
                 2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
                 2025-12-18;"Expense description";"mKonto";"Another Category";-100,00 EUR;;
                 """);
@@ -152,17 +143,14 @@ class CsvParseServiceTest {
         assertThat(result.errors()).hasSize(1);
         var error = result.errors().getFirst();
         assertThat(error.type()).isEqualTo(CURRENCY_MISMATCH);
-        assertThat(error.details())
-                .isEqualTo("Currency mismatch: CSV contains EUR but account uses PLN");
+        assertThat(error.details()).isEqualTo("Currency mismatch: CSV contains EUR but account uses PLN");
         assertThat(error.lineNumber()).isEqualTo(2);
     }
 
     @Test
     void shouldParsePolishNumberFormat() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        "2025-12-17;\"Test\";\"mKonto\";\"Category\";1 234,56 PLN;;");
+        var csv = createMbankTransactionListCsv("2025-12-17;\"Test\";\"mKonto\";\"Category\";1 234,56 PLN;;");
         var command = new ParseCsvCommand(csv, userId, accountId);
 
         // when
@@ -176,9 +164,7 @@ class CsvParseServiceTest {
     @Test
     void shouldParseNegativeAmount() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        "2025-12-17;\"Test\";\"mKonto\";\"Category\";-123,45 PLN;;");
+        var csv = createMbankTransactionListCsv("2025-12-17;\"Test\";\"mKonto\";\"Category\";-123,45 PLN;;");
         var command = new ParseCsvCommand(csv, userId, accountId);
 
         // when
@@ -193,9 +179,7 @@ class CsvParseServiceTest {
     @Test
     void shouldParsePositiveAmount() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        "2025-12-17;\"Test\";\"mKonto\";\"Category\";100,00 PLN;;");
+        var csv = createMbankTransactionListCsv("2025-12-17;\"Test\";\"mKonto\";\"Category\";100,00 PLN;;");
         var command = new ParseCsvCommand(csv, userId, accountId);
 
         // when
@@ -210,9 +194,7 @@ class CsvParseServiceTest {
     @Test
     void shouldHandleInvalidDateFormat() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        "invalid-date;\"Test\";\"mKonto\";\"Category\";100,00 PLN;;");
+        var csv = createMbankTransactionListCsv("invalid-date;\"Test\";\"mKonto\";\"Category\";100,00 PLN;;");
         var command = new ParseCsvCommand(csv, userId, accountId);
 
         // when
@@ -229,9 +211,7 @@ class CsvParseServiceTest {
     @Test
     void shouldHandleInvalidAmountFormat() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        "2025-12-17;\"Test\";\"mKonto\";\"Category\";invalid;;");
+        var csv = createMbankTransactionListCsv("2025-12-17;\"Test\";\"mKonto\";\"Category\";invalid;;");
         var command = new ParseCsvCommand(csv, userId, accountId);
 
         // when
@@ -267,9 +247,7 @@ class CsvParseServiceTest {
     @Test
     void shouldSkipEmptyRows() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        """
+        var csv = createMbankTransactionListCsv("""
                 2025-12-17;"Test";"mKonto";"Category";100,00 PLN;;
                 ;;;;;
                 2025-12-18;"Test2";"mKonto";"Category2";50,00 PLN;;
@@ -309,8 +287,7 @@ class CsvParseServiceTest {
     @Test
     void shouldRejectInvalidFileFormat() {
         // given
-        var invalidCsv =
-                new ByteArrayInputStream("Invalid CSV content".getBytes(StandardCharsets.UTF_8));
+        var invalidCsv = new ByteArrayInputStream("Invalid CSV content".getBytes(StandardCharsets.UTF_8));
         var command = new ParseCsvCommand(invalidCsv, userId, accountId);
 
         // when & then
@@ -347,9 +324,7 @@ class CsvParseServiceTest {
     @Disabled("This test needs to be rewritten as system test")
     void shouldApplyCategorySuggestionsWhenAvailable() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        """
+        var csv = createMbankTransactionListCsv("""
                 2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
                 2025-12-18;"Expense description";"mKonto";"Another Category";-100,00 PLN;;
                 """);
@@ -357,13 +332,11 @@ class CsvParseServiceTest {
 
         var categoryId1 = CategoryId.generate();
         var categoryId2 = CategoryId.generate();
-        var suggestions =
-                List.of(
-                        new CategorySuggestion(generate(), categoryId1, 0.95),
-                        new CategorySuggestion(generate(), categoryId2, 0.90));
+        var suggestions = List.of(
+                new CategorySuggestion(generate(), categoryId1, 0.95),
+                new CategorySuggestion(generate(), categoryId2, 0.90));
 
-        when(categorySuggestionService.suggestCategories(any(), eq(groupId)))
-                .thenReturn(suggestions);
+        when(categorySuggestionService.suggestCategories(any(), eq(groupId))).thenReturn(suggestions);
 
         // when
         var result = service.parse(command);
@@ -377,9 +350,7 @@ class CsvParseServiceTest {
     @Test
     void shouldContinueWithoutCategoriesWhenAiFails() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        """
+        var csv = createMbankTransactionListCsv("""
                 2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
                 2025-12-18;"Expense description";"mKonto";"Another Category";-100,00 PLN;;
                 """);
@@ -399,9 +370,7 @@ class CsvParseServiceTest {
     @Test
     void shouldContinueWithoutCategoriesWhenNoCategoriesExist() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        """
+        var csv = createMbankTransactionListCsv("""
                 2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
                 """);
         var command = new ParseCsvCommand(csv, userId, accountId);
@@ -420,9 +389,7 @@ class CsvParseServiceTest {
     @Disabled("This test needs to be rewritten as system test")
     void shouldHandleMixedIncomeAndExpenseTransactions() {
         // given
-        var csv =
-                createMbankTransactionListCsv(
-                        """
+        var csv = createMbankTransactionListCsv("""
                 2025-12-17;"Income description";"mKonto";"Category";100,00 PLN;;
                 2025-12-18;"Expense description";"mKonto";"Another Category";-50,00 PLN;;
                 """);
@@ -430,13 +397,11 @@ class CsvParseServiceTest {
 
         var incomeCategoryId = CategoryId.generate();
         var expenseCategoryId = CategoryId.generate();
-        var suggestions =
-                List.of(
-                        new CategorySuggestion(generate(), incomeCategoryId, 0.95),
-                        new CategorySuggestion(generate(), expenseCategoryId, 0.90));
+        var suggestions = List.of(
+                new CategorySuggestion(generate(), incomeCategoryId, 0.95),
+                new CategorySuggestion(generate(), expenseCategoryId, 0.90));
 
-        when(categorySuggestionService.suggestCategories(any(), eq(groupId)))
-                .thenReturn(suggestions);
+        when(categorySuggestionService.suggestCategories(any(), eq(groupId))).thenReturn(suggestions);
 
         // when
         var result = service.parse(command);
@@ -450,8 +415,7 @@ class CsvParseServiceTest {
     }
 
     private InputStream createMbankTransactionListCsv(String dataRows) {
-        var header =
-                """
+        var header = """
                 ﻿mBank S.A. Bankowość Detaliczna;
                 		Skrytka Pocztowa 2108;
                 		90-959 Łódź 2;

@@ -76,29 +76,25 @@ class ExchangeRateTest {
     @Test
     void shouldRejectZeroRate() {
         // when & then
-        assertThatThrownBy(() -> new ExchangeRate(ZERO, PLN, EUR))
-                .isInstanceOf(InvalidExchangeRateException.class);
+        assertThatThrownBy(() -> new ExchangeRate(ZERO, PLN, EUR)).isInstanceOf(InvalidExchangeRateException.class);
     }
 
     @Test
     void shouldRejectNullRate() {
         // when & then
-        assertThatThrownBy(() -> new ExchangeRate(null, PLN, EUR))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new ExchangeRate(null, PLN, EUR)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void shouldRejectNullFromCurrency() {
         // when & then
-        assertThatThrownBy(() -> new ExchangeRate(ONE, null, EUR))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new ExchangeRate(ONE, null, EUR)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void shouldRejectNullToCurrency() {
         // when & then
-        assertThatThrownBy(() -> new ExchangeRate(ONE, PLN, null))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new ExchangeRate(ONE, PLN, null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test

@@ -19,8 +19,7 @@ public class CategoryController {
     private final CategoryModuleFacade categoryModuleFacade;
 
     @PostMapping
-    public CategoryView createCategory(
-            @RequestBody CreateCategoryRequest request, @AuthenticationPrincipal Jwt jwt) {
+    public CategoryView createCategory(@RequestBody CreateCategoryRequest request, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received request to create category: {} by user: {}", request.name(), userId);
         var category = categoryModuleFacade.createCategory(request.toCommand(userId));
@@ -36,13 +35,9 @@ public class CategoryController {
     }
 
     @GetMapping
-    public CategoriesView getAllCategories(
-            @RequestParam CategoryType type, @AuthenticationPrincipal Jwt jwt) {
+    public CategoriesView getAllCategories(@RequestParam CategoryType type, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
-        log.info(
-                "Received request to get categories by user: {} with type filter: {}",
-                userId,
-                type);
+        log.info("Received request to get categories by user: {} with type filter: {}", userId, type);
 
         var categories = categoryModuleFacade.getCategoriesByType(type, userId);
         return CategoriesView.from(categories);
@@ -50,9 +45,7 @@ public class CategoryController {
 
     @PutMapping("/{id}")
     public CategoryView updateCategory(
-            @PathVariable UUID id,
-            @RequestBody UpdateCategoryRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @PathVariable UUID id, @RequestBody UpdateCategoryRequest request, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received request to update category with id: {} by user: {}", id, userId);
         var category = categoryModuleFacade.updateCategory(request.toCommand(id), userId);

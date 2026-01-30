@@ -23,7 +23,8 @@ import pl.btsoftware.backend.users.domain.UserId;
 @SystemTest
 class JpaCategoryRepositoryTest {
 
-    @Autowired private CategoryRepository repository;
+    @Autowired
+    private CategoryRepository repository;
 
     private Category createTestCategory(CategoryType type, GroupId groupId, boolean isDeleted) {
         var userId = UserId.generate();
@@ -85,9 +86,7 @@ class JpaCategoryRepositoryTest {
             var groupId = GroupId.generate();
             var category = createTestCategory(EXPENSE, groupId, false);
             repository.store(category);
-            var updateCommand =
-                    new UpdateCategoryCommand(
-                            category.id(), "Updated Name", category.color(), null);
+            var updateCommand = new UpdateCategoryCommand(category.id(), "Updated Name", category.color(), null);
 
             var updatedCategory = category.updateWith(updateCommand, category.createdBy());
 

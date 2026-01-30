@@ -40,16 +40,14 @@ public class AccountController {
     @PostMapping
     @ResponseStatus(CREATED)
     public AccountView createAccount(
-            @Validated @RequestBody CreateAccountRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Validated @RequestBody CreateAccountRequest request, @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info(
                 "Received request to create account with name: {} and currency: {}",
                 request.name(),
                 request.currency());
-        return AccountView.from(
-                accountModuleFacade.createAccount(
-                        new CreateAccountCommand(request.name(), request.currency(), userId)));
+        return AccountView.from(accountModuleFacade.createAccount(
+                new CreateAccountCommand(request.name(), request.currency(), userId)));
     }
 
     @PutMapping("/{id}")
@@ -64,8 +62,7 @@ public class AccountController {
                 request.name(),
                 userId);
         return AccountView.from(
-                accountModuleFacade.updateAccount(
-                        new UpdateAccountCommand(from(id), request.name()), userId));
+                accountModuleFacade.updateAccount(new UpdateAccountCommand(from(id), request.name()), userId));
     }
 
     @DeleteMapping("/{id}")

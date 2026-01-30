@@ -74,10 +74,10 @@ public class TransactionService {
 
         var newAccountId = command.accountId();
         var newAccount = accountModuleFacade.getAccount(newAccountId, user.groupId());
-        validateCurrencyMatch(bill.totalAmount().currency(), newAccount.balance().currency());
+        validateCurrencyMatch(
+                bill.totalAmount().currency(), newAccount.balance().currency());
 
-        var updatedTransaction =
-                oldTransaction.updateBill(bill, newAccountId, command.transactionDate(), userId);
+        var updatedTransaction = oldTransaction.updateBill(bill, newAccountId, command.transactionDate(), userId);
         transactionRepository.store(updatedTransaction);
 
         revertTransactionFromAccount(oldTransaction, userId);
@@ -91,10 +91,9 @@ public class TransactionService {
     @Transactional
     public void deleteTransaction(TransactionId transactionId, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var transaction =
-                transactionRepository
-                        .findByIdIncludingDeleted(transactionId, user.groupId())
-                        .orElseThrow(() -> new TransactionNotFoundException(transactionId));
+        var transaction = transactionRepository
+                .findByIdIncludingDeleted(transactionId, user.groupId())
+                .orElseThrow(() -> new TransactionNotFoundException(transactionId));
 
         if (transaction.isDeleted()) {
             throw new TransactionAlreadyDeletedException(transactionId);
@@ -103,13 +102,11 @@ public class TransactionService {
         var deletedTransaction = transaction.delete();
         revertTransactionFromAccount(transaction, userId);
         transactionRepository.store(deletedTransaction);
-        auditModuleFacade.logTransactionDeleted(
-                transactionId, transaction.description(), userId, user.groupId());
+        auditModuleFacade.logTransactionDeleted(transactionId, transaction.description(), userId, user.groupId());
     }
 
     @Transactional
-    public BulkCreateResult bulkCreateTransactions(
-            BulkCreateTransactionCommand command, UserId userId) {
+    public BulkCreateResult bulkCreateTransactions(BulkCreateTransactionCommand command, UserId userId) {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var accountId = command.accountId();
         var transactions = command.transactions();
@@ -122,26 +119,20 @@ public class TransactionService {
         validateCurrencyForAllCommands(transactions, account.balance().currency());
 
         var auditInfo = AuditInfo.create(userId.value(), user.groupId().value());
-        var allTransactions =
-                transactions.stream()
-                        .map(
-                                createTransactionCommand -> {
-                                    var categoryIds =
-                                            createTransactionCommand
-                                                    .billCommand()
-                                                    .billItems()
-                                                    .stream()
-                                                    .map(BillItemCommand::categoryId)
-                                                    .collect(Collectors.toSet());
-                                    validateCategoriesExist(categoryIds, user.groupId());
-                                    return createTransactionCommand.toDomain(auditInfo);
-                                })
-                        .toList();
+        var allTransactions = transactions.stream()
+                .map(createTransactionCommand -> {
+                    var categoryIds = createTransactionCommand.billCommand().billItems().stream()
+                            .map(BillItemCommand::categoryId)
+                            .collect(Collectors.toSet());
+                    validateCategoriesExist(categoryIds, user.groupId());
+                    return createTransactionCommand.toDomain(auditInfo);
+                })
+                .toList();
 
-        var allHashes = allTransactions.stream().map(Transaction::transactionHash).toList();
+        var allHashes =
+                allTransactions.stream().map(Transaction::transactionHash).toList();
 
-        var existingHashes =
-                transactionRepository.findExistingHashes(accountId, allHashes, user.groupId());
+        var existingHashes = transactionRepository.findExistingHashes(accountId, allHashes, user.groupId());
 
         var savedIds = new ArrayList<TransactionId>();
         var duplicateCount = 0;
@@ -159,8 +150,7 @@ public class TransactionService {
         return BulkCreateResult.of(savedIds, duplicateCount);
     }
 
-    private void validateCurrencyForAllCommands(
-            List<CreateTransactionCommand> commands, Currency accountCurrency) {
+    private void validateCurrencyForAllCommands(List<CreateTransactionCommand> commands, Currency accountCurrency) {
         for (var command : commands) {
             var bill = command.billCommand().toDomain();
             validateCurrencyMatch(bill.totalAmount().currency(), accountCurrency);

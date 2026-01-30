@@ -81,9 +81,6 @@ class BillItemTest {
 
     private BillItem billItemWithDescription(String description) {
         return new BillItem(
-                BillItemId.generate(),
-                CategoryId.generate(),
-                Money.of(new BigDecimal("10.00")),
-                description);
+                BillItemId.generate(), CategoryId.generate(), Money.of(new BigDecimal("10.00")), description);
     }
 }

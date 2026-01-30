@@ -20,8 +20,7 @@ class MoneyTest {
     @Test
     void shouldThrowExceptionWhenCurrencyIsNull() {
         // when & then
-        assertThatThrownBy(() -> new Money(BigDecimal.TEN, null))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new Money(BigDecimal.TEN, null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -103,8 +102,7 @@ class MoneyTest {
         Money money2 = Money.of(BigDecimal.ONE, USD);
 
         // when & then
-        assertThatThrownBy(() -> money1.add(money2))
-                .isInstanceOf(MoneyCurrencyMismatchException.class);
+        assertThatThrownBy(() -> money1.add(money2)).isInstanceOf(MoneyCurrencyMismatchException.class);
     }
 
     @Test
@@ -128,8 +126,7 @@ class MoneyTest {
         Money money2 = Money.of(BigDecimal.ONE, USD);
 
         // when & then
-        assertThatThrownBy(() -> money1.subtract(money2))
-                .isInstanceOf(MoneyCurrencyMismatchException.class);
+        assertThatThrownBy(() -> money1.subtract(money2)).isInstanceOf(MoneyCurrencyMismatchException.class);
     }
 
     @Test

@@ -34,9 +34,7 @@ public class JpaAccountRepository implements AccountRepository {
 
     @Override
     public Optional<Account> findById(AccountId id, GroupId groupId) {
-        return repository
-                .findByIdAndOwnedByGroup(id.value(), groupId.value())
-                .map(AccountEntity::toDomain);
+        return repository.findByIdAndOwnedByGroup(id.value(), groupId.value()).map(AccountEntity::toDomain);
     }
 
     @Override
@@ -45,8 +43,7 @@ public class JpaAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> findByNameAndCurrency(
-            String name, Currency currency, GroupId groupId) {
+    public Optional<Account> findByNameAndCurrency(String name, Currency currency, GroupId groupId) {
         return repository
                 .findByNameAndCurrencyAndOwnedByGroup(name, currency, groupId.value())
                 .map(AccountEntity::toDomain);
