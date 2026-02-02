@@ -9,9 +9,11 @@ import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import pl.btsoftware.backend.account.domain.AuditInfo;
 import pl.btsoftware.backend.configuration.SystemTest;
@@ -35,7 +37,7 @@ public class JpaTransactionRepositoryTest {
     @BeforeEach
     void setUp() {
         transactionRepository
-                .findAll(testGroupId, Pageable.ofSize(20))
+                .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                 .forEach(transaction -> transactionRepository.store(transaction.delete()));
     }
 
@@ -176,7 +178,8 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(transaction3.delete());
 
         // when
-        var allTransactions = transactionRepository.findAll(testGroupId, Pageable.ofSize(20));
+        var allTransactions =
+                transactionRepository.findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20));
 
         // then
         assertThat(allTransactions).hasSize(2);
@@ -214,8 +217,11 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(toDeleteTransaction.delete());
 
         // when
-        var accountTransactions = transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).stream()
-                .toList();
+        var accountTransactions =
+                transactionRepository
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
+                        .stream()
+                        .toList();
 
         // then
         assertThat(accountTransactions).hasSize(1);
@@ -298,8 +304,11 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(usdTransaction);
         transactionRepository.store(gbpTransaction);
 
-        var accountTransactions = transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).stream()
-                .toList();
+        var accountTransactions =
+                transactionRepository
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
+                        .stream()
+                        .toList();
 
         // then
         assertThat(accountTransactions).hasSize(4);
@@ -332,8 +341,11 @@ public class JpaTransactionRepositoryTest {
         transactionRepository.store(incomeTransaction);
         transactionRepository.store(expenseTransaction);
 
-        var accountTransactions = transactionRepository.findAll(testGroupId, Pageable.ofSize(20)).stream()
-                .toList();
+        var accountTransactions =
+                transactionRepository
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
+                        .stream()
+                        .toList();
 
         // then
         assertThat(accountTransactions).hasSize(2);
@@ -385,5 +397,60 @@ public class JpaTransactionRepositoryTest {
 
         // then
         assertThat(exists).isFalse();
+    }
+
+    @Test
+    void shouldFilterTransactionsByType() {
+        // given
+        var accountId = AccountId.generate();
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var incomeTransaction = createTransaction(
+                accountId, Money.of(new BigDecimal("100.00"), PLN), "Income", INCOME, CategoryId.generate(), auditInfo);
+        var expenseTransaction = createTransaction(
+                accountId,
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Expense",
+                EXPENSE,
+                CategoryId.generate(),
+                auditInfo);
+
+        transactionRepository.store(incomeTransaction);
+        transactionRepository.store(expenseTransaction);
+
+        var criteria = new TransactionSearchCriteria(Set.of(INCOME));
+
+        // when
+        var result = transactionRepository.findAll(criteria, testGroupId, PageRequest.of(0, 10));
+
+        // then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().id()).isEqualTo(incomeTransaction.id());
+    }
+
+    @Test
+    void shouldReturnAllTransactionsWhenNoTypeFilterProvided() {
+        // given
+        var accountId = AccountId.generate();
+        var auditInfo = AuditInfo.create(testUserId.value(), testGroupId.value());
+        var incomeTransaction = createTransaction(
+                accountId, Money.of(new BigDecimal("100.00"), PLN), "Income", INCOME, CategoryId.generate(), auditInfo);
+        var expenseTransaction = createTransaction(
+                accountId,
+                Money.of(new BigDecimal("100.00"), PLN),
+                "Expense",
+                EXPENSE,
+                CategoryId.generate(),
+                auditInfo);
+
+        transactionRepository.store(incomeTransaction);
+        transactionRepository.store(expenseTransaction);
+
+        var criteria = TransactionSearchCriteria.empty();
+
+        // when
+        var result = transactionRepository.findAll(criteria, testGroupId, PageRequest.of(0, 10));
+
+        // then
+        assertThat(result.getContent()).hasSize(2);
     }
 }

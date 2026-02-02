@@ -143,7 +143,7 @@ public class TransactionControllerTest {
                 randomUUID(), randomUUID(), new BigDecimal("50.00"), "Transaction 2", TransactionType.EXPENSE);
 
         var page = new PageImpl<>(List.of(transaction1, transaction2), PageRequest.of(0, 20), 2);
-        when(transactionModuleFacade.getAllTransactions(any(UserId.class), any()))
+        when(transactionModuleFacade.getAllTransactions(any(), any(UserId.class), any()))
                 .thenReturn(page);
 
         // when & then
@@ -167,7 +167,7 @@ public class TransactionControllerTest {
     void shouldReturnEmptyListWhenNoTransactionsExist() throws Exception {
         // given
         var emptyPage = new PageImpl<Transaction>(emptyList(), PageRequest.of(0, 20), 0);
-        when(transactionModuleFacade.getAllTransactions(any(UserId.class), any()))
+        when(transactionModuleFacade.getAllTransactions(any(), any(UserId.class), any()))
                 .thenReturn(emptyPage);
 
         // when & then
@@ -181,6 +181,27 @@ public class TransactionControllerTest {
                 .andExpect(jsonPath("$.size").value(20))
                 .andExpect(jsonPath("$.totalElements").value(0))
                 .andExpect(jsonPath("$.totalPages").value(0));
+    }
+
+    @Test
+    void shouldReturnTransactionFilteredByType() throws Exception {
+        // given
+        var transaction = createTransaction(
+                randomUUID(), randomUUID(), new BigDecimal("100.00"), "Income", TransactionType.INCOME);
+
+        var page = new PageImpl<>(List.of(transaction), PageRequest.of(0, 20), 1);
+        when(transactionModuleFacade.getAllTransactions(any(), any(UserId.class), any()))
+                .thenReturn(page);
+
+        // when & then
+        mockMvc.perform(get("/api/transactions")
+                        .param("types", "INCOME")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(createTokenFor("user123")))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(jsonPath("$.transactions", hasSize(1)))
+                .andExpect(jsonPath("$.transactions[0].type").value("INCOME"));
     }
 
     @Test

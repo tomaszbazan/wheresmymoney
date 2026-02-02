@@ -10,6 +10,7 @@ import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionHash;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.TransactionSearchCriteria;
 import pl.btsoftware.backend.users.domain.GroupId;
 
 public class InMemoryTransactionRepository implements TransactionRepository {
@@ -34,10 +35,16 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     }
 
     @Override
-    public Page<Transaction> findAll(GroupId groupId, Pageable pageable) {
+    public Page<Transaction> findAll(TransactionSearchCriteria criteria, GroupId groupId, Pageable pageable) {
         var filteredTransactions = database.values().stream()
                 .filter(transaction -> transaction.ownedBy().equals(groupId))
                 .filter(transaction -> !transaction.tombstone().isDeleted())
+                .filter(transaction -> {
+                    if (criteria.types() == null || criteria.types().isEmpty()) {
+                        return true;
+                    }
+                    return criteria.types().contains(transaction.type());
+                })
                 .sorted(Comparator.comparing(Transaction::transactionDate)
                         .thenComparing(t -> t.createdInfo().when())
                         .reversed())
@@ -67,16 +74,6 @@ public class InMemoryTransactionRepository implements TransactionRepository {
                 .anyMatch(transaction -> transaction.accountId().equals(accountId)
                         && transaction.ownedBy().equals(groupId)
                         && !transaction.tombstone().isDeleted());
-    }
-
-    @Override
-    public Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId) {
-        return database.values().stream()
-                .filter(transaction -> transaction.accountId().equals(accountId))
-                .filter(transaction -> transaction.transactionHash().equals(hash))
-                .filter(transaction -> transaction.ownedBy().equals(groupId))
-                .filter(transaction -> !transaction.tombstone().isDeleted())
-                .findFirst();
     }
 
     @Override

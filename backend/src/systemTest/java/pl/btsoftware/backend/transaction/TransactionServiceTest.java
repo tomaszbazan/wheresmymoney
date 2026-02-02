@@ -26,6 +26,7 @@ import pl.btsoftware.backend.configuration.SystemTest;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.application.*;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.TransactionSearchCriteria;
 import pl.btsoftware.backend.transaction.domain.error.BillItemDescriptionTooLongException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
@@ -278,7 +279,8 @@ public class TransactionServiceTest {
 
         // When
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var allTransactions = transactionService.getAllTransactions(user.groupId(), Pageable.ofSize(20));
+        var allTransactions = transactionService.getAllTransactions(
+                TransactionSearchCriteria.empty(), user.groupId(), Pageable.ofSize(20));
 
         // Then
         assertThat(allTransactions).hasSizeGreaterThanOrEqualTo(2);
@@ -393,12 +395,12 @@ public class TransactionServiceTest {
         // Given
         var nonExistentId = TransactionId.generate();
         var userId = createTestUser();
-        accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
+        var account = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var updateCommand = new UpdateTransactionCommand(
                 nonExistentId,
                 new BillCommand(List.of(new BillItemCommand(CategoryId.generate(), new BigDecimal("100.00"), "test"))),
-                null,
-                null);
+                account.id(),
+                LocalDate.now());
 
         // When & Then
         assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
@@ -540,7 +542,8 @@ public class TransactionServiceTest {
         assertThat(result.savedTransactionIds()).hasSize(1);
 
         var user = usersModuleFacade.findUserOrThrow(userId);
-        var allTransactions = transactionService.getAllTransactions(user.groupId(), Pageable.ofSize(20));
+        var allTransactions = transactionService.getAllTransactions(
+                TransactionSearchCriteria.empty(), user.groupId(), Pageable.ofSize(20));
         assertThat(allTransactions).hasSize(2); // 1 existing + 1 new
 
         var account = accountModuleFacade.getAccount(accountId, userId);

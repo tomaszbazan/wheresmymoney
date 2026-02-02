@@ -16,13 +16,11 @@ public interface TransactionRepository {
 
     Optional<Transaction> findByIdIncludingDeleted(TransactionId id, GroupId groupId);
 
-    Page<Transaction> findAll(GroupId groupId, Pageable pageable);
+    Page<Transaction> findAll(TransactionSearchCriteria criteria, GroupId groupId, Pageable pageable);
 
     boolean existsByCategoryId(CategoryId categoryId, GroupId groupId);
 
     boolean existsByAccountId(AccountId accountId, GroupId groupId);
-
-    Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId);
 
     List<TransactionHash> findExistingHashes(AccountId accountId, List<TransactionHash> hashes, GroupId groupId);
 }

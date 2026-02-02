@@ -16,6 +16,7 @@ import pl.btsoftware.backend.category.domain.error.CategoryNotFoundException;
 import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.TransactionSearchCriteria;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
@@ -58,8 +59,9 @@ public class TransactionService {
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
     }
 
-    public Page<Transaction> getAllTransactions(GroupId groupId, Pageable pageable) {
-        return transactionRepository.findAll(groupId, pageable);
+    public Page<Transaction> getAllTransactions(
+            TransactionSearchCriteria criteria, GroupId groupId, Pageable pageable) {
+        return transactionRepository.findAll(criteria, groupId, pageable);
     }
 
     @Transactional

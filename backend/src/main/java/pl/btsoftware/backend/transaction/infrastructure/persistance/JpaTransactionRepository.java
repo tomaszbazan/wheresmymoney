@@ -13,6 +13,7 @@ import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionHash;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.TransactionSearchCriteria;
 import pl.btsoftware.backend.users.domain.GroupId;
 
 @Repository
@@ -41,10 +42,9 @@ public class JpaTransactionRepository implements TransactionRepository {
     }
 
     @Override
-    public Page<Transaction> findAll(GroupId groupId, Pageable pageable) {
-        return repository
-                .findByCreatedByGroupAndIsDeletedFalse(groupId.value(), pageable)
-                .map(TransactionEntity::toDomain);
+    public Page<Transaction> findAll(TransactionSearchCriteria criteria, GroupId groupId, Pageable pageable) {
+        var spec = TransactionSpecification.from(criteria, groupId.value());
+        return repository.findAll(spec, pageable).map(TransactionEntity::toDomain);
     }
 
     @Override
@@ -55,14 +55,6 @@ public class JpaTransactionRepository implements TransactionRepository {
     @Override
     public boolean existsByAccountId(AccountId accountId, GroupId groupId) {
         return repository.existsByAccountIdAndCreatedByGroupAndIsDeletedFalse(accountId.value(), groupId.value());
-    }
-
-    @Override
-    public Optional<Transaction> findByAccountIdAndHash(AccountId accountId, TransactionHash hash, GroupId groupId) {
-        return repository
-                .findByAccountIdAndTransactionHashAndCreatedByGroupAndIsDeletedFalse(
-                        accountId.value(), hash.value(), groupId.value())
-                .map(TransactionEntity::toDomain);
     }
 
     @Override

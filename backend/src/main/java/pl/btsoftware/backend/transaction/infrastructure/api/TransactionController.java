@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
 import jakarta.validation.Valid;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +12,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import pl.btsoftware.backend.category.CategoryModuleFacade;
 import pl.btsoftware.backend.shared.TransactionId;
+import pl.btsoftware.backend.shared.TransactionType;
 import pl.btsoftware.backend.shared.pagination.PaginationValidator;
 import pl.btsoftware.backend.transaction.TransactionModuleFacade;
+import pl.btsoftware.backend.transaction.domain.TransactionSearchCriteria;
 import pl.btsoftware.backend.users.domain.UserId;
 
 @RestController
@@ -47,6 +50,7 @@ public class TransactionController {
     public TransactionsPaginatedView getAllTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Set<TransactionType> types,
             @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received request to get paginated transactions (page={}, size={}) by user: {}", page, size, userId);
@@ -54,7 +58,8 @@ public class TransactionController {
         var validatedSize = paginationValidator.validatePageSize(size);
         var pageable = PageRequest.of(
                 page, validatedSize, Sort.by("transactionDate", "createdAt").descending());
-        var transactionsPage = transactionModuleFacade.getAllTransactions(userId, pageable);
+        var criteria = new TransactionSearchCriteria(types);
+        var transactionsPage = transactionModuleFacade.getAllTransactions(criteria, userId, pageable);
 
         return TransactionsPaginatedView.from(
                 transactionsPage, categoryId -> categoryModuleFacade.getCategoryById(categoryId, userId));

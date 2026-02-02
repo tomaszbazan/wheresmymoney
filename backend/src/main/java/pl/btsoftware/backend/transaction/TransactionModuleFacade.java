@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import pl.btsoftware.backend.shared.TransactionId;
 import pl.btsoftware.backend.transaction.application.*;
 import pl.btsoftware.backend.transaction.domain.Transaction;
+import pl.btsoftware.backend.transaction.domain.TransactionSearchCriteria;
 import pl.btsoftware.backend.users.UsersModuleFacade;
 import pl.btsoftware.backend.users.domain.UserId;
 
@@ -24,9 +25,9 @@ public class TransactionModuleFacade {
         return transactionService.getTransactionById(TransactionId.of(id), user.groupId());
     }
 
-    public Page<Transaction> getAllTransactions(UserId userId, Pageable pageable) {
+    public Page<Transaction> getAllTransactions(TransactionSearchCriteria criteria, UserId userId, Pageable pageable) {
         var user = usersModuleFacade.findUserOrThrow(userId);
-        return transactionService.getAllTransactions(user.groupId(), pageable);
+        return transactionService.getAllTransactions(criteria, user.groupId(), pageable);
     }
 
     public Transaction updateTransaction(UpdateTransactionCommand command, UserId userId) {

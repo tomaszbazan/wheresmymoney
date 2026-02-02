@@ -10,6 +10,7 @@ import static pl.btsoftware.backend.shared.Currency.PLN;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.TransactionSearchCriteria;
 import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
 import pl.btsoftware.backend.transaction.infrastructure.persistance.InMemoryTransactionRepository;
@@ -99,7 +101,7 @@ class TransactionServiceTest {
         assertThat(transactionRepository.findById(transaction.id(), testGroupId))
                 .isPresent();
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(1);
 
@@ -139,7 +141,7 @@ class TransactionServiceTest {
         assertThat(transactionRepository.findById(transaction.id(), testGroupId))
                 .isPresent();
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(1);
 
@@ -168,7 +170,7 @@ class TransactionServiceTest {
 
         // Verify no transaction was created
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .isEmpty();
     }
@@ -194,7 +196,7 @@ class TransactionServiceTest {
         // Then
         assertThat(transaction.description()).isEmpty();
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(1);
     }
@@ -220,7 +222,7 @@ class TransactionServiceTest {
         // Then
         assertThat(transaction.description()).isNull();
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(1);
     }
@@ -247,7 +249,7 @@ class TransactionServiceTest {
 
         // Verify no transaction was created
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .isEmpty();
     }
@@ -315,7 +317,8 @@ class TransactionServiceTest {
         transactionService.createTransaction(command2);
 
         // When
-        var allTransactions = transactionService.getAllTransactions(testGroupId, Pageable.ofSize(20));
+        var allTransactions = transactionService.getAllTransactions(
+                TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20));
 
         // Then
         assertThat(allTransactions).hasSize(2);
@@ -544,7 +547,8 @@ class TransactionServiceTest {
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("0.00"));
 
         // Verify transaction not in normal queries
-        assertThat(transactionService.getAllTransactions(testGroupId, Pageable.ofSize(20)))
+        assertThat(transactionService.getAllTransactions(
+                        TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20)))
                 .isEmpty();
     }
 
@@ -581,7 +585,7 @@ class TransactionServiceTest {
                 .isInstanceOf(pl.btsoftware.backend.category.domain.error.CategoryNotFoundException.class);
 
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .isEmpty();
     }
@@ -608,7 +612,7 @@ class TransactionServiceTest {
                 .isInstanceOf(pl.btsoftware.backend.category.domain.error.CategoryNotFoundException.class);
 
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .isEmpty();
     }
@@ -636,7 +640,7 @@ class TransactionServiceTest {
         // Then
         assertThat(transaction.id()).isNotNull();
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(1);
     }
@@ -667,7 +671,7 @@ class TransactionServiceTest {
         // Then
         assertThat(transaction2).isNotNull();
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(2);
     }
@@ -704,7 +708,7 @@ class TransactionServiceTest {
         assertThat(result.duplicateCount()).isEqualTo(0);
         assertThat(result.savedTransactionIds()).hasSize(3);
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(3);
 
@@ -751,7 +755,7 @@ class TransactionServiceTest {
         assertThat(result.duplicateCount()).isEqualTo(2);
         assertThat(result.savedTransactionIds()).hasSize(2);
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(3); // 1 existing + 2 new
 
@@ -794,7 +798,7 @@ class TransactionServiceTest {
         assertThat(result.duplicateCount()).isEqualTo(2);
         assertThat(result.savedTransactionIds()).isEmpty();
         assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
+                        .findAll(TransactionSearchCriteria.empty(), testGroupId, Pageable.ofSize(20))
                         .getContent())
                 .hasSize(2);
 
@@ -881,7 +885,7 @@ class TransactionServiceTest {
         // When
         var pageable =
                 PageRequest.of(0, 10, Sort.by("transactionDate", "createdAt").descending());
-        var page = transactionRepository.findAll(testGroupId, pageable);
+        var page = transactionRepository.findAll(TransactionSearchCriteria.empty(), testGroupId, pageable);
 
         // Then
         assertThat(page.getContent()).hasSize(10);
@@ -916,7 +920,7 @@ class TransactionServiceTest {
         // When
         var pageable =
                 PageRequest.of(1, 10, Sort.by("transactionDate", "createdAt").descending());
-        var page = transactionRepository.findAll(testGroupId, pageable);
+        var page = transactionRepository.findAll(TransactionSearchCriteria.empty(), testGroupId, pageable);
 
         // Then
         assertThat(page.getContent()).hasSize(10);
@@ -950,7 +954,7 @@ class TransactionServiceTest {
         // When
         var pageable =
                 PageRequest.of(5, 10, Sort.by("transactionDate", "createdAt").descending());
-        var page = transactionRepository.findAll(testGroupId, pageable);
+        var page = transactionRepository.findAll(TransactionSearchCriteria.empty(), testGroupId, pageable);
 
         // Then
         assertThat(page.getContent()).isEmpty();
@@ -983,7 +987,7 @@ class TransactionServiceTest {
         // When
         var pageable =
                 PageRequest.of(0, 5, Sort.by("transactionDate", "createdAt").descending());
-        var page = transactionRepository.findAll(testGroupId, pageable);
+        var page = transactionRepository.findAll(TransactionSearchCriteria.empty(), testGroupId, pageable);
 
         // Then
         assertThat(page.getContent()).hasSize(5);
@@ -1022,7 +1026,7 @@ class TransactionServiceTest {
         // When
         var pageable =
                 PageRequest.of(0, 10, Sort.by("transactionDate", "createdAt").descending());
-        var page = transactionRepository.findAll(testGroupId, pageable);
+        var page = transactionRepository.findAll(TransactionSearchCriteria.empty(), testGroupId, pageable);
 
         // Then
         assertThat(page.getContent()).hasSize(3);
@@ -1056,10 +1060,41 @@ class TransactionServiceTest {
         // When
         var pageable =
                 PageRequest.of(0, 10, Sort.by("transactionDate", "createdAt").descending());
-        var page = transactionRepository.findAll(testGroupId, pageable);
+        var page = transactionRepository.findAll(TransactionSearchCriteria.empty(), testGroupId, pageable);
 
         // Then
         assertThat(page.getContent()).hasSize(1);
         assertThat(page.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    void shouldFilterTransactionsByCriteria() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
+        var account = accountModuleFacade.createAccount(createAccountCommand);
+        var categoryId = CategoryId.generate();
+
+        var billItem1 = new BillItemCommand(categoryId, new BigDecimal("1000.00"), "Income");
+        var billCommand1 = new BillCommand(List.of(billItem1));
+        var command1 = new CreateTransactionCommand(
+                account.id(), LocalDate.of(2024, 1, 15), TransactionType.INCOME, billCommand1, userId);
+
+        var billItem2 = new BillItemCommand(categoryId, new BigDecimal("250.50"), "Expense");
+        var billCommand2 = new BillCommand(List.of(billItem2));
+        var command2 = new CreateTransactionCommand(
+                account.id(), LocalDate.of(2024, 1, 16), TransactionType.EXPENSE, billCommand2, userId);
+
+        transactionService.createTransaction(command1);
+        transactionService.createTransaction(command2);
+
+        var criteria = new TransactionSearchCriteria(Set.of(TransactionType.INCOME));
+
+        // When
+        var filteredTransactions = transactionService.getAllTransactions(criteria, testGroupId, Pageable.ofSize(20));
+
+        // Then
+        assertThat(filteredTransactions).hasSize(1);
+        assertThat(filteredTransactions.getContent().getFirst().type()).isEqualTo(TransactionType.INCOME);
     }
 }
