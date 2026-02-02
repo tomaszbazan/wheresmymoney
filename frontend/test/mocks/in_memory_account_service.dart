@@ -27,7 +27,7 @@ class InMemoryAccountService implements AccountService {
     return account;
   }
 
-  Future<Account> addAccount(String name, {double? balance, String? currency, String? type}) async {
+  Account addAccount(String name, {double? balance, String? currency, String? type}) {
     final id = Uuid().v4();
     final account = Account(
       id: id,

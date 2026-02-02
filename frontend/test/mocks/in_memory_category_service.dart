@@ -73,7 +73,7 @@ class InMemoryCategoryService implements CategoryService {
     _categories.remove(categoryId);
   }
 
-  Future<Category> addCategory(String name, {String? description, CategoryType? type, String? color, String? parentId}) async {
+  Category addCategory(String name, {String? description, CategoryType? type, String? color, String? parentId}) {
     final id = const Uuid().v4();
     final category = Category(
       id: id,

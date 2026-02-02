@@ -35,6 +35,11 @@ class DateFormatter {
     return formatter.format(dateTime);
   }
 
+  static String format(DateTime dateTime) {
+    final formatter = DateFormat('yyyy-MM-dd');
+    return formatter.format(dateTime);
+  }
+
   static String _minutesLabel(int minutes) {
     if (minutes == 1) return 'minutą';
     if (minutes % 10 >= 2 && minutes % 10 <= 4 && (minutes % 100 < 10 || minutes % 100 >= 20)) {

@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:frontend/models/csv_parse_result.dart';
+import 'package:frontend/models/transaction/bill_item_request.dart';
+import 'package:frontend/models/transaction/create_transaction_request.dart';
 import 'package:frontend/models/transaction_proposal.dart';
 import 'package:frontend/services/transaction_service.dart';
 
@@ -37,13 +39,12 @@ class TransactionStagingService extends ChangeNotifier {
   Future<BulkCreateResponse> saveAll(String accountId, TransactionService transactionService) async {
     final transactions =
         _proposals.map((proposal) {
-          return {
-            'amount': {'value': proposal.amount, 'currency': proposal.currency.toUpperCase()},
-            'description': proposal.description,
-            'transactionDate': proposal.transactionDate.toIso8601String().split('T').first,
-            'type': proposal.type.name.toUpperCase(),
-            'categoryId': proposal.categoryId ?? '',
-          };
+          return CreateTransactionRequest(
+            accountId: accountId,
+            transactionDate: proposal.transactionDate,
+            type: proposal.type,
+            billItems: [BillItemRequest(amount: proposal.amount, description: proposal.description, categoryId: proposal.categoryId)],
+          );
         }).toList();
 
     final result = await transactionService.bulkCreateTransactions(accountId: accountId, transactions: transactions);

@@ -12,7 +12,7 @@ import '../utils/error_handler.dart';
 import '../widgets/csv_upload_dialog.dart';
 import '../widgets/no_accounts_dialog.dart';
 import '../widgets/no_categories_dialog.dart';
-import '../widgets/paginated_transaction_list.dart';
+import '../widgets/transaction_list.dart';
 import '../widgets/transaction_form.dart';
 
 class TransactionsPage extends StatefulWidget {
@@ -44,7 +44,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
     _transactionService = widget.transactionService ?? RestTransactionService();
     _accountService = widget.accountService ?? RestAccountService();
     _categoryService = widget.categoryService ?? RestCategoryService();
-    _csvImportService = widget.csvImportService ?? CsvImportService();
+    _csvImportService = widget.csvImportService ?? RestCsvImportService();
 
     _loadAccounts();
   }

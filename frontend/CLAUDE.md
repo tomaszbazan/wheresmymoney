@@ -84,6 +84,7 @@ mobile platforms.
 * **Testing:** Write code with testing in mind. Use the `file`, `process`, and
   `platform` packages, if appropriate, so you can inject in-memory and fake
   versions of the objects.
+* **Data Passing:** Avoid using `Map<String, dynamic>` to pass data between components or services. Always use concrete classes (DTOs or Models) for better type safety and maintainability.
 * **Logging:** Use the `logging` package instead of `print`.
 
 ## Dart Best Practices

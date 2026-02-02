@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../models/account.dart';
 import '../services/transfer_service.dart';
 import '../utils/amount_validator.dart';
 import '../utils/error_handler.dart';
 
 class TransferDialog extends StatefulWidget {
-  final Map<String, dynamic>? sourceAccount;
-  final List<Map<String, dynamic>> accounts;
+  final Account? sourceAccount;
+  final List<Account> accounts;
   final TransferService? transferService;
   final VoidCallback onSuccess;
 
@@ -35,7 +36,7 @@ class _TransferDialogState extends State<TransferDialog> {
     _transferService = widget.transferService ?? RestTransferService();
 
     if (widget.sourceAccount != null) {
-      _sourceAccountId = widget.sourceAccount!['id'] as String;
+      _sourceAccountId = widget.sourceAccount!.id;
     }
   }
 
@@ -47,10 +48,10 @@ class _TransferDialogState extends State<TransferDialog> {
     super.dispose();
   }
 
-  Map<String, dynamic>? _getAccountById(String? id) {
+  Account? _getAccountById(String? id) {
     if (id == null) return null;
     try {
-      return widget.accounts.firstWhere((a) => a['id'] == id);
+      return widget.accounts.firstWhere((a) => a.id == id);
     } catch (_) {
       return null;
     }
@@ -60,7 +61,7 @@ class _TransferDialogState extends State<TransferDialog> {
     final source = _getAccountById(_sourceAccountId);
     final target = _getAccountById(_targetAccountId);
     if (source == null || target == null) return true;
-    return source['currency'] == target['currency'];
+    return source.currency == target.currency;
   }
 
   void _onSourceAmountChanged(String value) {
@@ -118,7 +119,7 @@ class _TransferDialogState extends State<TransferDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final availableTargets = widget.accounts.where((a) => a['id'] != _sourceAccountId).toList();
+    final availableTargets = widget.accounts.where((a) => a.id != _sourceAccountId).toList();
     final rate = _calculateRate();
 
     return AlertDialog(
@@ -164,11 +165,7 @@ class _TransferDialogState extends State<TransferDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _sourceAmountController,
-                decoration: InputDecoration(
-                  labelText: 'Kwota źródłowa',
-                  suffixText: (_getAccountById(_sourceAccountId)?['currency'] as String?) ?? '',
-                  border: const OutlineInputBorder(),
-                ),
+                decoration: InputDecoration(labelText: 'Kwota źródłowa', suffixText: (_getAccountById(_sourceAccountId)?.currency) ?? '', border: const OutlineInputBorder()),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 validator: AmountValidator.validate,
                 onChanged: _onSourceAmountChanged,
@@ -179,7 +176,7 @@ class _TransferDialogState extends State<TransferDialog> {
                   controller: _targetAmountController,
                   decoration: InputDecoration(
                     labelText: 'Kwota docelowa',
-                    suffixText: (_getAccountById(_targetAccountId)?['currency'] as String?) ?? '',
+                    suffixText: (_getAccountById(_targetAccountId)?.currency) ?? '',
                     border: const OutlineInputBorder(),
                     helperText: rate != null ? 'Kurs: $rate' : null,
                   ),
@@ -204,13 +201,13 @@ class _TransferDialogState extends State<TransferDialog> {
     );
   }
 
-  Widget _buildDropdown({required String label, required String? value, required List<Map<String, dynamic>> items, required ValueChanged<String?> onChanged}) {
+  Widget _buildDropdown({required String label, required String? value, required List<Account> items, required ValueChanged<String?> onChanged}) {
     return DropdownButtonFormField<String>(
       initialValue: value,
       decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
       items:
           items.map((a) {
-            return DropdownMenuItem<String>(value: a['id'] as String, child: Text('${a['name']} (${a['currency']})'));
+            return DropdownMenuItem<String>(value: a.id, child: Text('${a.name} (${a.currency})'));
           }).toList(),
       onChanged: onChanged,
       validator: (val) => val == null ? 'Pole wymagane' : null,

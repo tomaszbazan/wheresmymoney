@@ -33,7 +33,7 @@ void main() {
 
     testWidgets('should show NoCategoriesDialog when adding transaction without categories', (WidgetTester tester) async {
       // Given: No categories
-      await accountService.addAccount('Test Account');
+      accountService.addAccount('Test Account');
 
       await tester.pumpWidget(
         MaterialApp(
@@ -58,7 +58,7 @@ void main() {
 
     testWidgets('should show NoAccountsDialog when adding transaction without accounts', (WidgetTester tester) async {
       // Given: Categories exist but NO accounts
-      await categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Food', type: CategoryType.expense);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -88,8 +88,8 @@ void main() {
 
     testWidgets('should show TransactionForm when accounts and categories exist', (WidgetTester tester) async {
       // Given: Accounts and Categories exist
-      await accountService.addAccount('Test Account');
-      await categoryService.addCategory('Food', type: CategoryType.expense);
+      accountService.addAccount('Test Account');
+      categoryService.addCategory('Food', type: CategoryType.expense);
 
       await tester.pumpWidget(
         MaterialApp(

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../models/account.dart';
 import '../utils/account_type_helper.dart';
 
 class AccountListItem extends StatelessWidget {
-  final Map<String, dynamic> account;
+  final Account account;
   final VoidCallback onDeleteRequest;
   final VoidCallback? onDismissed;
   final VoidCallback? onTransferRequest;
@@ -12,12 +13,12 @@ class AccountListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isNegative = (account['balance'] as double) < 0;
+    final isNegative = account.balance < 0;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Dismissible(
-        key: Key(account['name'] as String),
+        key: Key(account.name),
         background: _buildDismissBackground(),
         direction: DismissDirection.endToStart,
         confirmDismiss: (_) async => await _confirmDismiss(context),
@@ -38,9 +39,9 @@ class AccountListItem extends StatelessWidget {
 
   Widget _buildListTile(bool isNegative) {
     return ListTile(
-      leading: CircleAvatar(backgroundColor: AccountTypeHelper.getColorForType(account['type'] as String?), child: AccountTypeHelper.getIconForType(account['type'] as String?)),
-      title: Text('${account['name']} (${account['currency']})'),
-      subtitle: Text('${account['type']}'),
+      leading: CircleAvatar(backgroundColor: AccountTypeHelper.getColorForType(account.type), child: AccountTypeHelper.getIconForType(account.type)),
+      title: Text('${account.name} (${account.currency})'),
+      subtitle: Text('${account.type}'),
       trailing: _buildTrailing(isNegative),
     );
   }
@@ -50,7 +51,7 @@ class AccountListItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '${account['balance'].toStringAsFixed(2)} ${account['currency'] ?? 'zł'}',
+          '${account.balance.toStringAsFixed(2)} ${account.currency ?? 'zł'}',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isNegative ? Colors.red : Colors.black),
         ),
         if (onTransferRequest != null) IconButton(icon: const Icon(Icons.swap_horiz, color: Colors.blue), onPressed: onTransferRequest, tooltip: 'Wykonaj przelew'),

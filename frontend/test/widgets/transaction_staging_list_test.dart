@@ -77,8 +77,8 @@ void main() {
 
     testWidgets('should fetch categories only once for multiple transactions', (WidgetTester tester) async {
       final categoryService = InMemoryCategoryService();
-      await categoryService.addCategory('Food', type: CategoryType.expense);
-      await categoryService.addCategory('Transport', type: CategoryType.expense);
+      categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Transport', type: CategoryType.expense);
 
       final stagingService = TransactionStagingService();
       final proposals = [

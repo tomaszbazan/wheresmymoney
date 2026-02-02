@@ -29,7 +29,7 @@ void main() {
         return http.Response(jsonEncode({'proposals': <Map<String, dynamic>>[], 'errors': <Map<String, dynamic>>[], 'totalRows': 0, 'successCount': 0, 'errorCount': 0}), 200);
       });
 
-      final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
+      final csvImportService = RestCsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
       await csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123');
     });
@@ -49,7 +49,7 @@ void main() {
         return http.Response(responseBody, 200);
       });
 
-      final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
+      final csvImportService = RestCsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
       final result = await csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123');
 
@@ -78,7 +78,7 @@ void main() {
         return http.Response(responseBody, 200);
       });
 
-      final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
+      final csvImportService = RestCsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
       final result = await csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123');
 
@@ -96,7 +96,7 @@ void main() {
         return http.Response('Invalid CSV format', 400);
       });
 
-      final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
+      final csvImportService = RestCsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(() => csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 400)));
     });
@@ -106,7 +106,7 @@ void main() {
         return http.Response('Unauthorized', 401);
       });
 
-      final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
+      final csvImportService = RestCsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(() => csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 401)));
     });
@@ -116,7 +116,7 @@ void main() {
         return http.Response('Internal Server Error', 500);
       });
 
-      final csvImportService = CsvImportService(authService: fakeAuthService, httpClient: mockClient);
+      final csvImportService = RestCsvImportService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(() => csvImportService.uploadCsv(testFileBytes, testFileName, 'account-123'), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
     });

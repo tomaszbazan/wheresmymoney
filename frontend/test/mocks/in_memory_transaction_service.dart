@@ -1,10 +1,12 @@
 import 'package:frontend/models/bulk_create_response.dart';
-import 'package:frontend/models/transaction/transaction.dart';
+import 'package:frontend/models/money.dart';
 import 'package:frontend/models/transaction/bill_item.dart';
 import 'package:frontend/models/transaction/bill_item_category.dart';
+import 'package:frontend/models/transaction/bill_item_request.dart';
+import 'package:frontend/models/transaction/create_transaction_request.dart';
+import 'package:frontend/models/transaction/transaction.dart';
 import 'package:frontend/models/transaction_page.dart';
 import 'package:frontend/models/transaction_type.dart';
-import 'package:frontend/models/money.dart';
 import 'package:frontend/services/transaction_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -38,7 +40,7 @@ class InMemoryTransactionService implements TransactionService {
     required String accountId,
     required DateTime transactionDate,
     required TransactionType type,
-    required List<Map<String, dynamic>> billItems,
+    required List<BillItemRequest> billItems,
   }) async {
     if (_apiError != null) {
       throw _apiError!;
@@ -49,12 +51,11 @@ class InMemoryTransactionService implements TransactionService {
 
     final items =
         billItems.map((item) {
-          final amount = (item['amount'] as num).toDouble();
-          totalAmount += amount;
+          totalAmount += item.amount;
           return BillItem(
-            category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'),
-            amount: Money(value: amount, currency: 'PLN'),
-            description: item['description'] as String,
+            category: BillItemCategory(id: item.categoryId ?? '', name: 'Category'),
+            amount: Money(value: item.amount, currency: 'PLN'),
+            description: item.description,
           );
         }).toList();
 
@@ -73,7 +74,7 @@ class InMemoryTransactionService implements TransactionService {
   }
 
   @override
-  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, String? accountId, DateTime? transactionDate}) async {
+  Future<Transaction> updateTransaction({required String id, required List<BillItemRequest> billItems, String? accountId, DateTime? transactionDate}) async {
     if (_apiError != null) {
       throw _apiError!;
     }
@@ -86,12 +87,11 @@ class InMemoryTransactionService implements TransactionService {
     double totalAmount = 0;
     final items =
         billItems.map((item) {
-          final amount = (item['amount'] as num).toDouble();
-          totalAmount += amount;
+          totalAmount += item.amount;
           return BillItem(
-            category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'),
-            amount: Money(value: amount, currency: 'PLN'),
-            description: item['description'] as String,
+            category: BillItemCategory(id: item.categoryId ?? '', name: 'Category'),
+            amount: Money(value: item.amount, currency: 'PLN'),
+            description: item.description,
           );
         }).toList();
 
@@ -119,7 +119,7 @@ class InMemoryTransactionService implements TransactionService {
   }
 
   @override
-  Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<Map<String, dynamic>> transactions}) async {
+  Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<CreateTransactionRequest> transactions}) async {
     if (_apiError != null) {
       throw _apiError!;
     }
@@ -129,22 +129,26 @@ class InMemoryTransactionService implements TransactionService {
 
     for (final txData in transactions) {
       final id = const Uuid().v4();
-      final dateStr = (txData['transactionDate'] ?? txData['date']) as String;
+      double totalAmount = 0;
+      final items =
+          txData.billItems.map((item) {
+            totalAmount += item.amount;
+            return BillItem(
+              category: BillItemCategory(id: item.categoryId ?? '', name: 'Category'),
+              amount: Money(value: item.amount, currency: 'PLN'), // Mock currency
+              description: item.description,
+            );
+          }).toList();
+
       final transaction = Transaction(
         id: id,
         accountId: accountId,
-        amount: Money(value: (txData['amount']['value'] as num).toDouble(), currency: (txData['amount']['currency'] as String)),
-        createdAt: DateTime.parse(dateStr),
-        updatedAt: DateTime.parse(dateStr),
-        transactionDate: DateTime.parse(dateStr),
-        type: TransactionType.values.firstWhere((t) => t.name.toUpperCase() == txData['type']),
-        billItems: [
-          BillItem(
-            category: BillItemCategory(id: txData['categoryId'] as String, name: 'Category'),
-            amount: Money(value: (txData['amount']['value'] as num).toDouble(), currency: (txData['amount']['currency'] as String)),
-            description: txData['description'] as String,
-          ),
-        ],
+        amount: Money(value: totalAmount, currency: 'PLN'),
+        createdAt: txData.transactionDate,
+        updatedAt: txData.transactionDate,
+        transactionDate: txData.transactionDate,
+        type: txData.type,
+        billItems: items,
       );
       _transactions[id] = transaction;
       savedIds.add(id);

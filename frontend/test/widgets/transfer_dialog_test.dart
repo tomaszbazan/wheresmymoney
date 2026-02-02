@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frontend/models/account.dart';
 import 'package:frontend/widgets/transfer_dialog.dart';
 
 import '../mocks/in_memory_transfer_service.dart';
@@ -8,9 +9,9 @@ void main() {
   late InMemoryTransferService transferService;
 
   final accounts = [
-    {'id': '1', 'name': 'Konto PLN', 'currency': 'PLN', 'balance': 1000.0},
-    {'id': '2', 'name': 'Konto EUR', 'currency': 'EUR', 'balance': 200.0},
-    {'id': '3', 'name': 'Konto PLN 2', 'currency': 'PLN', 'balance': 500.0},
+    Account(id: '1', name: 'Konto PLN', balance: 1000.0, currency: 'PLN', type: 'Bank'),
+    Account(id: '2', name: 'Konto EUR', balance: 200.0, currency: 'EUR', type: 'Bank'),
+    Account(id: '3', name: 'Konto PLN 2', balance: 500.0, currency: 'PLN', type: 'Bank'),
   ];
 
   setUp(() {
@@ -20,7 +21,7 @@ void main() {
     transferService.setAccountCurrency('3', 'PLN');
   });
 
-  Widget createDialog({Map<String, dynamic>? sourceAccount}) {
+  Widget createDialog({Account? sourceAccount}) {
     return MaterialApp(home: Scaffold(body: TransferDialog(accounts: accounts, transferService: transferService, sourceAccount: sourceAccount, onSuccess: () {})));
   }
 

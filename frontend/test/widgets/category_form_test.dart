@@ -21,7 +21,7 @@ void main() {
     });
 
     testWidgets('should allow unchecking main category checkbox and show parent dropdown', (WidgetTester tester) async {
-      await categoryService.addCategory('Parent Category', type: CategoryType.expense);
+      categoryService.addCategory('Parent Category', type: CategoryType.expense);
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: CategoryForm(defaultType: CategoryType.expense, categoryService: categoryService, onSaved: (_) {}))));
 
@@ -45,7 +45,7 @@ void main() {
     });
 
     testWidgets('should allow checking main category checkbox and hide parent dropdown', (WidgetTester tester) async {
-      await categoryService.addCategory('Parent Category', type: CategoryType.expense);
+      categoryService.addCategory('Parent Category', type: CategoryType.expense);
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: CategoryForm(defaultType: CategoryType.expense, categoryService: categoryService, onSaved: (_) {}))));
 

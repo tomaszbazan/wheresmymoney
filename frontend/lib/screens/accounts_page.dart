@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/account.dart';
 import '../services/account_service.dart';
 import '../utils/error_handler.dart';
 import '../widgets/account_form_dialog.dart';
@@ -19,7 +20,7 @@ class AccountsPage extends StatefulWidget {
 class _AccountsPageState extends State<AccountsPage> {
   late final AccountService _accountService;
 
-  List<Map<String, dynamic>> accounts = [];
+  List<Account> accounts = [];
 
   bool _isLoading = true;
   String? _error;
@@ -42,13 +43,7 @@ class _AccountsPageState extends State<AccountsPage> {
       final createdAccount = await _accountService.createAccount(accountName, type: type, currency: currency);
 
       setState(() {
-        accounts.add({
-          'id': createdAccount.id,
-          'name': createdAccount.name,
-          'balance': createdAccount.balance,
-          'type': createdAccount.type,
-          'currency': createdAccount.currency ?? 'PLN',
-        });
+        accounts.add(createdAccount);
       });
 
       if (mounted) {
@@ -78,15 +73,15 @@ class _AccountsPageState extends State<AccountsPage> {
         false;
   }
 
-  Future<void> _deleteAccountById(Map<String, dynamic> account, BuildContext context) async {
-    final accountId = account['id'] as String;
-    final accountName = account['name'] as String;
+  Future<void> _deleteAccountById(Account account, BuildContext context) async {
+    final accountId = account.id;
+    final accountName = account.name;
 
     try {
       await _accountService.deleteAccount(accountId);
 
       setState(() {
-        accounts.removeWhere((account) => account['id'] == accountId);
+        accounts.removeWhere((account) => account.id == accountId);
       });
 
       if (mounted) {
@@ -99,7 +94,7 @@ class _AccountsPageState extends State<AccountsPage> {
     }
   }
 
-  void _showTransferDialog(Map<String, dynamic> sourceAccount) {
+  void _showTransferDialog(Account sourceAccount) {
     showDialog<void>(
       context: context,
       builder:
@@ -125,8 +120,8 @@ class _AccountsPageState extends State<AccountsPage> {
     final Map<String, double> sums = {};
 
     for (var account in accounts) {
-      final currency = account['currency'] as String? ?? 'PLN';
-      final balance = account['balance'] as double;
+      final currency = account.currency ?? 'PLN';
+      final balance = account.balance;
 
       sums[currency] = (sums[currency] ?? 0.0) + balance;
     }
@@ -144,10 +139,7 @@ class _AccountsPageState extends State<AccountsPage> {
       final fetchedAccounts = await _accountService.getAccounts();
 
       setState(() {
-        accounts =
-            fetchedAccounts
-                .map((account) => {'id': account.id, 'name': account.name, 'balance': account.balance, 'type': account.type, 'currency': account.currency ?? 'PLN'})
-                .toList();
+        accounts = fetchedAccounts;
         _isLoading = false;
       });
     } catch (e) {
@@ -166,7 +158,6 @@ class _AccountsPageState extends State<AccountsPage> {
         children: [
           if (accounts.isNotEmpty && !_isLoading) AccountSummaryCard(currencySums: _calculateCurrencySums()),
           const SizedBox(height: 16),
-
           if (_error != null) Padding(padding: const EdgeInsets.all(16.0), child: Text(_error!, style: const TextStyle(color: Colors.red))),
 
           if (_isLoading)
@@ -195,17 +186,15 @@ class _AccountsPageState extends State<AccountsPage> {
                           return AccountListItem(
                             account: account,
                             onDeleteRequest: () {
-                              _showDeleteConfirmationDialog(context, account['name'] as String).then((confirmed) {
+                              _showDeleteConfirmationDialog(context, account.name).then((confirmed) {
                                 if (confirmed && mounted) {
-                                  final accountToDelete = Map<String, dynamic>.from(account);
                                   // ignore: use_build_context_synchronously
-                                  _deleteAccountById(accountToDelete, context);
+                                  _deleteAccountById(account, context);
                                 }
                               });
                             },
                             onDismissed: () {
-                              final accountToDelete = Map<String, dynamic>.from(account);
-                              _deleteAccountById(accountToDelete, context);
+                              _deleteAccountById(account, context);
                             },
                             onTransferRequest: () => _showTransferDialog(account),
                           );

@@ -28,8 +28,8 @@ void main() {
     });
 
     testWidgets('should display categories after loading', (WidgetTester tester) async {
-      await categoryService.addCategory('Food', type: CategoryType.expense);
-      await categoryService.addCategory('Transport', type: CategoryType.expense);
+      categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Transport', type: CategoryType.expense);
 
       await tester.pumpWidget(
         MaterialApp(home: Scaffold(body: SearchableCategoryDropdown(transactionType: CategoryType.expense, onChanged: (categoryId) {}, categoryService: categoryService))),
@@ -42,8 +42,8 @@ void main() {
     });
 
     testWidgets('should filter categories by transaction type', (WidgetTester tester) async {
-      final expenseCategory = await categoryService.addCategory('Food', type: CategoryType.expense);
-      await categoryService.addCategory('Salary', type: CategoryType.income);
+      final expenseCategory = categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Salary', type: CategoryType.income);
 
       String? selectedCategoryId;
 
@@ -77,9 +77,9 @@ void main() {
     });
 
     testWidgets('should handle search input and filter results', (WidgetTester tester) async {
-      await categoryService.addCategory('Food', type: CategoryType.expense);
-      await categoryService.addCategory('Transport', type: CategoryType.expense);
-      await categoryService.addCategory('Fuel', type: CategoryType.expense);
+      categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Transport', type: CategoryType.expense);
+      categoryService.addCategory('Fuel', type: CategoryType.expense);
 
       await tester.pumpWidget(
         MaterialApp(home: Scaffold(body: SearchableCategoryDropdown(transactionType: CategoryType.expense, onChanged: (categoryId) {}, categoryService: categoryService))),
@@ -97,8 +97,8 @@ void main() {
     });
 
     testWidgets('should display hierarchy with proper indentation', (WidgetTester tester) async {
-      final parentCategory = await categoryService.addCategory('Food', type: CategoryType.expense);
-      await categoryService.addCategory('Groceries', type: CategoryType.expense, parentId: parentCategory.id);
+      final parentCategory = categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Groceries', type: CategoryType.expense, parentId: parentCategory.id);
 
       await tester.pumpWidget(
         MaterialApp(home: Scaffold(body: SearchableCategoryDropdown(transactionType: CategoryType.expense, onChanged: (categoryId) {}, categoryService: categoryService))),
@@ -115,7 +115,7 @@ void main() {
     });
 
     testWidgets('should call onChanged when category selected', (WidgetTester tester) async {
-      final category = await categoryService.addCategory('Food', type: CategoryType.expense);
+      final category = categoryService.addCategory('Food', type: CategoryType.expense);
       String? selectedCategoryId;
 
       await tester.pumpWidget(
@@ -145,7 +145,7 @@ void main() {
     });
 
     testWidgets('should respect enabled state', (WidgetTester tester) async {
-      await categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Food', type: CategoryType.expense);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -160,7 +160,7 @@ void main() {
     });
 
     testWidgets('should validate input when validator provided', (WidgetTester tester) async {
-      await categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Food', type: CategoryType.expense);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -218,7 +218,7 @@ void main() {
     });
 
     testWidgets('should show color indicators for categories', (WidgetTester tester) async {
-      await categoryService.addCategory('Food', type: CategoryType.expense, color: '#FF5722');
+      categoryService.addCategory('Food', type: CategoryType.expense, color: '#FF5722');
 
       await tester.pumpWidget(
         MaterialApp(home: Scaffold(body: SearchableCategoryDropdown(transactionType: CategoryType.expense, onChanged: (categoryId) {}, categoryService: categoryService))),
@@ -240,8 +240,8 @@ void main() {
     });
 
     testWidgets('search should be case-insensitive', (WidgetTester tester) async {
-      await categoryService.addCategory('Food', type: CategoryType.expense);
-      await categoryService.addCategory('Transport', type: CategoryType.expense);
+      categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Transport', type: CategoryType.expense);
 
       await tester.pumpWidget(
         MaterialApp(home: Scaffold(body: SearchableCategoryDropdown(transactionType: CategoryType.expense, onChanged: (categoryId) {}, categoryService: categoryService))),
@@ -258,8 +258,8 @@ void main() {
     });
 
     testWidgets('should select first option when Enter is pressed after typing', (WidgetTester tester) async {
-      final foodCategory = await categoryService.addCategory('Food', type: CategoryType.expense);
-      await categoryService.addCategory('Fuel', type: CategoryType.expense);
+      final foodCategory = categoryService.addCategory('Food', type: CategoryType.expense);
+      categoryService.addCategory('Fuel', type: CategoryType.expense);
       String? selectedCategoryId;
 
       await tester.pumpWidget(
@@ -292,8 +292,8 @@ void main() {
     });
 
     testWidgets('should allow selecting option by clicking in list', (WidgetTester tester) async {
-      await categoryService.addCategory('Food', type: CategoryType.expense);
-      final transportCategory = await categoryService.addCategory('Transport', type: CategoryType.expense);
+      categoryService.addCategory('Food', type: CategoryType.expense);
+      final transportCategory = categoryService.addCategory('Transport', type: CategoryType.expense);
       String? selectedCategoryId;
 
       await tester.pumpWidget(

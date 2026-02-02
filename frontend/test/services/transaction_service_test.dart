@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/http_exception.dart';
+import 'package:frontend/models/transaction/bill_item_request.dart';
 import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/services/transaction_service.dart';
 import 'package:http/http.dart' as http;
@@ -142,9 +143,7 @@ void main() {
         accountId: 'acc-1',
         transactionDate: DateTime(2024, 1, 1),
         type: TransactionType.income,
-        billItems: [
-          {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test transaction'},
-        ],
+        billItems: [const BillItemRequest(categoryId: 'cat-1', amount: 100.0, description: 'Test transaction')],
       );
 
       expect(transaction.id, 'new-trans-id');
@@ -185,9 +184,7 @@ void main() {
         accountId: 'acc-1',
         transactionDate: DateTime(2024, 1, 1),
         type: TransactionType.expense,
-        billItems: [
-          {'categoryId': 'cat-1', 'amount': 50.0, 'description': 'Coffee'},
-        ],
+        billItems: [const BillItemRequest(categoryId: 'cat-1', amount: 50.0, description: 'Coffee')],
       );
     });
 
@@ -203,9 +200,7 @@ void main() {
           accountId: 'acc-1',
           transactionDate: DateTime.now(),
           type: TransactionType.income,
-          billItems: [
-            {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test'},
-          ],
+          billItems: [const BillItemRequest(categoryId: 'cat-1', amount: 100.0, description: 'Test')],
         ),
         throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 422)),
       );
@@ -250,9 +245,7 @@ void main() {
 
       final transaction = await transactionService.updateTransaction(
         id: 'trans-123',
-        billItems: [
-          {'categoryId': 'cat-2', 'amount': 150.0, 'description': 'Updated description'},
-        ],
+        billItems: [const BillItemRequest(categoryId: 'cat-2', amount: 150.0, description: 'Updated description')],
       );
 
       expect(transaction.id, 'trans-123');
@@ -267,12 +260,7 @@ void main() {
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
       expect(
-        () => transactionService.updateTransaction(
-          id: 'non-existent',
-          billItems: [
-            {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test'},
-          ],
-        ),
+        () => transactionService.updateTransaction(id: 'non-existent', billItems: [const BillItemRequest(categoryId: 'cat-1', amount: 100.0, description: 'Test')]),
         throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 404)),
       );
     });

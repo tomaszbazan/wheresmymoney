@@ -10,6 +10,7 @@ import 'package:frontend/services/transaction_staging_service.dart';
 import 'package:frontend/widgets/ai_category_indicator.dart';
 import 'package:frontend/widgets/searchable_category_dropdown.dart';
 import 'package:intl/intl.dart';
+import 'package:frontend/utils/date_formatter.dart';
 
 class TransactionStagingList extends StatefulWidget {
   final TransactionStagingService stagingService;
@@ -23,7 +24,6 @@ class TransactionStagingList extends StatefulWidget {
 }
 
 class _TransactionStagingListState extends State<TransactionStagingList> {
-  final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   final NumberFormat _numberFormat = NumberFormat('#,##0.00', 'pl_PL');
   late final CategoryService _categoryService;
   List<Category> _expenseCategories = [];
@@ -163,7 +163,7 @@ class _TransactionStagingListState extends State<TransactionStagingList> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_dateFormat.format(proposal.transactionDate), style: Theme.of(context).textTheme.bodySmall),
+                  Text(DateFormatter.format(proposal.transactionDate), style: Theme.of(context).textTheme.bodySmall),
                   const SizedBox(height: 4),
                   Text(proposal.description, style: Theme.of(context).textTheme.bodyLarge),
                   const SizedBox(height: 4),

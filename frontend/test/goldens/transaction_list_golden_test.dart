@@ -1,112 +1,106 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frontend/models/account.dart';
-import 'package:frontend/models/money.dart';
-import 'package:frontend/models/transaction/transaction.dart';
+import 'package:frontend/models/category_type.dart';
+import 'package:frontend/models/transaction/bill_item_request.dart';
 import 'package:frontend/models/transaction_type.dart';
-import 'package:frontend/models/transaction/bill_item.dart';
-import 'package:frontend/models/transaction/bill_item_category.dart';
-import 'package:frontend/widgets/transaction_list.dart';
+import 'package:frontend/screens/transaction_page.dart';
+
+import '../mocks/in_memory_account_service.dart';
+import '../mocks/in_memory_category_service.dart';
+import '../mocks/in_memory_csv_import_service.dart';
+import '../mocks/in_memory_transaction_service.dart';
 
 void main() {
   group('TransactionList Golden Tests', () {
     goldenTest(
-      'renders empty state correctly',
-      fileName: 'transaction_list_empty',
+      'renders transaction list',
+      fileName: 'transaction_list',
       tags: ['golden'],
-      builder:
-          () => GoldenTestGroup(
-            scenarioConstraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
-            children: [
-              GoldenTestScenario(
-                name: 'empty_state',
-                child: SizedBox(
-                  width: 400,
-                  height: 600,
-                  child: MaterialApp(home: Scaffold(body: TransactionList(transactions: [], accounts: [], onEdit: (_) {}, onDelete: (_) {}))),
-                ),
-              ),
-            ],
-          ),
-    );
+      builder: () {
+        final emptyService = InMemoryTransactionService();
+        final serviceWithData = InMemoryTransactionService();
 
-    goldenTest(
-      'renders transaction list with data',
-      fileName: 'transaction_list_with_data',
-      tags: ['golden'],
-      builder:
-          () => GoldenTestGroup(
-            scenarioConstraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
-            children: [
-              GoldenTestScenario(
-                name: 'with_transactions',
-                child: SizedBox(
-                  width: 400,
-                  height: 600,
-                  child: MaterialApp(
-                    home: Scaffold(
-                      body: TransactionList(
-                        transactions: [
-                          Transaction(
-                            id: 't1',
-                            accountId: '1',
-                            amount: const Money(value: 100.0, currency: 'PLN'),
-                            type: TransactionType.income,
-                            createdAt: DateTime(2024, 1, 15),
-                            updatedAt: DateTime(2024, 1, 15),
-                            transactionDate: DateTime(2024, 1, 15),
-                            billItems: [
-                              BillItem(
-                                category: BillItemCategory(id: 'salary-id', name: 'Salary'),
-                                amount: const Money(value: 100.0, currency: 'PLN'),
-                                description: 'Salary Payment',
-                              ),
-                            ],
-                          ),
-                          Transaction(
-                            id: 't2',
-                            accountId: '2',
-                            amount: const Money(value: -50.0, currency: 'USD'),
-                            type: TransactionType.expense,
-                            createdAt: DateTime(2024, 1, 16),
-                            updatedAt: DateTime(2024, 1, 16),
-                            transactionDate: DateTime(2024, 1, 16),
-                            billItems: [
-                              BillItem(
-                                category: BillItemCategory(id: 'food-id', name: 'Food'),
-                                amount: const Money(value: -50.0, currency: 'USD'),
-                                description: 'Grocery Shopping',
-                              ),
-                            ],
-                          ),
-                          Transaction(
-                            id: 't3',
-                            accountId: '1',
-                            amount: const Money(value: 75.0, currency: 'PLN'),
-                            type: TransactionType.income,
-                            createdAt: DateTime(2024, 1, 17),
-                            updatedAt: DateTime(2024, 1, 17),
-                            transactionDate: DateTime(2024, 1, 17),
-                            billItems: [
-                              BillItem(
-                                category: BillItemCategory(id: 'freelance-id', name: 'Freelance'),
-                                amount: const Money(value: 75.0, currency: 'PLN'),
-                                description: 'Freelance Project',
-                              ),
-                            ],
-                          ),
-                        ],
-                        accounts: [Account(id: '1', name: 'PLN Account', balance: 1000.0, currency: 'PLN'), Account(id: '2', name: 'USD Account', balance: 500.0, currency: 'USD')],
-                        onEdit: (_) {},
-                        onDelete: (_) {},
-                      ),
-                    ),
-                  ),
+        final accountService = InMemoryAccountService();
+        var account1 = accountService.addAccount('Konto Główne', balance: 5432.50, currency: 'PLN', type: 'Rachunek bieżący');
+        var account2 = accountService.addAccount('Oszczędności', balance: 10000.00, currency: 'EUR', type: 'Oszczędnościowe');
+
+        final categoryService = InMemoryCategoryService();
+        var categoryIncome1 = categoryService.addCategory('Wynagrodzenie', type: CategoryType.income);
+        var categoryIncome2 = categoryService.addCategory('Odsetki', type: CategoryType.income);
+        var categoryExpense = categoryService.addCategory('Zakupy', type: CategoryType.expense);
+        categoryService.addCategory('Zakupy', type: CategoryType.expense);
+        final csvImportService = InMemoryCsvImportService();
+
+        serviceWithData.createTransaction(
+          accountId: account1.id,
+          transactionDate: DateTime(2024, 1, 15),
+          type: TransactionType.income,
+          billItems: [BillItemRequest(amount: 1500.0, categoryId: categoryIncome1.id, description: 'Wypłata')],
+        );
+
+        serviceWithData.createTransaction(
+          accountId: account1.id,
+          transactionDate: DateTime(2024, 1, 16),
+          type: TransactionType.expense,
+          billItems: [BillItemRequest(amount: 250.0, categoryId: categoryExpense.id, description: 'Zakupy spożywcze')],
+        );
+
+        serviceWithData.createTransaction(
+          accountId: account2.id,
+          transactionDate: DateTime(2024, 1, 17),
+          type: TransactionType.income,
+          billItems: [BillItemRequest(amount: 50.0, categoryId: categoryIncome2.id, description: 'Odsetki')],
+        );
+
+        return GoldenTestGroup(
+          scenarioConstraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+          children: [
+            GoldenTestScenario(
+              name: 'empty_state',
+              child: SizedBox(
+                width: 400,
+                height: 600,
+                child: TransactionsPage(
+                  type: TransactionType.income,
+                  transactionService: emptyService,
+                  accountService: accountService,
+                  categoryService: categoryService,
+                  csvImportService: csvImportService,
                 ),
               ),
-            ],
-          ),
+            ),
+            GoldenTestScenario(
+              name: 'income_transactions',
+              child: SizedBox(
+                width: 400,
+                height: 600,
+                child: TransactionsPage(
+                  type: TransactionType.income,
+                  transactionService: serviceWithData,
+                  accountService: accountService,
+                  categoryService: categoryService,
+                  csvImportService: csvImportService,
+                ),
+              ),
+            ),
+            GoldenTestScenario(
+              name: 'expense_transactions',
+              child: SizedBox(
+                width: 400,
+                height: 600,
+                child: TransactionsPage(
+                  type: TransactionType.expense,
+                  transactionService: serviceWithData,
+                  accountService: accountService,
+                  categoryService: categoryService,
+                  csvImportService: csvImportService,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   });
 }

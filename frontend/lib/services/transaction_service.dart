@@ -2,6 +2,8 @@ import 'package:frontend/models/transaction_type.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/bulk_create_response.dart';
+import '../models/transaction/bill_item_request.dart';
+import '../models/transaction/create_transaction_request.dart';
 import '../models/transaction/transaction.dart';
 import '../models/transaction_page.dart';
 import 'auth_service.dart';
@@ -10,16 +12,11 @@ import 'http_client.dart';
 abstract class TransactionService {
   Future<TransactionPage> getTransactions({required int page, required int size, required List<TransactionType> types});
 
-  Future<Transaction> createTransaction({
-    required String accountId,
-    required DateTime transactionDate,
-    required TransactionType type,
-    required List<Map<String, dynamic>> billItems,
-  });
+  Future<Transaction> createTransaction({required String accountId, required DateTime transactionDate, required TransactionType type, required List<BillItemRequest> billItems});
 
-  Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<Map<String, dynamic>> transactions});
+  Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<CreateTransactionRequest> transactions});
 
-  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, String? accountId, DateTime? transactionDate});
+  Future<Transaction> updateTransaction({required String id, required List<BillItemRequest> billItems, String? accountId, DateTime? transactionDate});
 
   Future<void> deleteTransaction(String transactionId);
 }
@@ -44,26 +41,22 @@ class RestTransactionService implements TransactionService {
     required String accountId,
     required DateTime transactionDate,
     required TransactionType type,
-    required List<Map<String, dynamic>> billItems,
+    required List<BillItemRequest> billItems,
   }) async {
     final Map<String, dynamic> transactionData = {
       'accountId': accountId,
       'transactionDate': transactionDate.toUtc().toIso8601String(),
       'type': type.name.toUpperCase(),
-      'bill': {
-        'billItems': billItems.map((item) => {'categoryId': item['categoryId'], 'amount': item['amount'], 'description': item['description']}).toList(),
-      },
+      'bill': {'billItems': billItems.map((item) => item.toJson()).toList()},
     };
 
     return await _apiClient.post<Transaction>('/transactions', transactionData, Transaction.fromJson);
   }
 
   @override
-  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, String? accountId, DateTime? transactionDate}) async {
+  Future<Transaction> updateTransaction({required String id, required List<BillItemRequest> billItems, String? accountId, DateTime? transactionDate}) async {
     final Map<String, dynamic> transactionData = {
-      'bill': {
-        'billItems': billItems.map((item) => {'categoryId': item['categoryId'], 'amount': item['amount'], 'description': item['description']}).toList(),
-      },
+      'bill': {'billItems': billItems.map((item) => item.toJson()).toList()},
       if (accountId != null) 'accountId': accountId,
       if (transactionDate != null) 'transactionDate': transactionDate.toUtc().toIso8601String(),
     };
@@ -77,8 +70,8 @@ class RestTransactionService implements TransactionService {
   }
 
   @override
-  Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<Map<String, dynamic>> transactions}) async {
-    final Map<String, dynamic> bulkData = {'accountId': accountId, 'transactions': transactions};
+  Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<CreateTransactionRequest> transactions}) async {
+    final Map<String, dynamic> bulkData = {'accountId': accountId, 'transactions': transactions.map((t) => t.toJson()).toList()};
 
     return await _apiClient.post<BulkCreateResponse>('/transactions/bulk', bulkData, BulkCreateResponse.fromJson);
   }

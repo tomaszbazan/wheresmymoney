@@ -16,10 +16,10 @@ void main() {
 
     setUp(() async {
       categoryService = InMemoryCategoryService();
-      await categoryService.addCategory('Wynagrodzenie', type: CategoryType.income, color: '#4CAF50');
-      await categoryService.addCategory('Zakupy', type: CategoryType.expense, color: '#FF5722');
-      await categoryService.addCategory('Mieszkanie', type: CategoryType.expense, color: '#2196F3');
-      await categoryService.addCategory('Transport', type: CategoryType.expense, color: '#FFC107');
+      categoryService.addCategory('Wynagrodzenie', type: CategoryType.income, color: '#4CAF50');
+      categoryService.addCategory('Zakupy', type: CategoryType.expense, color: '#FF5722');
+      categoryService.addCategory('Mieszkanie', type: CategoryType.expense, color: '#2196F3');
+      categoryService.addCategory('Transport', type: CategoryType.expense, color: '#FFC107');
     });
 
     goldenTest(

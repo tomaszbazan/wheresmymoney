@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frontend/models/account.dart';
 import 'package:frontend/widgets/account_list_item.dart';
 
 void main() {
   group('AccountListItem', () {
     testWidgets('displays account information correctly', (tester) async {
-      final account = {'id': '123', 'name': 'Test Account', 'balance': 1000.50, 'type': 'Rachunek bieżący', 'currency': 'PLN'};
+      final account = Account(id: '123', name: 'Test Account', balance: 1000.50, type: 'Rachunek bieżący', currency: 'PLN');
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: AccountListItem(account: account, onDeleteRequest: () {}))));
 
@@ -15,7 +16,7 @@ void main() {
     });
 
     testWidgets('displays negative balance in red', (tester) async {
-      final account = {'id': '123', 'name': 'Debt Account', 'balance': -500.00, 'type': 'Kredytowa', 'currency': 'USD'};
+      final account = Account(id: '123', name: 'Debt Account', balance: -500.00, type: 'Kredytowa', currency: 'USD');
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: AccountListItem(account: account, onDeleteRequest: () {}))));
 
@@ -24,7 +25,7 @@ void main() {
     });
 
     testWidgets('calls onDeleteRequest when delete button pressed', (tester) async {
-      final account = {'id': '123', 'name': 'Test Account', 'balance': 100.00, 'type': 'Gotówka', 'currency': 'PLN'};
+      final account = Account(id: '123', name: 'Test Account', balance: 100.00, type: 'Gotówka', currency: 'PLN');
 
       var deleteRequestCalled = false;
 
@@ -48,7 +49,7 @@ void main() {
     });
 
     testWidgets('shows dismissible background with delete icon', (tester) async {
-      final account = {'id': '123', 'name': 'Test Account', 'balance': 100.00, 'type': 'Gotówka', 'currency': 'PLN'};
+      final account = Account(id: '123', name: 'Test Account', balance: 100.00, type: 'Gotówka', currency: 'PLN');
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: AccountListItem(account: account, onDeleteRequest: () {}, onDismissed: () {}))));
 

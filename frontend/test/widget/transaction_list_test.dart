@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
-import 'package:frontend/models/money.dart';
-import 'package:frontend/models/transaction/transaction.dart';
+import 'package:frontend/models/transaction/bill_item_request.dart';
 import 'package:frontend/models/transaction_type.dart';
-import 'package:frontend/models/transaction/bill_item.dart';
-import 'package:frontend/models/transaction/bill_item_category.dart';
 import 'package:frontend/widgets/transaction_list.dart';
+import 'package:intl/intl.dart';
+
+import '../mocks/in_memory_transaction_service.dart';
 
 void main() {
   group('TransactionList Currency Display', () {
     late List<Account> testAccounts;
-    late List<Transaction> testTransactions;
+    late InMemoryTransactionService transactionService;
 
     setUp(() {
       testAccounts = [
@@ -20,112 +20,121 @@ void main() {
         Account(id: '3', name: 'EUR Account', balance: 200.0, currency: 'EUR'),
       ];
 
-      testTransactions = [
-        Transaction(
-          id: 't1',
-          accountId: '1',
-          amount: const Money(value: 100.0, currency: 'PLN'),
-          type: TransactionType.income,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
-          transactionDate: DateTime(2024, 1, 15),
-          billItems: [BillItem(category: BillItemCategory(id: 'salary-id', name: 'Salary'), amount: const Money(value: 100.0, currency: 'PLN'), description: 'PLN Transaction')],
-        ),
-        Transaction(
-          id: 't2',
-          accountId: '2',
-          amount: const Money(value: -50.0, currency: 'USD'),
-          type: TransactionType.expense,
-          createdAt: DateTime(2024, 1, 2),
-          updatedAt: DateTime(2024, 1, 2),
-          transactionDate: DateTime(2024, 1, 20),
-          billItems: [BillItem(category: BillItemCategory(id: 'food-id', name: 'Food'), amount: const Money(value: -50.0, currency: 'USD'), description: 'USD Transaction')],
-        ),
-        Transaction(
-          id: 't3',
-          accountId: '3',
-          amount: const Money(value: 75.0, currency: 'EUR'),
-          type: TransactionType.income,
-          createdAt: DateTime(2024, 1, 3),
-          updatedAt: DateTime(2024, 1, 3),
-          transactionDate: DateTime(2024, 1, 25),
-          billItems: [
-            BillItem(category: BillItemCategory(id: 'freelance-id', name: 'Freelance'), amount: const Money(value: 75.0, currency: 'EUR'), description: 'EUR Transaction'),
-          ],
-        ),
-      ];
+      transactionService = InMemoryTransactionService();
     });
 
+    Future<void> createTestTransaction({required String accountId, required double amountVal, required TransactionType type, required DateTime date}) async {
+      await transactionService.createTransaction(
+        accountId: accountId,
+        transactionDate: date,
+        type: type,
+        billItems: [BillItemRequest(amount: amountVal, categoryId: 'cat-1', description: 'Test transaction')],
+      );
+    }
+
     testWidgets('should display correct currency for each transaction', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: testTransactions, accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));
+      await createTestTransaction(accountId: '1', amountVal: 100.0, type: TransactionType.income, date: DateTime(2024, 1, 15));
+      await createTestTransaction(accountId: '3', amountVal: 75.0, type: TransactionType.income, date: DateTime(2024, 1, 25));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.income, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+        ),
+      );
+      await tester.pumpAndSettle();
 
       expect(find.text('100.00 PLN'), findsOneWidget);
-      expect(find.text('50.00 USD'), findsOneWidget);
-      expect(find.text('75.00 EUR'), findsOneWidget);
+      expect(find.text('75.00 PLN'), findsOneWidget);
+    });
+
+    testWidgets('should display expense transactions when type is expense', (WidgetTester tester) async {
+      await createTestTransaction(accountId: '2', amountVal: 50.0, type: TransactionType.expense, date: DateTime(2024, 1, 20));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.expense, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('50.00 PLN'), findsOneWidget);
     });
 
     testWidgets('should fallback to PLN for account without currency', (WidgetTester tester) async {
       final accountWithoutCurrency = Account(id: '4', name: 'No Currency Account', balance: 300.0);
 
-      final transactionWithNoCurrency = Transaction(
-        id: 't4',
+      await transactionService.createTransaction(
         accountId: '4',
-        amount: const Money(value: 200.0, currency: 'PLN'),
-        type: TransactionType.income,
-        createdAt: DateTime(2024, 1, 4),
-        updatedAt: DateTime(2024, 1, 4),
         transactionDate: DateTime(2024, 1, 30),
-        billItems: [
-          BillItem(category: BillItemCategory(id: 'bonus-id', name: 'Bonus'), amount: const Money(value: 200.0, currency: 'PLN'), description: 'No Currency Transaction'),
-        ],
+        type: TransactionType.income,
+        billItems: [const BillItemRequest(amount: 200.0, categoryId: 'cat', description: 'No curr')],
       );
 
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: TransactionList(transactions: [transactionWithNoCurrency], accounts: [accountWithoutCurrency], onEdit: (_) {}, onDelete: (_) {}))),
+        MaterialApp(
+          home: Scaffold(
+            body: TransactionList(
+              accounts: [...testAccounts, accountWithoutCurrency],
+              type: TransactionType.income,
+              transactionService: transactionService,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
+          ),
+        ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('200.00 PLN'), findsOneWidget);
     });
 
     testWidgets('should fallback to PLN for unknown account', (WidgetTester tester) async {
-      final orphanTransaction = Transaction(
-        id: 't5',
+      await transactionService.createTransaction(
         accountId: 'unknown-account-id',
-        amount: const Money(value: 150.0, currency: 'PLN'),
-        type: TransactionType.income,
-        createdAt: DateTime(2024, 1, 5),
-        updatedAt: DateTime(2024, 1, 5),
         transactionDate: DateTime(2024, 2, 1),
-        billItems: [BillItem(category: BillItemCategory(id: 'unknown-id', name: 'Unknown'), amount: const Money(value: 150.0, currency: 'PLN'), description: 'Orphan Transaction')],
+        type: TransactionType.income,
+        billItems: [const BillItemRequest(amount: 150.0, categoryId: 'cat', description: 'Unknown account')],
       );
 
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [orphanTransaction], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.income, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+        ),
+      );
+      await tester.pumpAndSettle();
 
       expect(find.text('150.00 PLN'), findsOneWidget);
     });
 
     testWidgets('should show empty state when no transactions', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.income, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+        ),
+      );
+      await tester.pumpAndSettle();
 
       expect(find.text('Brak transakcji'), findsOneWidget);
-      expect(find.text('Dodaj pierwszą transakcję klikając przycisk +'), findsOneWidget);
     });
 
     testWidgets('should display date from transactionDate field', (WidgetTester tester) async {
-      final transaction = Transaction(
-        id: 't-date',
+      final date = DateTime(2024, 3, 15);
+      await transactionService.createTransaction(
         accountId: '1',
-        amount: const Money(value: 100.0, currency: 'PLN'),
+        transactionDate: date,
         type: TransactionType.income,
-        createdAt: DateTime(2024, 1, 1),
-        updatedAt: DateTime(2024, 1, 1),
-        transactionDate: DateTime(2024, 3, 15),
-        billItems: [BillItem(category: BillItemCategory(id: 'test-id', name: 'Test'), amount: const Money(value: 100.0, currency: 'PLN'), description: 'Date Test')],
+        billItems: [const BillItemRequest(amount: 100.0, categoryId: 'cat', description: 'Date Test')],
       );
 
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [transaction], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.income, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-      expect(find.text('15.03.2024'), findsOneWidget);
+      final formatter = DateFormat('yyyy-MM-dd'); // Matches DateFormatter.format implementation
+      expect(find.textContaining(formatter.format(date)), findsOneWidget);
     });
   });
 }

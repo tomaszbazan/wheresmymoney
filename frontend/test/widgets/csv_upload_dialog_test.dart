@@ -4,7 +4,7 @@ import 'package:frontend/models/account.dart';
 import 'package:frontend/services/csv_import_service.dart';
 import 'package:frontend/widgets/csv_upload_dialog.dart';
 
-import '../mocks/fake_auth_service.dart';
+import '../mocks/in_memory_csv_import_service.dart';
 
 void main() {
   group('CsvUploadDialog', () {
@@ -12,7 +12,7 @@ void main() {
     late List<Account> accounts;
 
     setUp(() {
-      csvImportService = CsvImportService(authService: FakeAuthService());
+      csvImportService = InMemoryCsvImportService();
       accounts = [
         Account(id: '1', name: 'Test Account 1', balance: 1000.0, currency: 'PLN', type: 'Checking', createdAt: DateTime.now(), updatedAt: DateTime.now()),
         Account(id: '2', name: 'Test Account 2', balance: 500.0, currency: 'EUR', type: 'Savings', createdAt: DateTime.now(), updatedAt: DateTime.now()),

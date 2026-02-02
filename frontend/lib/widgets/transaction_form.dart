@@ -3,6 +3,7 @@ import 'package:frontend/models/category_type.dart';
 import 'package:frontend/models/transaction_type.dart';
 
 import '../models/account.dart';
+import '../models/transaction/bill_item_request.dart';
 import '../models/transaction/transaction.dart';
 import '../services/transaction_service.dart';
 import '../utils/amount_validator.dart';
@@ -133,23 +134,21 @@ class _TransactionFormState extends State<TransactionForm> {
       final Transaction transaction;
 
       if (widget.transaction != null) {
-        List<Map<String, dynamic>> itemsPayload;
+        List<BillItemRequest> itemsPayload;
 
         if (_isBillMode) {
           itemsPayload =
               _billItems
                   .map(
-                    (item) => {
-                      'amount': double.parse(AmountValidator.normalize((item['amountController'] as TextEditingController).text)),
-                      'description': (item['descriptionController'] as TextEditingController).text,
-                      'categoryId': item['categoryId'],
-                    },
+                    (item) => BillItemRequest(
+                      amount: double.parse(AmountValidator.normalize((item['amountController'] as TextEditingController).text)),
+                      description: (item['descriptionController'] as TextEditingController).text,
+                      categoryId: item['categoryId'] as String?,
+                    ),
                   )
                   .toList();
         } else {
-          itemsPayload = [
-            {'amount': double.parse(normalizedAmount), 'description': _descriptionController.text, 'categoryId': _selectedCategoryId},
-          ];
+          itemsPayload = [BillItemRequest(amount: double.parse(normalizedAmount), description: _descriptionController.text, categoryId: _selectedCategoryId)];
         }
 
         transaction = await _transactionService.updateTransaction(
@@ -159,23 +158,21 @@ class _TransactionFormState extends State<TransactionForm> {
           transactionDate: _selectedDate,
         );
       } else {
-        List<Map<String, dynamic>> itemsPayload;
+        List<BillItemRequest> itemsPayload;
 
         if (_isBillMode) {
           itemsPayload =
               _billItems
                   .map(
-                    (item) => {
-                      'amount': double.parse(AmountValidator.normalize((item['amountController'] as TextEditingController).text)),
-                      'description': (item['descriptionController'] as TextEditingController).text,
-                      'categoryId': item['categoryId'],
-                    },
+                    (item) => BillItemRequest(
+                      amount: double.parse(AmountValidator.normalize((item['amountController'] as TextEditingController).text)),
+                      description: (item['descriptionController'] as TextEditingController).text,
+                      categoryId: item['categoryId'] as String?,
+                    ),
                   )
                   .toList();
         } else {
-          itemsPayload = [
-            {'amount': double.parse(normalizedAmount), 'description': _descriptionController.text, 'categoryId': _selectedCategoryId},
-          ];
+          itemsPayload = [BillItemRequest(amount: double.parse(normalizedAmount), description: _descriptionController.text, categoryId: _selectedCategoryId)];
         }
 
         transaction = await _transactionService.createTransaction(accountId: _selectedAccountId!, transactionDate: _selectedDate, type: _selectedType!, billItems: itemsPayload);
