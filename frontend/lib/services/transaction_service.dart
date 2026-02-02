@@ -15,18 +15,11 @@ abstract class TransactionService {
     required DateTime transactionDate,
     required TransactionType type,
     required List<Map<String, dynamic>> billItems,
-    required String currency,
   });
 
   Future<BulkCreateResponse> bulkCreateTransactions({required String accountId, required List<Map<String, dynamic>> transactions});
 
-  Future<Transaction> updateTransaction({
-    required String id,
-    required List<Map<String, dynamic>> billItems,
-    required String currency,
-    String? accountId,
-    DateTime? transactionDate,
-  });
+  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, String? accountId, DateTime? transactionDate});
 
   Future<void> deleteTransaction(String transactionId);
 }
@@ -46,23 +39,13 @@ class RestTransactionService implements TransactionService {
     required DateTime transactionDate,
     required TransactionType type,
     required List<Map<String, dynamic>> billItems,
-    required String currency,
   }) async {
     final Map<String, dynamic> transactionData = {
       'accountId': accountId,
       'transactionDate': transactionDate.toUtc().toIso8601String(),
       'type': type.name.toUpperCase(),
       'bill': {
-        'billItems':
-            billItems
-                .map(
-                  (item) => {
-                    'categoryId': item['categoryId'],
-                    'amount': {'value': item['amount'], 'currency': currency.toUpperCase()},
-                    'description': item['description'],
-                  },
-                )
-                .toList(),
+        'billItems': billItems.map((item) => {'categoryId': item['categoryId'], 'amount': item['amount'], 'description': item['description']}).toList(),
       },
     };
 
@@ -70,25 +53,10 @@ class RestTransactionService implements TransactionService {
   }
 
   @override
-  Future<Transaction> updateTransaction({
-    required String id,
-    required List<Map<String, dynamic>> billItems,
-    required String currency,
-    String? accountId,
-    DateTime? transactionDate,
-  }) async {
+  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, String? accountId, DateTime? transactionDate}) async {
     final Map<String, dynamic> transactionData = {
       'bill': {
-        'billItems':
-            billItems
-                .map(
-                  (item) => {
-                    'categoryId': item['categoryId'],
-                    'amount': {'value': item['amount'], 'currency': currency.toUpperCase()},
-                    'description': item['description'],
-                  },
-                )
-                .toList(),
+        'billItems': billItems.map((item) => {'categoryId': item['categoryId'], 'amount': item['amount'], 'description': item['description']}).toList(),
       },
       if (accountId != null) 'accountId': accountId,
       if (transactionDate != null) 'transactionDate': transactionDate.toUtc().toIso8601String(),

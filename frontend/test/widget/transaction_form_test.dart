@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
 import 'package:frontend/utils/amount_validator.dart';
+import 'package:frontend/models/money.dart';
+import 'package:frontend/models/transaction/transaction.dart';
+import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/widgets/transaction_form.dart';
 
 import '../mocks/in_memory_transaction_service.dart';
@@ -76,6 +79,58 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('EUR '), findsOneWidget);
+    });
+  });
+
+  group('TransactionForm Account Filtering', () {
+    late List<Account> testAccounts;
+    late InMemoryTransactionService transactionService;
+
+    setUp(() async {
+      await TestSetup.initializeSupabase();
+      transactionService = InMemoryTransactionService();
+      testAccounts = [
+        Account(id: '1', name: 'PLN Account', balance: 1000.0, currency: 'PLN'),
+        Account(id: '2', name: 'USD Account', balance: 500.0, currency: 'USD'),
+        Account(id: '3', name: 'EUR Account', balance: 200.0, currency: 'EUR'),
+      ];
+    });
+
+    testWidgets('should show all accounts when creating new transaction', (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionForm(accounts: testAccounts, onSaved: (_) {}, transactionService: transactionService))));
+
+      final dropdownFinder = find.byType(DropdownButtonFormField<String>).first;
+      await tester.tap(dropdownFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('PLN Account (PLN)'), findsWidgets);
+      expect(find.text('USD Account (USD)'), findsOneWidget);
+      expect(find.text('EUR Account (EUR)'), findsOneWidget);
+    });
+
+    testWidgets('should show only matching currency accounts when editing transaction', (WidgetTester tester) async {
+      final transaction = Transaction(
+        id: 'tx1',
+        accountId: '2', // USD Account
+        amount: const Money(value: 100, currency: 'USD'),
+        type: TransactionType.expense,
+        billItems: [],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        transactionDate: DateTime.now(),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: TransactionForm(accounts: testAccounts, transaction: transaction, onSaved: (_) {}, transactionService: transactionService))),
+      );
+
+      final dropdownFinder = find.byType(DropdownButtonFormField<String>).first;
+      await tester.tap(dropdownFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('USD Account (USD)'), findsWidgets);
+      expect(find.text('PLN Account (PLN)'), findsNothing);
+      expect(find.text('EUR Account (EUR)'), findsNothing);
     });
   });
 }

@@ -14,7 +14,7 @@ import pl.btsoftware.backend.transaction.domain.Transaction;
 public record TransactionView(
         UUID id,
         UUID accountId,
-        Money money,
+        Money amount,
         String type,
         BillView bill,
         LocalDate transactionDate,

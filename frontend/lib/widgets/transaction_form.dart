@@ -114,7 +114,9 @@ class _TransactionFormState extends State<TransactionForm> {
 
   void _updateCurrencyFromAccount() {
     if (_selectedAccountId != null) {
-      final selectedAccount = widget.accounts.firstWhere((account) => account.id == _selectedAccountId, orElse: () => widget.accounts.first);
+      final availableAccounts = widget.transaction != null ? widget.accounts.where((account) => account.currency == widget.transaction!.amount.currency).toList() : widget.accounts;
+
+      final selectedAccount = availableAccounts.firstWhere((account) => account.id == _selectedAccountId, orElse: () => availableAccounts.first);
       _selectedCurrency = selectedAccount.currency ?? 'PLN';
     }
   }
@@ -153,7 +155,6 @@ class _TransactionFormState extends State<TransactionForm> {
         transaction = await _transactionService.updateTransaction(
           id: widget.transaction!.id,
           billItems: itemsPayload,
-          currency: _selectedCurrency,
           accountId: _selectedAccountId,
           transactionDate: _selectedDate,
         );
@@ -177,13 +178,7 @@ class _TransactionFormState extends State<TransactionForm> {
           ];
         }
 
-        transaction = await _transactionService.createTransaction(
-          accountId: _selectedAccountId!,
-          transactionDate: _selectedDate,
-          type: _selectedType!,
-          billItems: itemsPayload,
-          currency: _selectedCurrency,
-        );
+        transaction = await _transactionService.createTransaction(accountId: _selectedAccountId!, transactionDate: _selectedDate, type: _selectedType!, billItems: itemsPayload);
       }
 
       widget.onSaved(transaction);
@@ -262,7 +257,7 @@ class _TransactionFormState extends State<TransactionForm> {
                   initialValue: _selectedAccountId,
                   decoration: const InputDecoration(labelText: 'Konto', border: OutlineInputBorder()),
                   items:
-                      widget.accounts.map((account) {
+                      (widget.transaction != null ? widget.accounts.where((account) => account.currency == widget.transaction!.amount.currency) : widget.accounts).map((account) {
                         return DropdownMenuItem(value: account.id, child: Text('${account.name} (${account.currency})'));
                       }).toList(),
                   onChanged: (value) {

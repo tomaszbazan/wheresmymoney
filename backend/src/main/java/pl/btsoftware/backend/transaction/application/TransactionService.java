@@ -70,13 +70,13 @@ public class TransactionService {
         var newAccountId = command.accountId();
         var newAccount = accountModuleFacade.getAccount(newAccountId, user.groupId());
 
+        validateCurrencyMatch(
+                oldTransaction.amount().currency(), newAccount.balance().currency());
+
         var bill = command.bill().toDomain(newAccount.balance().currency());
 
         var categoryIds = bill.categories();
         validateCategoriesExist(categoryIds, user.groupId());
-
-        validateCurrencyMatch(
-                bill.totalAmount().currency(), newAccount.balance().currency());
 
         var updatedTransaction = oldTransaction.updateBill(bill, newAccountId, command.transactionDate(), userId);
         transactionRepository.store(updatedTransaction);

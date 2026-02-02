@@ -109,8 +109,7 @@ void main() {
         expect(body['transactionDate'], isNotNull);
         expect(body['bill']['billItems'], hasLength(1));
         expect(body['bill']['billItems'][0]['categoryId'], 'cat-1');
-        expect(body['bill']['billItems'][0]['amount']['value'], 100.0);
-        expect(body['bill']['billItems'][0]['amount']['currency'], 'PLN');
+        expect(body['bill']['billItems'][0]['amount'], 100.0);
         expect(body['bill']['billItems'][0]['description'], 'Test transaction');
 
         return http.Response(
@@ -145,7 +144,6 @@ void main() {
         billItems: [
           {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test transaction'},
         ],
-        currency: 'pln',
       );
 
       expect(transaction.id, 'new-trans-id');
@@ -156,7 +154,6 @@ void main() {
       final mockClient = MockClient((request) async {
         final body = jsonDecode(request.body) as Map<String, dynamic>;
         expect(body['type'], 'EXPENSE');
-        expect(body['bill']['billItems'][0]['amount']['currency'], 'USD');
 
         return http.Response(
           jsonEncode({
@@ -190,7 +187,6 @@ void main() {
         billItems: [
           {'categoryId': 'cat-1', 'amount': 50.0, 'description': 'Coffee'},
         ],
-        currency: 'usd',
       );
     });
 
@@ -209,7 +205,6 @@ void main() {
           billItems: [
             {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test'},
           ],
-          currency: 'pln',
         ),
         throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 422)),
       );
@@ -223,8 +218,7 @@ void main() {
 
         final body = jsonDecode(request.body) as Map<String, dynamic>;
         expect(body['bill']['billItems'], hasLength(1));
-        expect(body['bill']['billItems'][0]['amount']['value'], 150.0);
-        expect(body['bill']['billItems'][0]['amount']['currency'], 'EUR');
+        expect(body['bill']['billItems'][0]['amount'], 150.0);
         expect(body['bill']['billItems'][0]['description'], 'Updated description');
         expect(body['bill']['billItems'][0]['categoryId'], 'cat-2');
 
@@ -258,50 +252,10 @@ void main() {
         billItems: [
           {'categoryId': 'cat-2', 'amount': 150.0, 'description': 'Updated description'},
         ],
-        currency: 'eur',
       );
 
       expect(transaction.id, 'trans-123');
       expect(transaction.description, 'Updated description');
-    });
-
-    test('updateTransaction converts currency to uppercase', () async {
-      final mockClient = MockClient((request) async {
-        final body = jsonDecode(request.body) as Map<String, dynamic>;
-        expect(body['bill']['billItems'][0]['amount']['currency'], 'GBP');
-
-        return http.Response(
-          jsonEncode({
-            'id': 'trans-id',
-            'accountId': 'acc-1',
-            'amount': {'value': 100.0, 'currency': 'GBP'},
-            'type': 'INCOME',
-            'bill': {
-              'items': [
-                {
-                  'category': {'id': 'cat-1', 'name': 'Category'},
-                  'amount': {'value': 100.0, 'currency': 'GBP'},
-                  'description': 'Test',
-                },
-              ],
-            },
-            'createdAt': '2024-01-01T00:00:00Z',
-            'updatedAt': '2024-01-01T00:00:00Z',
-            'transactionDate': '2024-01-01',
-          }),
-          200,
-        );
-      });
-
-      final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
-
-      await transactionService.updateTransaction(
-        id: 'trans-id',
-        billItems: [
-          {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test'},
-        ],
-        currency: 'gbp',
-      );
     });
 
     test('updateTransaction throws HttpException on error', () async {
@@ -317,7 +271,6 @@ void main() {
           billItems: [
             {'categoryId': 'cat-1', 'amount': 100.0, 'description': 'Test'},
           ],
-          currency: 'pln',
         ),
         throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 404)),
       );

@@ -7,7 +7,7 @@ import pl.btsoftware.backend.shared.CategoryId;
 import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.transaction.domain.BillItem;
 
-public record BillItemView(UUID id, CategoryView category, Money money, String description) {
+public record BillItemView(UUID id, CategoryView category, Money amount, String description) {
     public static BillItemView from(BillItem item, Function<CategoryId, Category> categoryMapper) {
         var category = categoryMapper.apply(item.categoryId());
         return new BillItemView(item.id().value(), CategoryView.from(category), item.amount(), item.description());

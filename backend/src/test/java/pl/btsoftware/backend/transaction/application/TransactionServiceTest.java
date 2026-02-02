@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static pl.btsoftware.backend.shared.Currency.EUR;
 import static pl.btsoftware.backend.shared.Currency.PLN;
 
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
+import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
 import pl.btsoftware.backend.transaction.infrastructure.persistance.InMemoryTransactionRepository;
 import pl.btsoftware.backend.users.UsersModuleFacade;
@@ -799,6 +801,32 @@ class TransactionServiceTest {
         // Verify account balance unchanged: +100 +200 = 300
         var updatedAccount = accountModuleFacade.getAccount(account.id(), userId);
         assertThat(updatedAccount.balance().value()).isEqualTo(new BigDecimal("300.00"));
+    }
+
+    @Test
+    void shouldRejectUpdateToAccountWithDifferentCurrency() {
+        // Given
+        var userId = UserId.generate();
+        var createAccountCommand1 = new CreateAccountCommand("Account PLN", PLN, userId);
+        var accountPLN = accountModuleFacade.createAccount(createAccountCommand1);
+        var createAccountCommand2 = new CreateAccountCommand("Account EUR", EUR, userId);
+        var accountEUR = accountModuleFacade.createAccount(createAccountCommand2);
+        var amount = new BigDecimal("100.00");
+        var categoryId = CategoryId.generate();
+
+        var billItem = new BillItemCommand(categoryId, amount, "Test transaction");
+        var billCommand = new BillCommand(List.of(billItem));
+        var createCommand = new CreateTransactionCommand(
+                accountPLN.id(), LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, billCommand, userId);
+        var transaction = transactionService.createTransaction(createCommand);
+
+        var billItems = List.of(new BillItemCommand(categoryId, amount, "Test transaction"));
+        var updateCommand = new UpdateTransactionCommand(
+                transaction.id(), new BillCommand(billItems), accountEUR.id(), transaction.transactionDate());
+
+        // When & Then
+        assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
+                .isInstanceOf(TransactionCurrencyMismatchException.class);
     }
 
     @Test

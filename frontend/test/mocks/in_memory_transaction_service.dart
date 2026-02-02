@@ -34,7 +34,6 @@ class InMemoryTransactionService implements TransactionService {
     required DateTime transactionDate,
     required TransactionType type,
     required List<Map<String, dynamic>> billItems,
-    required String currency,
   }) async {
     if (_apiError != null) {
       throw _apiError!;
@@ -49,7 +48,7 @@ class InMemoryTransactionService implements TransactionService {
           totalAmount += amount;
           return BillItem(
             category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'),
-            amount: Money(value: amount, currency: currency),
+            amount: Money(value: amount, currency: 'PLN'),
             description: item['description'] as String,
           );
         }).toList();
@@ -57,7 +56,7 @@ class InMemoryTransactionService implements TransactionService {
     final transaction = Transaction(
       id: id,
       accountId: accountId,
-      amount: Money(value: totalAmount, currency: currency),
+      amount: Money(value: totalAmount, currency: 'PLN'),
       createdAt: transactionDate,
       updatedAt: transactionDate,
       transactionDate: transactionDate,
@@ -69,13 +68,7 @@ class InMemoryTransactionService implements TransactionService {
   }
 
   @override
-  Future<Transaction> updateTransaction({
-    required String id,
-    required List<Map<String, dynamic>> billItems,
-    required String currency,
-    String? accountId,
-    DateTime? transactionDate,
-  }) async {
+  Future<Transaction> updateTransaction({required String id, required List<Map<String, dynamic>> billItems, String? accountId, DateTime? transactionDate}) async {
     if (_apiError != null) {
       throw _apiError!;
     }
@@ -92,7 +85,7 @@ class InMemoryTransactionService implements TransactionService {
           totalAmount += amount;
           return BillItem(
             category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'),
-            amount: Money(value: amount, currency: currency),
+            amount: Money(value: amount, currency: 'PLN'),
             description: item['description'] as String,
           );
         }).toList();
@@ -100,7 +93,7 @@ class InMemoryTransactionService implements TransactionService {
     final updatedTransaction = Transaction(
       id: id,
       accountId: accountId ?? existingTransaction.accountId,
-      amount: Money(value: totalAmount, currency: currency),
+      amount: Money(value: totalAmount, currency: 'PLN'),
       createdAt: existingTransaction.createdAt,
       updatedAt: DateTime.now(),
       transactionDate: transactionDate ?? existingTransaction.transactionDate,
