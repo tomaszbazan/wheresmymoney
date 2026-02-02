@@ -16,11 +16,6 @@ class TransactionList extends StatelessWidget {
     return account.name;
   }
 
-  String _getAccountCurrency(String accountId) {
-    final account = accounts.firstWhere((a) => a.id == accountId, orElse: () => Account(id: accountId, name: 'Nieznane konto', balance: 0.0));
-    return account.currency ?? 'PLN';
-  }
-
   @override
   Widget build(BuildContext context) {
     if (transactions.isEmpty) {
@@ -66,10 +61,7 @@ class TransactionList extends StatelessWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '${transaction.amount.abs().toStringAsFixed(2)} ${_getAccountCurrency(transaction.accountId)}',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isIncome ? Colors.green[700] : Colors.red[700]),
-                ),
+                Text(transaction.amount.toString(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isIncome ? Colors.green[700] : Colors.red[700])),
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     switch (value) {

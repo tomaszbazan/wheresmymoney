@@ -37,7 +37,7 @@ public class TransactionService {
         var account = accountModuleFacade.getAccount(command.accountId(), user.groupId());
 
         var auditInfo = AuditInfo.create(command.userId(), user.groupId());
-        var transaction = command.toDomain(auditInfo);
+        var transaction = command.toDomain(auditInfo, account.balance().currency());
 
         validateCurrencyMatch(transaction.amount().currency(), account.balance().currency());
 
@@ -67,13 +67,14 @@ public class TransactionService {
         var user = usersModuleFacade.findUserOrThrow(userId);
         var oldTransaction = getTransactionById(command.transactionId(), user.groupId());
 
-        var bill = command.bill().toDomain();
+        var newAccountId = command.accountId();
+        var newAccount = accountModuleFacade.getAccount(newAccountId, user.groupId());
+
+        var bill = command.bill().toDomain(newAccount.balance().currency());
 
         var categoryIds = bill.categories();
         validateCategoriesExist(categoryIds, user.groupId());
 
-        var newAccountId = command.accountId();
-        var newAccount = accountModuleFacade.getAccount(newAccountId, user.groupId());
         validateCurrencyMatch(
                 bill.totalAmount().currency(), newAccount.balance().currency());
 
@@ -116,7 +117,6 @@ public class TransactionService {
         }
 
         var account = accountModuleFacade.getAccount(accountId, user.groupId());
-        validateCurrencyForAllCommands(transactions, account.balance().currency());
 
         var auditInfo = AuditInfo.create(userId.value(), user.groupId().value());
         var allTransactions = transactions.stream()
@@ -125,7 +125,8 @@ public class TransactionService {
                             .map(BillItemCommand::categoryId)
                             .collect(Collectors.toSet());
                     validateCategoriesExist(categoryIds, user.groupId());
-                    return createTransactionCommand.toDomain(auditInfo);
+                    return createTransactionCommand.toDomain(
+                            auditInfo, account.balance().currency());
                 })
                 .toList();
 
@@ -148,13 +149,6 @@ public class TransactionService {
         }
 
         return BulkCreateResult.of(savedIds, duplicateCount);
-    }
-
-    private void validateCurrencyForAllCommands(List<CreateTransactionCommand> commands, Currency accountCurrency) {
-        for (var command : commands) {
-            var bill = command.billCommand().toDomain();
-            validateCurrencyMatch(bill.totalAmount().currency(), accountCurrency);
-        }
     }
 
     private void validateCurrencyMatch(Currency transactionCurrency, Currency accountCurrency) {

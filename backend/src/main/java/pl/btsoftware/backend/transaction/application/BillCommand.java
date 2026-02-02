@@ -1,6 +1,7 @@
 package pl.btsoftware.backend.transaction.application;
 
 import java.util.List;
+import pl.btsoftware.backend.shared.Currency;
 import pl.btsoftware.backend.transaction.domain.Bill;
 import pl.btsoftware.backend.transaction.domain.BillId;
 
@@ -9,10 +10,10 @@ public record BillCommand(List<BillItemCommand> billItems) {
         billItems = List.copyOf(billItems);
     }
 
-    public Bill toDomain() {
+    public Bill toDomain(Currency currency) {
         return new Bill(
                 BillId.generate(),
-                billItems.stream().map(BillItemCommand::toDomain).toList());
+                billItems.stream().map(item -> item.toDomain(currency)).toList());
     }
 
     public List<String> billItemsDescription() {

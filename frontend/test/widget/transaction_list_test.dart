@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
+import 'package:frontend/models/money.dart';
 import 'package:frontend/models/transaction/transaction.dart';
 import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/models/transaction/bill_item.dart';
@@ -23,32 +24,34 @@ void main() {
         Transaction(
           id: 't1',
           accountId: '1',
-          amount: 100.0,
+          amount: const Money(value: 100.0, currency: 'PLN'),
           type: TransactionType.income,
           createdAt: DateTime(2024, 1, 1),
           updatedAt: DateTime(2024, 1, 1),
           transactionDate: DateTime(2024, 1, 15),
-          billItems: [BillItem(category: BillItemCategory(id: 'salary-id', name: 'Salary'), amount: 100.0, description: 'PLN Transaction')],
+          billItems: [BillItem(category: BillItemCategory(id: 'salary-id', name: 'Salary'), amount: const Money(value: 100.0, currency: 'PLN'), description: 'PLN Transaction')],
         ),
         Transaction(
           id: 't2',
           accountId: '2',
-          amount: -50.0,
+          amount: const Money(value: -50.0, currency: 'USD'),
           type: TransactionType.expense,
           createdAt: DateTime(2024, 1, 2),
           updatedAt: DateTime(2024, 1, 2),
           transactionDate: DateTime(2024, 1, 20),
-          billItems: [BillItem(category: BillItemCategory(id: 'food-id', name: 'Food'), amount: -50.0, description: 'USD Transaction')],
+          billItems: [BillItem(category: BillItemCategory(id: 'food-id', name: 'Food'), amount: const Money(value: -50.0, currency: 'USD'), description: 'USD Transaction')],
         ),
         Transaction(
           id: 't3',
           accountId: '3',
-          amount: 75.0,
+          amount: const Money(value: 75.0, currency: 'EUR'),
           type: TransactionType.income,
           createdAt: DateTime(2024, 1, 3),
           updatedAt: DateTime(2024, 1, 3),
           transactionDate: DateTime(2024, 1, 25),
-          billItems: [BillItem(category: BillItemCategory(id: 'freelance-id', name: 'Freelance'), amount: 75.0, description: 'EUR Transaction')],
+          billItems: [
+            BillItem(category: BillItemCategory(id: 'freelance-id', name: 'Freelance'), amount: const Money(value: 75.0, currency: 'EUR'), description: 'EUR Transaction'),
+          ],
         ),
       ];
     });
@@ -67,12 +70,14 @@ void main() {
       final transactionWithNoCurrency = Transaction(
         id: 't4',
         accountId: '4',
-        amount: 200.0,
+        amount: const Money(value: 200.0, currency: 'PLN'),
         type: TransactionType.income,
         createdAt: DateTime(2024, 1, 4),
         updatedAt: DateTime(2024, 1, 4),
         transactionDate: DateTime(2024, 1, 30),
-        billItems: [BillItem(category: BillItemCategory(id: 'bonus-id', name: 'Bonus'), amount: 200.0, description: 'No Currency Transaction')],
+        billItems: [
+          BillItem(category: BillItemCategory(id: 'bonus-id', name: 'Bonus'), amount: const Money(value: 200.0, currency: 'PLN'), description: 'No Currency Transaction'),
+        ],
       );
 
       await tester.pumpWidget(
@@ -86,12 +91,12 @@ void main() {
       final orphanTransaction = Transaction(
         id: 't5',
         accountId: 'unknown-account-id',
-        amount: 150.0,
+        amount: const Money(value: 150.0, currency: 'PLN'),
         type: TransactionType.income,
         createdAt: DateTime(2024, 1, 5),
         updatedAt: DateTime(2024, 1, 5),
         transactionDate: DateTime(2024, 2, 1),
-        billItems: [BillItem(category: BillItemCategory(id: 'unknown-id', name: 'Unknown'), amount: 150.0, description: 'Orphan Transaction')],
+        billItems: [BillItem(category: BillItemCategory(id: 'unknown-id', name: 'Unknown'), amount: const Money(value: 150.0, currency: 'PLN'), description: 'Orphan Transaction')],
       );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [orphanTransaction], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));
@@ -110,12 +115,12 @@ void main() {
       final transaction = Transaction(
         id: 't-date',
         accountId: '1',
-        amount: 100.0,
+        amount: const Money(value: 100.0, currency: 'PLN'),
         type: TransactionType.income,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
         transactionDate: DateTime(2024, 3, 15),
-        billItems: [BillItem(category: BillItemCategory(id: 'test-id', name: 'Test'), amount: 100.0, description: 'Date Test')],
+        billItems: [BillItem(category: BillItemCategory(id: 'test-id', name: 'Test'), amount: const Money(value: 100.0, currency: 'PLN'), description: 'Date Test')],
       );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: TransactionList(transactions: [transaction], accounts: testAccounts, onEdit: (_) {}, onDelete: (_) {}))));

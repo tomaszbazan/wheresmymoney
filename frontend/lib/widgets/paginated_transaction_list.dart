@@ -166,7 +166,7 @@ class _TransactionListState extends State<TransactionList> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Konto: ${_getAccountName(transaction.accountId)}'),
+            Text('Konto: ${_getAccountName(transaction.accountId)} (${_getAccountCurrency(transaction.accountId)})'),
             Text('Kategoria: ${transaction.categoryName ?? transaction.categoryId}'),
             Text(
               '${transaction.transactionDate.day}.${transaction.transactionDate.month.toString().padLeft(2, '0')}.${transaction.transactionDate.year}',
@@ -177,10 +177,7 @@ class _TransactionListState extends State<TransactionList> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '${transaction.amount.abs().toStringAsFixed(2)} ${_getAccountCurrency(transaction.accountId)}',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isIncome ? Colors.green[700] : Colors.red[700]),
-            ),
+            Text(transaction.amount.toString(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isIncome ? Colors.green[700] : Colors.red[700])),
             PopupMenuButton<String>(
               onSelected: (value) {
                 switch (value) {

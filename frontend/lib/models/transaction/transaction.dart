@@ -1,10 +1,11 @@
 import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/models/transaction/bill_item.dart';
+import 'package:frontend/models/money.dart';
 
 class Transaction {
   final String id;
   final String accountId;
-  final double amount;
+  final Money amount;
   final TransactionType type;
   final List<BillItem> billItems;
   final DateTime createdAt;
@@ -31,7 +32,7 @@ class Transaction {
     return Transaction(
       id: json['id'] as String,
       accountId: json['accountId'] as String,
-      amount: (json['amount'] as num).toDouble(),
+      amount: Money.fromJson(json['amount'] as Map<String, dynamic>),
       type: json['type'] as String == 'INCOME' ? TransactionType.income : TransactionType.expense,
       billItems: billItems,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -44,8 +45,8 @@ class Transaction {
     return {
       'id': id,
       'accountId': accountId,
-      'amount': amount,
-      'type': type, // Enum serialization might differ, checking original
+      'amount': amount.toJson(),
+      'type': type,
       'bill': {'items': billItems.map((e) => e.toJson()).toList()},
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),

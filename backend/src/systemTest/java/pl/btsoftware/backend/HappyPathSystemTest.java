@@ -159,7 +159,7 @@ public class HappyPathSystemTest {
     private void updateExpenseTransaction(Transaction transaction, UserId userId) {
         var billItem = new BillItemCommand(
                 transaction.bill().items().getFirst().categoryId(),
-                Money.of(new BigDecimal("200.00"), PLN),
+                new BigDecimal("200.00"),
                 "Weekly shopping - updated");
         var command = new UpdateTransactionCommand(
                 transaction.id(),

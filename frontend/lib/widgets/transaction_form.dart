@@ -45,7 +45,7 @@ class _TransactionFormState extends State<TransactionForm> {
 
     _transactionService = widget.transactionService ?? RestTransactionService();
 
-    _amountController = TextEditingController(text: widget.transaction?.amount.abs().toStringAsFixed(2) ?? '');
+    _amountController = TextEditingController(text: widget.transaction?.amount.value.abs().toStringAsFixed(2) ?? '');
     _descriptionController = TextEditingController(text: widget.transaction?.description ?? '');
 
     if (widget.transaction != null) {
@@ -57,7 +57,7 @@ class _TransactionFormState extends State<TransactionForm> {
         if (widget.transaction!.billItems.length > 1) {
           _isBillMode = true;
           for (var item in widget.transaction!.billItems) {
-            final amountController = TextEditingController(text: item.amount.toStringAsFixed(2));
+            final amountController = TextEditingController(text: item.amount.value.toStringAsFixed(2));
             amountController.addListener(() => setState(() {}));
 
             _billItems.add({'amountController': amountController, 'descriptionController': TextEditingController(text: item.description), 'categoryId': item.category.id});
@@ -65,7 +65,7 @@ class _TransactionFormState extends State<TransactionForm> {
         } else {
           // Single item - map to simple mode fields
           var item = widget.transaction!.billItems.first;
-          _amountController.text = item.amount.toStringAsFixed(2);
+          _amountController.text = item.amount.value.toStringAsFixed(2);
           _descriptionController.text = item.description;
           _selectedCategoryId = item.category.id;
         }

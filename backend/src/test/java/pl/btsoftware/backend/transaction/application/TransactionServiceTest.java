@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static pl.btsoftware.backend.shared.Currency.PLN;
-import static pl.btsoftware.backend.shared.Currency.USD;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,7 +27,6 @@ import pl.btsoftware.backend.shared.*;
 import pl.btsoftware.backend.transaction.TransactionQueryFacade;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
-import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
 import pl.btsoftware.backend.transaction.infrastructure.persistance.InMemoryTransactionRepository;
 import pl.btsoftware.backend.users.UsersModuleFacade;
@@ -81,7 +79,7 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // When
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         Transaction transaction = transactionService.createTransaction(command);
@@ -121,7 +119,7 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // When
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         Transaction transaction = transactionService.createTransaction(command);
@@ -159,7 +157,7 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // When & Then
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(nonExistentAccountId, date, type, billCommand, UserId.generate());
         assertThatThrownBy(() -> transactionService.createTransaction(command))
@@ -186,7 +184,7 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // When
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         var transaction = transactionService.createTransaction(command);
@@ -212,7 +210,7 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // When
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         var transaction = transactionService.createTransaction(command);
@@ -238,39 +236,12 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // When & Then
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
                 .isInstanceOf(pl.btsoftware.backend.transaction.domain.error.BillItemDescriptionTooLongException.class)
                 .hasMessageContaining("Bill item description cannot exceed 100 characters");
-
-        // Verify no transaction was created
-        assertThat(transactionRepository
-                        .findAll(testGroupId, Pageable.ofSize(20))
-                        .getContent())
-                .isEmpty();
-    }
-
-    @Test
-    void shouldRejectTransactionWithCurrencyMismatch() {
-        // Given
-        var userId = UserId.generate();
-        var createAccountCommand = new CreateAccountCommand("Test Account", PLN, userId);
-        var account = accountModuleFacade.createAccount(createAccountCommand);
-        var amount = new BigDecimal("100.00");
-        var description = "Test transaction";
-        var date = LocalDate.of(2024, 1, 15);
-        var type = TransactionType.INCOME;
-        var categoryId = CategoryId.generate();
-
-        // When & Then
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, USD), description);
-        var billCommand = new BillCommand(List.of(billItem));
-        var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(TransactionCurrencyMismatchException.class)
-                .hasMessageContaining("Transaction currency (USD) must match account currency (PLN)");
 
         // Verify no transaction was created
         assertThat(transactionRepository
@@ -290,7 +261,7 @@ class TransactionServiceTest {
         var date = LocalDate.of(2024, 1, 15);
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         var createdTransaction = transactionService.createTransaction(command);
@@ -328,12 +299,12 @@ class TransactionServiceTest {
         var categoryId1 = CategoryId.generate();
         var categoryId2 = CategoryId.generate();
 
-        var billItem1 = new BillItemCommand(categoryId1, Money.of(new BigDecimal("1000.00"), PLN), "Salary");
+        var billItem1 = new BillItemCommand(categoryId1, new BigDecimal("1000.00"), "Salary");
         var billCommand1 = new BillCommand(List.of(billItem1));
         var command1 = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 15), TransactionType.INCOME, billCommand1, userId);
 
-        var billItem2 = new BillItemCommand(categoryId2, Money.of(new BigDecimal("250.50"), PLN), "Groceries");
+        var billItem2 = new BillItemCommand(categoryId2, new BigDecimal("250.50"), "Groceries");
         var billCommand2 = new BillCommand(List.of(billItem2));
         var command2 = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 16), TransactionType.EXPENSE, billCommand2, userId);
@@ -359,14 +330,14 @@ class TransactionServiceTest {
         var initialAmount = new BigDecimal("500.00");
         var categoryId = CategoryId.generate();
 
-        var billItem = new BillItemCommand(categoryId, Money.of(initialAmount, PLN), "Initial transaction");
+        var billItem = new BillItemCommand(categoryId, initialAmount, "Initial transaction");
         var billCommand = new BillCommand(List.of(billItem));
         var createCommand = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 15), TransactionType.INCOME, billCommand, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newAmount = Money.of(new BigDecimal("750.00"), PLN);
-        var billItems = List.of(new BillItemCommand(categoryId, newAmount, "Initial transaction"));
+        var billItems = List.of(new BillItemCommand(categoryId, new BigDecimal("750.00"), "Initial transaction"));
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(), new BillCommand(billItems), account.id(), createCommand.transactionDate());
 
@@ -394,14 +365,14 @@ class TransactionServiceTest {
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
 
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), "Original description");
+        var billItem = new BillItemCommand(categoryId, amount, "Original description");
         var billCommand = new BillCommand(List.of(billItem));
         var createCommand = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 15), TransactionType.INCOME, billCommand, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newDescription = "Updated description";
-        var billItems = List.of(new BillItemCommand(categoryId, Money.of(amount, PLN), newDescription));
+        var billItems = List.of(new BillItemCommand(categoryId, amount, newDescription));
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(), new BillCommand(billItems), account.id(), transaction.transactionDate());
 
@@ -429,14 +400,14 @@ class TransactionServiceTest {
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
 
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction");
+        var billItem = new BillItemCommand(categoryId, amount, "Test transaction");
         var billCommand = new BillCommand(List.of(billItem));
         var createCommand = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, billCommand, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newCategoryId = CategoryId.generate();
-        var billItems = List.of(new BillItemCommand(newCategoryId, Money.of(amount, PLN), "Test transaction"));
+        var billItems = List.of(new BillItemCommand(newCategoryId, amount, "Test transaction"));
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(), new BillCommand(billItems), account.id(), createCommand.transactionDate());
 
@@ -459,8 +430,8 @@ class TransactionServiceTest {
     void shouldRejectUpdateForNonexistentTransaction() {
         // Given
         var nonExistentTransactionId = TransactionId.generate();
-        var billItems = List.of(new BillItemCommand(
-                CategoryId.generate(), Money.of(new BigDecimal("100.00"), PLN), "Updated description"));
+        var billItems =
+                List.of(new BillItemCommand(CategoryId.generate(), new BigDecimal("100.00"), "Updated description"));
         var updateCommand = new UpdateTransactionCommand(
                 nonExistentTransactionId, new BillCommand(billItems), AccountId.generate(), LocalDate.now());
 
@@ -481,13 +452,13 @@ class TransactionServiceTest {
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
 
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction");
+        var billItem = new BillItemCommand(categoryId, amount, "Test transaction");
         var billCommand = new BillCommand(List.of(billItem));
         var createCommand = new CreateTransactionCommand(
                 account1.id(), LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, billCommand, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
-        var billItems = List.of(new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction"));
+        var billItems = List.of(new BillItemCommand(categoryId, amount, "Test transaction"));
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(), new BillCommand(billItems), account2.id(), transaction.transactionDate());
 
@@ -518,14 +489,14 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
         var originalDate = LocalDate.of(2024, 1, 15);
 
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction");
+        var billItem = new BillItemCommand(categoryId, amount, "Test transaction");
         var billCommand = new BillCommand(List.of(billItem));
         var createCommand =
                 new CreateTransactionCommand(account.id(), originalDate, TransactionType.EXPENSE, billCommand, userId);
         var transaction = transactionService.createTransaction(createCommand);
 
         var newDate = LocalDate.of(2024, 2, 20);
-        var billItems = List.of(new BillItemCommand(categoryId, Money.of(amount, PLN), "Test transaction"));
+        var billItems = List.of(new BillItemCommand(categoryId, amount, "Test transaction"));
         var updateCommand =
                 new UpdateTransactionCommand(transaction.id(), new BillCommand(billItems), account.id(), newDate);
 
@@ -551,7 +522,7 @@ class TransactionServiceTest {
         var amount = new BigDecimal("100.00");
         var categoryId = CategoryId.generate();
 
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), "Transaction to delete");
+        var billItem = new BillItemCommand(categoryId, amount, "Transaction to delete");
         var billCommand = new BillCommand(List.of(billItem));
         var createCommand = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 15), TransactionType.EXPENSE, billCommand, userId);
@@ -601,7 +572,7 @@ class TransactionServiceTest {
         when(categoryQueryFacade.allCategoriesExists(any(), any())).thenReturn(false);
 
         // When & Then
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
@@ -628,7 +599,7 @@ class TransactionServiceTest {
         when(categoryQueryFacade.allCategoriesExists(any(), any())).thenReturn(false);
 
         // When & Then
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         assertThatThrownBy(() -> transactionService.createTransaction(command))
@@ -655,7 +626,7 @@ class TransactionServiceTest {
         when(categoryQueryFacade.allCategoriesExists(any(), any())).thenReturn(true);
 
         // When
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         var transaction = transactionService.createTransaction(command);
@@ -680,13 +651,13 @@ class TransactionServiceTest {
         var type = TransactionType.INCOME;
         var categoryId = CategoryId.generate();
 
-        var billItem1 = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem1 = new BillItemCommand(categoryId, amount, description);
         var billCommand1 = new BillCommand(List.of(billItem1));
         var command1 = new CreateTransactionCommand(account.id(), date, type, billCommand1, userId);
         transactionService.createTransaction(command1);
 
         // When - different description makes it non-duplicate
-        var billItem2 = new BillItemCommand(categoryId, Money.of(amount, PLN), "Second transaction");
+        var billItem2 = new BillItemCommand(categoryId, amount, "Second transaction");
         var billCommand2 = new BillCommand(List.of(billItem2));
         var command2 = new CreateTransactionCommand(account.id(), date, type, billCommand2, userId);
         var transaction2 = transactionService.createTransaction(command2);
@@ -707,11 +678,11 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var categoryId = CategoryId.generate();
 
-        var billItem1 = new BillItemCommand(categoryId, Money.of(new BigDecimal("100.00"), PLN), "Transaction 1");
+        var billItem1 = new BillItemCommand(categoryId, new BigDecimal("100.00"), "Transaction 1");
         var billCommand1 = new BillCommand(List.of(billItem1));
-        var billItem2 = new BillItemCommand(categoryId, Money.of(new BigDecimal("200.00"), PLN), "Transaction 2");
+        var billItem2 = new BillItemCommand(categoryId, new BigDecimal("200.00"), "Transaction 2");
         var billCommand2 = new BillCommand(List.of(billItem2));
-        var billItem3 = new BillItemCommand(categoryId, Money.of(new BigDecimal("300.00"), PLN), "Transaction 3");
+        var billItem3 = new BillItemCommand(categoryId, new BigDecimal("300.00"), "Transaction 3");
         var billCommand3 = new BillCommand(List.of(billItem3));
 
         var commands = List.of(
@@ -749,17 +720,16 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // Create initial transaction
-        var billItemExisting =
-                new BillItemCommand(categoryId, Money.of(new BigDecimal("100.00"), PLN), "Duplicate transaction");
+        var billItemExisting = new BillItemCommand(categoryId, new BigDecimal("100.00"), "Duplicate transaction");
         var billCommandExisting = new BillCommand(List.of(billItemExisting));
         var existingCommand = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 15), TransactionType.INCOME, billCommandExisting, userId);
         transactionService.createTransaction(existingCommand);
 
         // Prepare bulk commands with duplicates
-        var billItem2 = new BillItemCommand(categoryId, Money.of(new BigDecimal("200.00"), PLN), "Transaction 2");
+        var billItem2 = new BillItemCommand(categoryId, new BigDecimal("200.00"), "Transaction 2");
         var billCommand2 = new BillCommand(List.of(billItem2));
-        var billItem3 = new BillItemCommand(categoryId, Money.of(new BigDecimal("300.00"), PLN), "Transaction 3");
+        var billItem3 = new BillItemCommand(categoryId, new BigDecimal("300.00"), "Transaction 3");
         var billCommand3 = new BillCommand(List.of(billItem3));
 
         var commands = List.of(
@@ -797,12 +767,12 @@ class TransactionServiceTest {
         var categoryId = CategoryId.generate();
 
         // Create initial transactions
-        var billItem1 = new BillItemCommand(categoryId, Money.of(new BigDecimal("100.00"), PLN), "Transaction 1");
+        var billItem1 = new BillItemCommand(categoryId, new BigDecimal("100.00"), "Transaction 1");
         var billCommand1 = new BillCommand(List.of(billItem1));
         var command1 = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 15), TransactionType.INCOME, billCommand1, userId);
 
-        var billItem2 = new BillItemCommand(categoryId, Money.of(new BigDecimal("200.00"), PLN), "Transaction 2");
+        var billItem2 = new BillItemCommand(categoryId, new BigDecimal("200.00"), "Transaction 2");
         var billCommand2 = new BillCommand(List.of(billItem2));
         var command2 = new CreateTransactionCommand(
                 account.id(), LocalDate.of(2024, 1, 16), TransactionType.INCOME, billCommand2, userId);
@@ -845,7 +815,7 @@ class TransactionServiceTest {
 
         when(categoryQueryFacade.allCategoriesExists(any(), any())).thenReturn(true);
 
-        var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+        var billItem = new BillItemCommand(categoryId, amount, description);
         var billCommand = new BillCommand(List.of(billItem));
         var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
         var transaction = transactionService.createTransaction(command);
@@ -853,8 +823,7 @@ class TransactionServiceTest {
         when(categoryQueryFacade.allCategoriesExists(any(), any())).thenReturn(false);
 
         // When & Then
-        var billItems = List.of(
-                new BillItemCommand(categoryId, Money.of(new BigDecimal("2000.00"), PLN), "Updated description"));
+        var billItems = List.of(new BillItemCommand(categoryId, new BigDecimal("2000.00"), "Updated description"));
         var updateCommand =
                 new UpdateTransactionCommand(transaction.id(), new BillCommand(billItems), account.id(), date);
         assertThatThrownBy(() -> transactionService.updateTransaction(updateCommand, userId))
@@ -875,7 +844,7 @@ class TransactionServiceTest {
             var date = LocalDate.of(2024, 1, i + 1);
             var type = TransactionType.EXPENSE;
 
-            var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+            var billItem = new BillItemCommand(categoryId, amount, description);
             var billCommand = new BillCommand(List.of(billItem));
             var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
             transactionService.createTransaction(command);
@@ -910,7 +879,7 @@ class TransactionServiceTest {
             var date = LocalDate.of(2024, 1, 1);
             var type = TransactionType.EXPENSE;
 
-            var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+            var billItem = new BillItemCommand(categoryId, amount, description);
             var billCommand = new BillCommand(List.of(billItem));
             var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
             transactionService.createTransaction(command);
@@ -944,7 +913,7 @@ class TransactionServiceTest {
             var date = LocalDate.of(2024, 1, 1);
             var type = TransactionType.EXPENSE;
 
-            var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+            var billItem = new BillItemCommand(categoryId, amount, description);
             var billCommand = new BillCommand(List.of(billItem));
             var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
             transactionService.createTransaction(command);
@@ -977,7 +946,7 @@ class TransactionServiceTest {
             var date = LocalDate.of(2024, 1, 1);
             var type = TransactionType.EXPENSE;
 
-            var billItem = new BillItemCommand(categoryId, Money.of(amount, PLN), description);
+            var billItem = new BillItemCommand(categoryId, amount, description);
             var billCommand = new BillCommand(List.of(billItem));
             var command = new CreateTransactionCommand(account.id(), date, type, billCommand, userId);
             transactionService.createTransaction(command);
@@ -1007,17 +976,17 @@ class TransactionServiceTest {
         var date2 = LocalDate.of(2024, 1, 15);
         var date3 = LocalDate.of(2024, 1, 5);
 
-        var billItem1 = new BillItemCommand(categoryId, Money.of(new BigDecimal("100.00"), PLN), "Old");
+        var billItem1 = new BillItemCommand(categoryId, new BigDecimal("100.00"), "Old");
         var billCommand1 = new BillCommand(List.of(billItem1));
         var command1 = new CreateTransactionCommand(account.id(), date1, TransactionType.EXPENSE, billCommand1, userId);
         var transaction1 = transactionService.createTransaction(command1);
 
-        var billItem2 = new BillItemCommand(categoryId, Money.of(new BigDecimal("200.00"), PLN), "Newest");
+        var billItem2 = new BillItemCommand(categoryId, new BigDecimal("200.00"), "Newest");
         var billCommand2 = new BillCommand(List.of(billItem2));
         var command2 = new CreateTransactionCommand(account.id(), date2, TransactionType.EXPENSE, billCommand2, userId);
         var transaction2 = transactionService.createTransaction(command2);
 
-        var billItem3 = new BillItemCommand(categoryId, Money.of(new BigDecimal("300.00"), PLN), "Oldest");
+        var billItem3 = new BillItemCommand(categoryId, new BigDecimal("300.00"), "Oldest");
         var billCommand3 = new BillCommand(List.of(billItem3));
         var command3 = new CreateTransactionCommand(account.id(), date3, TransactionType.EXPENSE, billCommand3, userId);
         var transaction3 = transactionService.createTransaction(command3);
@@ -1042,13 +1011,13 @@ class TransactionServiceTest {
         var account = accountModuleFacade.createAccount(createAccountCommand);
         var categoryId = CategoryId.generate();
 
-        var billItem1 = new BillItemCommand(categoryId, Money.of(new BigDecimal("100.00"), PLN), "Transaction 1");
+        var billItem1 = new BillItemCommand(categoryId, new BigDecimal("100.00"), "Transaction 1");
         var billCommand1 = new BillCommand(List.of(billItem1));
         var command1 = new CreateTransactionCommand(
                 account.id(), LocalDate.now(), TransactionType.EXPENSE, billCommand1, userId);
         var transaction1 = transactionService.createTransaction(command1);
 
-        var billItem2 = new BillItemCommand(categoryId, Money.of(new BigDecimal("200.00"), PLN), "Transaction 2");
+        var billItem2 = new BillItemCommand(categoryId, new BigDecimal("200.00"), "Transaction 2");
         var billCommand2 = new BillCommand(List.of(billItem2));
         var command2 = new CreateTransactionCommand(
                 account.id(), LocalDate.now(), TransactionType.EXPENSE, billCommand2, userId);

@@ -1,6 +1,5 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -8,13 +7,14 @@ import java.util.UUID;
 import java.util.function.Function;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.shared.CategoryId;
+import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.transaction.domain.Bill;
 import pl.btsoftware.backend.transaction.domain.Transaction;
 
 public record TransactionView(
         UUID id,
         UUID accountId,
-        BigDecimal amount,
+        Money money,
         String type,
         BillView bill,
         LocalDate transactionDate,
@@ -25,7 +25,7 @@ public record TransactionView(
         return new TransactionView(
                 transaction.id().value(),
                 transaction.accountId().value(),
-                transaction.amount().value(),
+                transaction.amount(),
                 transaction.type().name(),
                 BillView.from(transaction.bill(), categoryMapper),
                 transaction.transactionDate(),

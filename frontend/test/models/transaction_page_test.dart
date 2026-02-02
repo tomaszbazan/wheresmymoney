@@ -10,13 +10,13 @@ void main() {
           {
             'id': '123e4567-e89b-12d3-a456-426614174000',
             'accountId': '123e4567-e89b-12d3-a456-426614174001',
-            'amount': 100.50,
+            'amount': {'value': 100.50, 'currency': 'PLN'},
             'type': 'INCOME',
             'bill': {
               'items': [
                 {
                   'category': {'id': '123e4567-e89b-12d3-a456-426614174002', 'name': 'Salary'},
-                  'amount': 100.50,
+                  'amount': {'value': 100.50, 'currency': 'PLN'},
                   'description': 'Test transaction',
                 },
               ],

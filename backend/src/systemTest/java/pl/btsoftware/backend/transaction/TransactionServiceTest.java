@@ -3,7 +3,6 @@ package pl.btsoftware.backend.transaction;
 import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static pl.btsoftware.backend.shared.Currency.EUR;
 import static pl.btsoftware.backend.shared.Currency.PLN;
 import static pl.btsoftware.backend.shared.TransactionType.INCOME;
 
@@ -29,7 +28,6 @@ import pl.btsoftware.backend.transaction.application.*;
 import pl.btsoftware.backend.transaction.domain.TransactionRepository;
 import pl.btsoftware.backend.transaction.domain.error.BillItemDescriptionTooLongException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionAlreadyDeletedException;
-import pl.btsoftware.backend.transaction.domain.error.TransactionCurrencyMismatchException;
 import pl.btsoftware.backend.transaction.domain.error.TransactionNotFoundException;
 import pl.btsoftware.backend.transaction.infrastructure.persistance.TransactionCommandFixture;
 import pl.btsoftware.backend.users.UsersModuleFacade;
@@ -214,26 +212,6 @@ public class TransactionServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenCurrenciesDontMatch() {
-        // Given
-        var userId = createTestUser();
-        var accountId = accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
-        var command = TransactionCommandFixture.createCommand(
-                accountId.id(),
-                Money.of(new BigDecimal("100.00"), EUR),
-                "Payment",
-                LocalDate.now(),
-                INCOME,
-                CategoryId.generate(),
-                userId);
-
-        // When & Then
-        assertThatThrownBy(() -> transactionService.createTransaction(command))
-                .isInstanceOf(TransactionCurrencyMismatchException.class)
-                .hasMessage("Transaction currency (EUR) must match account currency (PLN)");
-    }
-
-    @Test
     void shouldRetrieveTransactionById() {
         // Given
         var userId = createTestUser();
@@ -326,8 +304,8 @@ public class TransactionServiceTest {
 
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(),
-                new BillCommand(List.of(new BillItemCommand(
-                        categoryId, Money.of(new BigDecimal("150.00"), PLN), "Original transaction"))),
+                new BillCommand(
+                        List.of(new BillItemCommand(categoryId, new BigDecimal("150.00"), "Original transaction"))),
                 createCommand.accountId(),
                 createCommand.transactionDate());
 
@@ -361,7 +339,9 @@ public class TransactionServiceTest {
         var transaction = transactionService.createTransaction(createCommand);
 
         var billItem = new BillItemCommand(
-                transaction.bill().items().getFirst().categoryId(), transaction.amount(), "Updated description");
+                transaction.bill().items().getFirst().categoryId(),
+                transaction.amount().value(),
+                "Updated description");
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(),
                 new BillCommand(of(billItem)),
@@ -393,7 +373,7 @@ public class TransactionServiceTest {
                 userId);
         var transaction = transactionService.createTransaction(createCommand);
 
-        var billItem = new BillItemCommand(newCategoryId, transaction.amount(), transaction.description());
+        var billItem = new BillItemCommand(newCategoryId, transaction.amount().value(), transaction.description());
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(),
                 new BillCommand(of(billItem)),
@@ -416,8 +396,7 @@ public class TransactionServiceTest {
         accountModuleFacade.createAccount(new CreateAccountCommand(uniqueAccountName(), PLN, userId));
         var updateCommand = new UpdateTransactionCommand(
                 nonExistentId,
-                new BillCommand(List.of(
-                        new BillItemCommand(CategoryId.generate(), Money.of(new BigDecimal("100.00"), PLN), "test"))),
+                new BillCommand(List.of(new BillItemCommand(CategoryId.generate(), new BigDecimal("100.00"), "test"))),
                 null,
                 null);
 
@@ -625,7 +604,9 @@ public class TransactionServiceTest {
         var transaction = transactionService.createTransaction(createCommand);
 
         var billItem = new BillItemCommand(
-                transaction.bill().items().getFirst().categoryId(), transaction.amount(), "Updated description");
+                transaction.bill().items().getFirst().categoryId(),
+                transaction.amount().value(),
+                "Updated description");
         var updateCommand = new UpdateTransactionCommand(
                 transaction.id(),
                 new BillCommand(of(billItem)),

@@ -4,6 +4,7 @@ import 'package:frontend/models/transaction/bill_item.dart';
 import 'package:frontend/models/transaction/bill_item_category.dart';
 import 'package:frontend/models/transaction_page.dart';
 import 'package:frontend/models/transaction_type.dart';
+import 'package:frontend/models/money.dart';
 import 'package:frontend/services/transaction_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -46,13 +47,17 @@ class InMemoryTransactionService implements TransactionService {
         billItems.map((item) {
           final amount = (item['amount'] as num).toDouble();
           totalAmount += amount;
-          return BillItem(category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'), amount: amount, description: item['description'] as String);
+          return BillItem(
+            category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'),
+            amount: Money(value: amount, currency: currency),
+            description: item['description'] as String,
+          );
         }).toList();
 
     final transaction = Transaction(
       id: id,
       accountId: accountId,
-      amount: totalAmount,
+      amount: Money(value: totalAmount, currency: currency),
       createdAt: transactionDate,
       updatedAt: transactionDate,
       transactionDate: transactionDate,
@@ -85,13 +90,17 @@ class InMemoryTransactionService implements TransactionService {
         billItems.map((item) {
           final amount = (item['amount'] as num).toDouble();
           totalAmount += amount;
-          return BillItem(category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'), amount: amount, description: item['description'] as String);
+          return BillItem(
+            category: BillItemCategory(id: item['categoryId'] as String, name: 'Category'),
+            amount: Money(value: amount, currency: currency),
+            description: item['description'] as String,
+          );
         }).toList();
 
     final updatedTransaction = Transaction(
       id: id,
       accountId: accountId ?? existingTransaction.accountId,
-      amount: totalAmount,
+      amount: Money(value: totalAmount, currency: currency),
       createdAt: existingTransaction.createdAt,
       updatedAt: DateTime.now(),
       transactionDate: transactionDate ?? existingTransaction.transactionDate,
@@ -126,7 +135,7 @@ class InMemoryTransactionService implements TransactionService {
       final transaction = Transaction(
         id: id,
         accountId: accountId,
-        amount: (txData['amount']['value'] as num).toDouble(),
+        amount: Money(value: (txData['amount']['value'] as num).toDouble(), currency: (txData['amount']['currency'] as String)),
         createdAt: DateTime.parse(dateStr),
         updatedAt: DateTime.parse(dateStr),
         transactionDate: DateTime.parse(dateStr),
@@ -134,7 +143,7 @@ class InMemoryTransactionService implements TransactionService {
         billItems: [
           BillItem(
             category: BillItemCategory(id: txData['categoryId'] as String, name: 'Category'),
-            amount: (txData['amount']['value'] as num).toDouble(),
+            amount: Money(value: (txData['amount']['value'] as num).toDouble(), currency: (txData['amount']['currency'] as String)),
             description: txData['description'] as String,
           ),
         ],

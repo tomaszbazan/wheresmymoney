@@ -32,13 +32,13 @@ void main() {
               {
                 'id': 'trans-1',
                 'accountId': 'acc-1',
-                'amount': 100.0,
+                'amount': {'value': 100.0, 'currency': 'PLN'},
                 'type': 'INCOME',
                 'bill': {
                   'items': [
                     {
                       'category': {'id': 'cat-1', 'name': 'Salary'},
-                      'amount': 100.0,
+                      'amount': {'value': 100.0, 'currency': 'PLN'},
                       'description': 'Salary',
                     },
                   ],
@@ -63,7 +63,8 @@ void main() {
 
       expect(transactionPage.transactions, hasLength(1));
       expect(transactionPage.transactions.first.id, 'trans-1');
-      expect(transactionPage.transactions.first.amount, 100.0);
+      expect(transactionPage.transactions.first.amount.value, 100.0);
+      expect(transactionPage.transactions.first.amount.currency, 'PLN');
       expect(transactionPage.transactions.first.type, TransactionType.income);
       expect(transactionPage.page, 0);
       expect(transactionPage.size, 20);
@@ -116,13 +117,13 @@ void main() {
           jsonEncode({
             'id': 'new-trans-id',
             'accountId': 'acc-1',
-            'amount': 100.0,
+            'amount': {'value': 100.0, 'currency': 'PLN'},
             'type': 'INCOME',
             'bill': {
               'items': [
                 {
                   'category': {'id': 'cat-1', 'name': 'Category'},
-                  'amount': 100.0,
+                  'amount': {'value': 100.0, 'currency': 'PLN'},
                   'description': 'Test transaction',
                 },
               ],
@@ -161,13 +162,13 @@ void main() {
           jsonEncode({
             'id': 'trans-id',
             'accountId': 'acc-1',
-            'amount': 50.0,
+            'amount': {'value': 50.0, 'currency': 'USD'},
             'type': 'EXPENSE',
             'bill': {
               'items': [
                 {
                   'category': {'id': 'cat-1', 'name': 'Category'},
-                  'amount': 50.0,
+                  'amount': {'value': 50.0, 'currency': 'USD'},
                   'description': 'Coffee',
                 },
               ],
@@ -231,13 +232,13 @@ void main() {
           jsonEncode({
             'id': 'trans-123',
             'accountId': 'acc-1',
-            'amount': 150.0,
+            'amount': {'value': 150.0, 'currency': 'EUR'},
             'type': 'INCOME',
             'bill': {
               'items': [
                 {
                   'category': {'id': 'cat-2', 'name': 'Category'},
-                  'amount': 150.0,
+                  'amount': {'value': 150.0, 'currency': 'EUR'},
                   'description': 'Updated description',
                 },
               ],
@@ -273,13 +274,13 @@ void main() {
           jsonEncode({
             'id': 'trans-id',
             'accountId': 'acc-1',
-            'amount': 100.0,
+            'amount': {'value': 100.0, 'currency': 'GBP'},
             'type': 'INCOME',
             'bill': {
               'items': [
                 {
                   'category': {'id': 'cat-1', 'name': 'Category'},
-                  'amount': 100.0,
+                  'amount': {'value': 100.0, 'currency': 'GBP'},
                   'description': 'Test',
                 },
               ],

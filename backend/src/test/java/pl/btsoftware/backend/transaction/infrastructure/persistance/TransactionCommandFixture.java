@@ -20,7 +20,7 @@ public final class TransactionCommandFixture {
             TransactionType type,
             CategoryId categoryId,
             UserId userId) {
-        var billItem = new BillItemCommand(categoryId, amount, description);
+        var billItem = new BillItemCommand(categoryId, amount.value(), description);
         var billCommand = new BillCommand(List.of(billItem));
         return new CreateTransactionCommand(accountId, transactionDate, type, billCommand, userId);
     }

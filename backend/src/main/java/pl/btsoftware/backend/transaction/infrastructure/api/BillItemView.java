@@ -1,17 +1,16 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.function.Function;
 import pl.btsoftware.backend.category.domain.Category;
 import pl.btsoftware.backend.shared.CategoryId;
+import pl.btsoftware.backend.shared.Money;
 import pl.btsoftware.backend.transaction.domain.BillItem;
 
-public record BillItemView(UUID id, CategoryView category, BigDecimal amount, String description) {
+public record BillItemView(UUID id, CategoryView category, Money money, String description) {
     public static BillItemView from(BillItem item, Function<CategoryId, Category> categoryMapper) {
         var category = categoryMapper.apply(item.categoryId());
-        return new BillItemView(
-                item.id().value(), CategoryView.from(category), item.amount().value(), item.description());
+        return new BillItemView(item.id().value(), CategoryView.from(category), item.amount(), item.description());
     }
 
     record CategoryView(UUID id, String name) {
