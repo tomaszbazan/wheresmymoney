@@ -13,12 +13,17 @@ class InMemoryTransactionService implements TransactionService {
   Exception? _apiError;
 
   @override
-  Future<TransactionPage> getTransactions({required int page, required int size}) async {
+  Future<TransactionPage> getTransactions({required int page, required int size, required List<TransactionType> types}) async {
     if (_apiError != null) {
       throw _apiError!;
     }
 
-    final allTransactions = _transactions.values.toList();
+    var allTransactions = _transactions.values.toList();
+
+    if (types.isNotEmpty) {
+      allTransactions = allTransactions.where((t) => types.contains(t.type)).toList();
+    }
+
     final totalElements = allTransactions.length;
     final totalPages = (totalElements / size).ceil();
     final start = page * size;

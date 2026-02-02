@@ -23,6 +23,7 @@ void main() {
         expect(request.url.path, '/api/transactions');
         expect(request.url.queryParameters['page'], '0');
         expect(request.url.queryParameters['size'], '20');
+        expect(request.url.queryParametersAll['types'], containsAll(['INCOME', 'EXPENSE']));
         expect(request.headers['Authorization'], 'Bearer fake-jwt-token');
         expect(request.headers['Content-Type'], 'application/json');
 
@@ -59,7 +60,7 @@ void main() {
 
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
-      final transactionPage = await transactionService.getTransactions(page: 0, size: 20);
+      final transactionPage = await transactionService.getTransactions(page: 0, size: 20, types: [TransactionType.income, TransactionType.expense]);
 
       expect(transactionPage.transactions, hasLength(1));
       expect(transactionPage.transactions.first.id, 'trans-1');
@@ -79,7 +80,7 @@ void main() {
 
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
-      final transactionPage = await transactionService.getTransactions(page: 0, size: 20);
+      final transactionPage = await transactionService.getTransactions(page: 0, size: 20, types: []);
 
       expect(transactionPage.transactions, isEmpty);
       expect(transactionPage.totalElements, 0);
@@ -94,7 +95,7 @@ void main() {
 
       final transactionService = RestTransactionService(authService: fakeAuthService, httpClient: mockClient);
 
-      expect(() => transactionService.getTransactions(page: 0, size: 20), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
+      expect(() => transactionService.getTransactions(page: 0, size: 20, types: []), throwsA(isA<HttpException>().having((e) => e.statusCode, 'statusCode', 500)));
     });
 
     test('createTransaction sends POST with correct body format', () async {

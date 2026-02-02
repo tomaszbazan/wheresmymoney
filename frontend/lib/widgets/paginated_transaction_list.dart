@@ -85,12 +85,10 @@ class _TransactionListState extends State<TransactionList> {
 
   Future<void> _loadPage(int page) async {
     try {
-      final transactionPage = await widget.transactionService.getTransactions(page: page, size: _pageSize);
-
-      final filteredTransactions = transactionPage.transactions.where((t) => widget.type == TransactionType.income ? t.isIncome : t.isExpense).toList();
+      final transactionPage = await widget.transactionService.getTransactions(page: page, size: _pageSize, types: [widget.type]);
 
       setState(() {
-        _transactions.addAll(filteredTransactions);
+        _transactions.addAll(transactionPage.transactions);
         _hasMore = transactionPage.hasMore;
       });
     } catch (e) {

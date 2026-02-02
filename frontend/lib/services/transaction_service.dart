@@ -8,7 +8,7 @@ import 'auth_service.dart';
 import 'http_client.dart';
 
 abstract class TransactionService {
-  Future<TransactionPage> getTransactions({required int page, required int size});
+  Future<TransactionPage> getTransactions({required int page, required int size, required List<TransactionType> types});
 
   Future<Transaction> createTransaction({
     required String accountId,
@@ -29,8 +29,14 @@ class RestTransactionService implements TransactionService {
 
   RestTransactionService({AuthService? authService, http.Client? httpClient}) : _apiClient = ApiClient(authService ?? AuthService(), httpClient: httpClient);
   @override
-  Future<TransactionPage> getTransactions({required int page, required int size}) async {
-    return await _apiClient.get<TransactionPage>('/transactions?page=$page&size=$size', TransactionPage.fromJson);
+  Future<TransactionPage> getTransactions({required int page, required int size, required List<TransactionType> types}) async {
+    String query = '/transactions?page=$page&size=$size';
+    if (types.isNotEmpty) {
+      for (final type in types) {
+        query += '&types=${type.name.toUpperCase()}';
+      }
+    }
+    return await _apiClient.get<TransactionPage>(query, TransactionPage.fromJson);
   }
 
   @override
