@@ -10,7 +10,19 @@ import 'auth_service.dart';
 import 'http_client.dart';
 
 abstract class TransactionService {
-  Future<TransactionPage> getTransactions({required int page, required int size, required List<TransactionType> types});
+  Future<TransactionPage> getTransactions({
+    required int page,
+    required int size,
+    List<TransactionType> types = const [],
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    double? minAmount,
+    double? maxAmount,
+    List<String>? accountIds,
+    List<String>? categoryIds,
+    String? description,
+    String? sort,
+  });
 
   Future<Transaction> createTransaction({required String accountId, required DateTime transactionDate, required TransactionType type, required List<BillItemRequest> billItems});
 
@@ -26,14 +38,51 @@ class RestTransactionService implements TransactionService {
 
   RestTransactionService({AuthService? authService, http.Client? httpClient}) : _apiClient = ApiClient(authService ?? AuthService(), httpClient: httpClient);
   @override
-  Future<TransactionPage> getTransactions({required int page, required int size, required List<TransactionType> types}) async {
-    String query = '/transactions?page=$page&size=$size';
+  Future<TransactionPage> getTransactions({
+    required int page,
+    required int size,
+    List<TransactionType> types = const [],
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    double? minAmount,
+    double? maxAmount,
+    List<String>? accountIds,
+    List<String>? categoryIds,
+    String? description,
+    String? sort,
+  }) async {
+    final Map<String, dynamic> queryParams = {'page': page.toString(), 'size': size.toString()};
+
     if (types.isNotEmpty) {
-      for (final type in types) {
-        query += '&types=${type.name.toUpperCase()}';
-      }
+      queryParams['types'] = types.map((e) => e.name.toUpperCase()).toList();
     }
-    return await _apiClient.get<TransactionPage>(query, TransactionPage.fromJson);
+    if (dateFrom != null) {
+      queryParams['dateFrom'] = dateFrom.toIso8601String().split('T').first;
+    }
+    if (dateTo != null) {
+      queryParams['dateTo'] = dateTo.toIso8601String().split('T').first;
+    }
+    if (minAmount != null) {
+      queryParams['minAmount'] = minAmount.toString();
+    }
+    if (maxAmount != null) {
+      queryParams['maxAmount'] = maxAmount.toString();
+    }
+    if (accountIds != null && accountIds.isNotEmpty) {
+      queryParams['accountIds'] = accountIds;
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      queryParams['categoryIds'] = categoryIds;
+    }
+    if (description != null && description.isNotEmpty) {
+      queryParams['description'] = description;
+    }
+    if (sort != null) {
+      queryParams['sort'] = sort;
+    }
+
+    String queryString = Uri(queryParameters: queryParams).query;
+    return await _apiClient.get<TransactionPage>('/transactions?$queryString', TransactionPage.fromJson);
   }
 
   @override

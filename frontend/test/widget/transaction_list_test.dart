@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/account.dart';
 import 'package:frontend/models/transaction/bill_item_request.dart';
+import 'package:frontend/models/transaction_filter.dart';
 import 'package:frontend/models/transaction_type.dart';
+import 'package:frontend/utils/date_formatter.dart';
 import 'package:frontend/widgets/transaction_list.dart';
-import 'package:intl/intl.dart';
 
 import '../mocks/in_memory_transaction_service.dart';
 
@@ -38,7 +39,15 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.income, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+          home: Scaffold(
+            body: TransactionList(
+              accounts: testAccounts,
+              filter: const TransactionFilter(types: [TransactionType.income]),
+              transactionService: transactionService,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -52,7 +61,15 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.expense, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+          home: Scaffold(
+            body: TransactionList(
+              accounts: testAccounts,
+              filter: const TransactionFilter(types: [TransactionType.expense]),
+              transactionService: transactionService,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -75,7 +92,7 @@ void main() {
           home: Scaffold(
             body: TransactionList(
               accounts: [...testAccounts, accountWithoutCurrency],
-              type: TransactionType.income,
+              filter: const TransactionFilter(types: [TransactionType.income]),
               transactionService: transactionService,
               onEdit: (_) {},
               onDelete: (_) {},
@@ -98,7 +115,15 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.income, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+          home: Scaffold(
+            body: TransactionList(
+              accounts: testAccounts,
+              filter: const TransactionFilter(types: [TransactionType.income]),
+              transactionService: transactionService,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -109,7 +134,15 @@ void main() {
     testWidgets('should show empty state when no transactions', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.income, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+          home: Scaffold(
+            body: TransactionList(
+              accounts: testAccounts,
+              filter: const TransactionFilter(types: [TransactionType.income]),
+              transactionService: transactionService,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -128,13 +161,20 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TransactionList(accounts: testAccounts, type: TransactionType.income, transactionService: transactionService, onEdit: (_) {}, onDelete: (_) {})),
+          home: Scaffold(
+            body: TransactionList(
+              accounts: testAccounts,
+              filter: const TransactionFilter(types: [TransactionType.income]),
+              transactionService: transactionService,
+              onEdit: (_) {},
+              onDelete: (_) {},
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
 
-      final formatter = DateFormat('yyyy-MM-dd'); // Matches DateFormatter.format implementation
-      expect(find.textContaining(formatter.format(date)), findsOneWidget);
+      expect(find.textContaining(DateFormatter.format(date)), findsOneWidget);
     });
   });
 }

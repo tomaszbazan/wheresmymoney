@@ -9,15 +9,6 @@ class InMemoryCategoryService implements CategoryService {
   int _getCategoriesByTypeCallCount = 0;
 
   @override
-  Future<List<Category>> getCategories() async {
-    if (_apiError != null) {
-      throw _apiError!;
-    }
-
-    return _categories.values.toList();
-  }
-
-  @override
   Future<List<Category>> getCategoriesByType(CategoryType type) async {
     _getCategoriesByTypeCallCount++;
     if (_apiError != null) {

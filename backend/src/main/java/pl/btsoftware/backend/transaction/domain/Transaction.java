@@ -17,27 +17,6 @@ public record Transaction(
         AuditInfo createdInfo,
         AuditInfo updatedInfo,
         Tombstone tombstone) {
-    public Transaction(
-            TransactionId id,
-            AccountId accountId,
-            TransactionType type,
-            Bill bill,
-            LocalDate transactionDate,
-            TransactionHash transactionHash,
-            AuditInfo createdInfo,
-            AuditInfo updatedInfo,
-            Tombstone tombstone) {
-        this.id = id;
-        this.accountId = accountId;
-        this.type = type;
-        this.bill = bill;
-        this.transactionDate = transactionDate;
-        this.transactionHash = transactionHash;
-        this.createdInfo = createdInfo;
-        this.updatedInfo = updatedInfo;
-        this.tombstone = tombstone;
-    }
-
     public static Transaction create(
             AccountId accountId,
             TransactionType type,

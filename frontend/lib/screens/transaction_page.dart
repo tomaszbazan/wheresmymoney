@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/account.dart';
+import '../models/category.dart';
 import '../models/category_type.dart';
 import '../models/transaction/transaction.dart';
+import '../models/transaction_filter.dart';
 import '../models/transaction_type.dart';
 import '../services/account_service.dart';
 import '../services/category_service.dart';
@@ -12,6 +14,7 @@ import '../utils/error_handler.dart';
 import '../widgets/csv_upload_dialog.dart';
 import '../widgets/no_accounts_dialog.dart';
 import '../widgets/no_categories_dialog.dart';
+import '../widgets/transaction_filter_dialog.dart';
 import '../widgets/transaction_list.dart';
 import '../widgets/transaction_form.dart';
 
@@ -35,8 +38,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
   late final CsvImportService _csvImportService;
 
   List<Account> _accounts = [];
+  List<Category> _categories = [];
   bool _isLoading = false;
   VoidCallback? _refreshCallback;
+  late TransactionFilter _filter;
 
   @override
   void initState() {
@@ -46,17 +51,21 @@ class _TransactionsPageState extends State<TransactionsPage> {
     _categoryService = widget.categoryService ?? RestCategoryService();
     _csvImportService = widget.csvImportService ?? RestCsvImportService();
 
-    _loadAccounts();
+    _filter = TransactionFilter(types: [widget.type]);
+
+    _loadData();
   }
 
-  Future<void> _loadAccounts() async {
+  Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
     try {
       final accounts = await _accountService.getAccounts();
+      final categories = await _categoryService.getCategoriesByType(widget.type == TransactionType.income ? CategoryType.income : CategoryType.expense);
 
       setState(() {
         _accounts = accounts;
+        _categories = categories;
       });
     } catch (e) {
       // ignore: use_build_context_synchronously
@@ -70,20 +79,21 @@ class _TransactionsPageState extends State<TransactionsPage> {
     _refreshCallback?.call();
   }
 
-  Future<bool> _hasCategoriesForType() async {
-    try {
-      final categoryType = widget.type == TransactionType.income ? CategoryType.income : CategoryType.expense;
-      final categories = await _categoryService.getCategoriesByType(categoryType);
-      return categories.isNotEmpty;
-    } catch (e) {
-      return false;
+  Future<void> _showFilterDialog() async {
+    final result = await showDialog<TransactionFilter>(
+      context: context,
+      builder: (context) => TransactionFilterDialog(initialFilter: _filter, accounts: _accounts, categories: _categories),
+    );
+
+    if (result != null) {
+      setState(() {
+        _filter = result;
+      });
     }
   }
 
   Future<void> _showAddTransactionDialog() async {
-    final hasCategories = await _hasCategoriesForType();
-
-    if (!hasCategories && mounted) {
+    if (_categories.isEmpty && mounted) {
       showDialog<void>(context: context, builder: (context) => NoCategoriesDialog(type: widget.type));
       return;
     }
@@ -115,9 +125,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
   }
 
   Future<void> _showEditTransactionDialog(Transaction transaction) async {
-    final hasCategories = await _hasCategoriesForType();
-
-    if (!hasCategories && mounted) {
+    if (_categories.isEmpty && mounted) {
       showDialog<void>(context: context, builder: (context) => NoCategoriesDialog(type: widget.type));
       return;
     }
@@ -218,13 +226,40 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.type == TransactionType.income ? 'Przychody' : 'Wydatki'), automaticallyImplyLeading: false),
+      appBar: AppBar(
+        title: Text(widget.type == TransactionType.income ? 'Przychody' : 'Wydatki'),
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.sort),
+            onPressed: () {
+              showMenu(
+                context: context,
+                position: const RelativeRect.fromLTRB(100, 80, 0, 0),
+                items: [
+                  const PopupMenuItem(value: 'transactionDate,desc', child: Text('Data (Najnowsze)')),
+                  const PopupMenuItem(value: 'transactionDate,asc', child: Text('Data (Najstarsze)')),
+                  const PopupMenuItem(value: 'totalAmount,desc', child: Text('Kwota (Malejąco)')),
+                  const PopupMenuItem(value: 'totalAmount,asc', child: Text('Kwota (Rosnąco)')),
+                ],
+              ).then((value) {
+                if (value != null) {
+                  setState(() {
+                    _filter = _filter.copyWith(sort: value);
+                  });
+                }
+              });
+            },
+          ),
+          IconButton(icon: const Icon(Icons.filter_list), onPressed: _showFilterDialog),
+        ],
+      ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : TransactionList(
                 accounts: _accounts,
-                type: widget.type,
+                filter: _filter,
                 transactionService: _transactionService,
                 onEdit: _showEditTransactionDialog,
                 onDelete: _deleteTransaction,

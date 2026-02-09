@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/category_type.dart';
 import 'package:frontend/models/transaction/bill_item_request.dart';
+import 'package:frontend/models/transaction_filter.dart';
 import 'package:frontend/models/transaction_type.dart';
 import 'package:frontend/screens/transaction_page.dart';
+import 'package:frontend/widgets/transaction_filter_dialog.dart';
 
 import '../mocks/in_memory_account_service.dart';
 import '../mocks/in_memory_category_service.dart';
@@ -95,6 +97,33 @@ void main() {
                   accountService: accountService,
                   categoryService: categoryService,
                   csvImportService: csvImportService,
+                ),
+              ),
+            ),
+
+            GoldenTestScenario(
+              name: 'filter_dialog_open',
+              child: SizedBox(
+                width: 400,
+                height: 600,
+                child: Stack(
+                  children: [
+                    TransactionsPage(
+                      type: TransactionType.income,
+                      transactionService: serviceWithData,
+                      accountService: accountService,
+                      categoryService: categoryService,
+                      csvImportService: csvImportService,
+                    ),
+                    Container(color: Colors.black54),
+                    Center(
+                      child: TransactionFilterDialog(
+                        initialFilter: const TransactionFilter(types: [TransactionType.income]),
+                        accounts: [account1, account2],
+                        categories: [categoryIncome1, categoryIncome2, categoryExpense],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

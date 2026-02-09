@@ -15,7 +15,19 @@ class InMemoryTransactionService implements TransactionService {
   Exception? _apiError;
 
   @override
-  Future<TransactionPage> getTransactions({required int page, required int size, required List<TransactionType> types}) async {
+  Future<TransactionPage> getTransactions({
+    required int page,
+    required int size,
+    List<TransactionType> types = const [],
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    double? minAmount,
+    double? maxAmount,
+    List<String>? accountIds,
+    List<String>? categoryIds,
+    String? description,
+    String? sort,
+  }) async {
     if (_apiError != null) {
       throw _apiError!;
     }
@@ -24,6 +36,49 @@ class InMemoryTransactionService implements TransactionService {
 
     if (types.isNotEmpty) {
       allTransactions = allTransactions.where((t) => types.contains(t.type)).toList();
+    }
+
+    if (dateFrom != null) {
+      allTransactions = allTransactions.where((t) => !t.transactionDate.isBefore(dateFrom)).toList();
+    }
+    if (dateTo != null) {
+      allTransactions = allTransactions.where((t) => !t.transactionDate.isAfter(dateTo)).toList();
+    }
+    if (minAmount != null) {
+      allTransactions = allTransactions.where((t) => t.amount.value >= minAmount).toList();
+    }
+    if (maxAmount != null) {
+      allTransactions = allTransactions.where((t) => t.amount.value <= maxAmount).toList();
+    }
+    if (accountIds != null && accountIds.isNotEmpty) {
+      allTransactions = allTransactions.where((t) => accountIds.contains(t.accountId)).toList();
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      allTransactions =
+          allTransactions.where((t) {
+            return t.billItems.any((item) => categoryIds.contains(item.category.id));
+          }).toList();
+    }
+    if (description != null && description.isNotEmpty) {
+      final search = description.toLowerCase();
+      allTransactions =
+          allTransactions.where((t) {
+            return t.billItems.any((item) => item.description.toLowerCase().contains(search));
+          }).toList();
+    }
+
+    // Sort logic (simple)
+    if (sort != null) {
+      if (sort.startsWith('transactionDate')) {
+        final desc = sort.contains('desc');
+        allTransactions.sort((a, b) => desc ? b.transactionDate.compareTo(a.transactionDate) : a.transactionDate.compareTo(b.transactionDate));
+      } else if (sort.startsWith('totalAmount')) {
+        final desc = sort.contains('desc');
+        allTransactions.sort((a, b) => desc ? b.amount.value.compareTo(a.amount.value) : a.amount.value.compareTo(b.amount.value));
+      }
+    } else {
+      // Default sort by date desc
+      allTransactions.sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
     }
 
     final totalElements = allTransactions.length;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/models/transaction_type.dart';
+import '../models/transaction_filter.dart';
 
 import '../models/account.dart';
 import '../models/transaction/transaction.dart';
@@ -9,7 +9,7 @@ import 'transaction_list_item.dart';
 
 class TransactionList extends StatefulWidget {
   final List<Account> accounts;
-  final TransactionType type;
+  final TransactionFilter filter;
   final TransactionService transactionService;
   final void Function(Transaction) onEdit;
   final void Function(Transaction) onDelete;
@@ -18,7 +18,7 @@ class TransactionList extends StatefulWidget {
   const TransactionList({
     super.key,
     required this.accounts,
-    required this.type,
+    required this.filter,
     required this.transactionService,
     required this.onEdit,
     required this.onDelete,
@@ -44,6 +44,14 @@ class _TransactionListState extends State<TransactionList> {
     _scrollController.addListener(_onScroll);
     widget.onRefreshRequested?.call(_loadFirstPage);
     _loadFirstPage();
+  }
+
+  @override
+  void didUpdateWidget(TransactionList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.filter != oldWidget.filter) {
+      _loadFirstPage();
+    }
   }
 
   @override
@@ -86,7 +94,18 @@ class _TransactionListState extends State<TransactionList> {
 
   Future<void> _loadPage(int page) async {
     try {
-      final transactionPage = await widget.transactionService.getTransactions(page: page, size: _pageSize, types: [widget.type]);
+      final transactionPage = await widget.transactionService.getTransactions(
+        page: page,
+        size: _pageSize,
+        types: widget.filter.types,
+        dateFrom: widget.filter.dateFrom,
+        dateTo: widget.filter.dateTo,
+        minAmount: widget.filter.minAmount,
+        maxAmount: widget.filter.maxAmount,
+        accountIds: widget.filter.accountIds,
+        categoryIds: widget.filter.categoryIds,
+        sort: widget.filter.sort,
+      );
 
       setState(() {
         _transactions.addAll(transactionPage.transactions);
