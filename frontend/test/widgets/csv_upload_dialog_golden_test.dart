@@ -12,6 +12,7 @@ void main() {
     goldenTest(
       'renders complete dialog',
       fileName: 'csv_upload_dialog_complete',
+      tags: ['golden'],
       builder: () {
         return GoldenTestGroup(children: [GoldenTestScenario(name: 'initial state', child: CsvUploadDialog(csvImportService: InMemoryCsvImportService(), accounts: mockAccounts))]);
       },

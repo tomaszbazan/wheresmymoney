@@ -1,6 +1,8 @@
 package pl.btsoftware.backend.transaction.infrastructure.api;
 
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -51,14 +53,44 @@ public class TransactionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) Set<TransactionType> types,
+            @RequestParam(required = false) LocalDate dateFrom,
+            @RequestParam(required = false) LocalDate dateTo,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) Set<UUID> accountIds,
+            @RequestParam(required = false) Set<UUID> categoryIds,
+            @RequestParam(required = false) String description,
+            @RequestParam(defaultValue = "transactionDate,desc") String[] sort,
             @AuthenticationPrincipal Jwt jwt) {
         var userId = new UserId(jwt.getSubject());
         log.info("Received request to get paginated transactions (page={}, size={}) by user: {}", page, size, userId);
 
         var validatedSize = paginationValidator.validatePageSize(size);
-        var pageable = PageRequest.of(
-                page, validatedSize, Sort.by("transactionDate", "createdAt").descending());
-        var criteria = new TransactionSearchCriteria(types);
+
+        Sort finalSort = Sort.unsorted();
+        if (sort != null && sort.length > 0) {
+            String property = sort[0];
+            Sort.Direction direction = Sort.Direction.DESC;
+
+            if (sort.length > 1) {
+                direction = Sort.Direction.fromString(sort[1]);
+            } else if (property.contains(",")) {
+                String[] parts = property.split(",");
+                property = parts[0];
+                if (parts.length > 1) {
+                    direction = Sort.Direction.fromString(parts[1]);
+                }
+            }
+            finalSort = Sort.by(direction, property);
+        }
+
+        // Add secondary sort by createdAt for stability
+        finalSort = finalSort.and(Sort.by("createdAt").descending());
+
+        var pageable = PageRequest.of(page, validatedSize, finalSort);
+
+        var criteria = TransactionSearchCriteria.from(
+                types, dateFrom, dateTo, minAmount, maxAmount, accountIds, categoryIds, description);
         var transactionsPage = transactionModuleFacade.getAllTransactions(criteria, userId, pageable);
 
         return TransactionsPaginatedView.from(

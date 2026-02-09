@@ -4,8 +4,6 @@ import 'auth_service.dart';
 import 'http_client.dart';
 
 abstract class CategoryService {
-  Future<List<Category>> getCategories();
-
   Future<List<Category>> getCategoriesByType(CategoryType type);
 
   Future<Category> createCategory({required String name, required String description, required CategoryType type, required String color, String? parentId});
@@ -19,11 +17,6 @@ class RestCategoryService implements CategoryService {
   final ApiClient _apiClient;
 
   RestCategoryService({AuthService? authService}) : _apiClient = ApiClient(authService ?? AuthService());
-
-  @override
-  Future<List<Category>> getCategories() async {
-    return await _apiClient.getList<Category>('/categories', 'categories', Category.fromJson);
-  }
 
   @override
   Future<List<Category>> getCategoriesByType(CategoryType type) async {

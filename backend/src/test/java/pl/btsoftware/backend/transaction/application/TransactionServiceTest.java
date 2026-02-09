@@ -10,7 +10,6 @@ import static pl.btsoftware.backend.shared.Currency.PLN;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1088,7 +1087,7 @@ class TransactionServiceTest {
         transactionService.createTransaction(command1);
         transactionService.createTransaction(command2);
 
-        var criteria = new TransactionSearchCriteria(Set.of(TransactionType.INCOME));
+        var criteria = TransactionSearchCriteria.incomes();
 
         // When
         var filteredTransactions = transactionService.getAllTransactions(criteria, testGroupId, Pageable.ofSize(20));
